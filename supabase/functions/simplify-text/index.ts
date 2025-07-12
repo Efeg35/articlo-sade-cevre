@@ -79,16 +79,21 @@ serve(async (req) => {
       throw new Error('Yüklenen dosyalarda sadeleştirilecek metin bulunamadı.');
     }
 
-    // Gelişmiş prompt: Başlıklar büyük harf ve zorunlu
-    const prompt = `Aşağıdaki metni üç aşamalı olarak işle. Her aşamanın başına mutlaka ve BÜYÜK HARFLERLE, satır başında sırasıyla 'BELGE ÖZETİ', 'SİZİN İÇİN ANLAMI' ve '---' başlıklarını ekle. Hiçbir bölümü atlama, her başlık zorunlu olsun.
+    // Üç başlık: BELGE ÖZETİ, ANLAŞILMASI KOLAYLAŞTIRILMIŞ VERSİYON, ŞİMDİ NE YAPMALIYIM?
+    const prompt = `Aşağıdaki metni üç aşamalı olarak işle. Her aşamanın başına ve sonuna mutlaka ve BÜYÜK HARFLERLE, satır başında ve tek başına sırasıyla '## BELGE ÖZETİ ##', '## ANLAŞILMASI KOLAYLAŞTIRILMIŞ VERSİYON ##', '## ŞİMDİ NE YAPMALIYIM? ##' başlıklarını ekle. Hiçbir bölümü atlama, her başlık ve bölüm ZORUNLU ve DOLU olmalı, asla boş bırakma! BELGE ÖZETİ kısmında kritik bilgileri **kalın** (çift yıldızla) vurgula. ANLAŞILMASI KOLAYLAŞTIRILMIŞ VERSİYON kısmında hem sadeleştirilmiş metni hem de kullanıcının anlaması için özet ve açıklamaları birleştir. ŞİMDİ NE YAPMALIYIM? kısmında her adımı madde madde ve en az 2 öneriyle yaz. Her başlık ve bölüm arasında en az bir boş satır bırak. Aşağıda örnek çıktı formatı verilmiştir:
 
-1. BELGE ÖZETİ başlığı altında, en kritik bilgileri (ör. son başvuru tarihi, duruşma günü, para miktarı, taraflar, önemli yükümlülükler) içeren, 2-3 paragraflık kısa bir özet yaz. Bu özetin içinde kritik bilgileri **kalın** yaparak vurgula. Açık, sade ve anlaşılır bir dil kullan.
+## BELGE ÖZETİ ##
+Bu sözleşme ile **15.04.2025** tarihinden itibaren **1 yıl** süreyle **Karabağlar/İzmir'deki 2+1 daire** kiralanmıştır. **Yıllık kira bedeli 228.000 TL** ve **depozito 19.000 TL**'dir. Kiracı, tüm faturalar ve hasarlardan sorumludur.
 
-2. SİZİN İÇİN ANLAMI başlığı altında, bu belgenin kullanıcıyı nasıl etkilediğini, kullanıcının neyle karşı karşıya olduğunu ve hangi önemli yükümlülükleri olduğunu kısa ve doğrudan bir dille özetle. Kişisel ve net bir açıklama yap.
+## ANLAŞILMASI KOLAYLAŞTIRILMIŞ VERSİYON ##
+Bu belgeye göre, Karabağlar/İzmir'deki daireyi 1 yıl boyunca kiralıyorsunuz. Yıllık kira 228.000 TL, depozito 19.000 TL. Faturalar ve hasarlar size ait. Tahliye için 1 ay önceden bildirim şart. Sözleşmeyi dikkatlice okuyun ve yükümlülüklerinizi yerine getirin.
 
-3. Son olarak --- ayırıcıdan sonra, metnin tamamını sadeleştir. Sadeleştirilmiş metinde başlık veya açıklama ekleme, sadece sadeleştirilmiş metni ver.
+## ŞİMDİ NE YAPMALIYIM? ##
+1. Sözleşmeyi dikkatlice okuyun ve anlamadığınız noktaları not alın.
+2. Kira ve depozito ödemelerini zamanında yapın.
+3. Dairenin teslimi ve tahliye şartlarına uyun.
 
-İşte sadeleştirilecek metin:
+Şimdi aşağıdaki metni bu formatta işle:
 
 ${textToSimplify}`;
 
@@ -105,15 +110,28 @@ ${textToSimplify}`;
     const fullText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!fullText) throw new Error('Gemini API yanıtı beklenen formatta değil.');
 
-    // Cevabı ayır: summary, meaning, simplifiedText (büyük/küçük harf toleranslı)
-    const summaryMatch = fullText.match(/^(BELGE ÖZETİ|Belge Özeti)[\s\S]*?(?=^SİZİN İÇİN ANLAMI|^Sizin İçin Anlamı|^SİZİN İÇİN ANLAMI\n|^Sizin İçin Anlamı\n|^SİZİN İÇİN ANLAMI\r?\n|^Sizin İçin Anlamı\r?\n)/m);
-    const meaningMatch = fullText.match(/^(SİZİN İÇİN ANLAMI|Sizin İçin Anlamı)[\s\S]*?(?=^---|^---\n|^---\r?\n)/m);
-    const simplifiedRaw = fullText.split(/\n?-{3,}\n?/)[1];
-    const summary = summaryMatch ? summaryMatch[0].replace(/^(BELGE ÖZETİ|Belge Özeti)\s*/i, '').trim() : '';
-    const meaning = meaningMatch ? meaningMatch[0].replace(/^(SİZİN İÇİN ANLAMI|Sizin İçin Anlamı)\s*/i, '').trim() : '';
-    const simplifiedText = simplifiedRaw ? simplifiedRaw.trim() : '';
+    // Cevabı ayır: summary, simplifiedText, actionPlan (## ... ## başlıklarına göre)
+    const summaryMatch = fullText.match(/## BELGE ÖZETİ ##([\s\S]*?)(?=## ANLAŞILMASI KOLAYLAŞTIRILMIŞ VERSİYON ##)/);
+    const simplifiedMatch = fullText.match(/## ANLAŞILMASI KOLAYLAŞTIRILMIŞ VERSİYON ##([\s\S]*?)(?=## ŞİMDİ NE YAPMALIYIM\? ##)/);
+    const actionPlanMatch = fullText.match(/## ŞİMDİ NE YAPMALIYIM\? ##([\s\S]*)$/);
+    let summary = summaryMatch ? summaryMatch[1].trim() : '';
+    let simplifiedText = simplifiedMatch ? simplifiedMatch[1].trim() : '';
+    let actionPlan = actionPlanMatch ? actionPlanMatch[1].trim() : '';
 
-    return new Response(JSON.stringify({ summary, meaning, simplifiedText }), {
+    if (!actionPlan) {
+      const planPrompt = `Aşağıda bir hukuki belgenin özeti ve sadeleştirilmiş açıklaması yer alıyor. Kullanıcının atması gereken adımları madde madde, net ve uygulanabilir biçimde sırala. En az 2 ve en fazla 5 madde yaz. Her madde kısa ve eylem odaklı olsun.\n\nÖZET:\n${summary}\n\nAÇIKLAMA:\n${simplifiedText}\n\nMADDE MADDE EYLEM PLANI:`;
+      const planResp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${geminiApiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ parts: [{ text: planPrompt }] }] })
+      });
+      if (planResp.ok) {
+        const planData = await planResp.json();
+        actionPlan = planData.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
+      }
+    }
+
+    return new Response(JSON.stringify({ summary, simplifiedText, actionPlan }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
 

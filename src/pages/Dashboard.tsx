@@ -15,6 +15,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [summary, setSummary] = useState("");
+  const [actionPlan, setActionPlan] = useState("");
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -71,8 +72,8 @@ const Dashboard = () => {
     }
 
     setLoading(true);
-    setSimplifiedText("");
     setSummary("");
+    setActionPlan("");
     try {
       let body: FormData | { text: string };
       let originalTextForDb = originalText;
@@ -99,6 +100,7 @@ const Dashboard = () => {
 
       setSummary(data.summary);
       setSimplifiedText(data.simplifiedText);
+      setActionPlan(data.actionPlan);
 
       // Save to database
       if (user && data.simplifiedText) {
@@ -288,6 +290,7 @@ const Dashboard = () => {
               )}
               {simplifiedText ? (
                 <div className="min-h-[400px] p-4 bg-accent/50 rounded-md border">
+                  <h3 className="font-semibold text-primary mb-2">Anlaşılması Kolaylaştırılmış Versiyon</h3>
                   <p className="text-sm leading-relaxed whitespace-pre-wrap">
                     {simplifiedText}
                   </p>
@@ -297,6 +300,12 @@ const Dashboard = () => {
                   <p className="text-muted-foreground text-center">
                     Sadeleştirilmiş metin burada görünecek
                   </p>
+                </div>
+              )}
+              {actionPlan && (
+                <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
+                  <h3 className="font-semibold text-yellow-900 mb-2">Şimdi Ne Yapmalıyım?</h3>
+                  <div className="text-sm leading-relaxed whitespace-pre-wrap">{actionPlan}</div>
                 </div>
               )}
             </CardContent>
