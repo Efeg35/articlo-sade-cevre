@@ -24,35 +24,35 @@ serve(async (req) => {
     );
     
     let textToSimplify: string | undefined;
+    let modelName = 'gemini-1.5-flash-latest';
     const contentType = req.headers.get('content-type');
 
     if (contentType?.includes('application/json')) {
       const body = await req.json();
       textToSimplify = body.text;
+      if (body.model === 'pro') {
+        modelName = 'gemini-1.5-pro-latest';
+      }
     } else if (contentType?.includes('multipart/form-data')) {
       const formData = await req.formData();
-      // BİRDEN ÇOK DOSYAYI DOĞRU ŞEKİLDE AL
+      const modelParam = formData.get('model');
+      if (modelParam === 'pro') {
+        modelName = 'gemini-1.5-pro-latest';
+      }
       const files = formData.getAll('files') as File[];
-      
       if (!files || files.length === 0) {
         throw new Error('Dosya yüklenemedi.');
       }
-
-      const allExtractedTexts: string[] = [];
-
-      // HER BİR DOSYA İÇİN DÖNGÜ OLUŞTUR
-      for (const file of files) {
+      const ocrPromises = files.map(async (file) => {
         const filePath = `public/${Date.now()}-${file.name}`;
         const { error: uploadError } = await supabaseAdmin.storage
           .from('document-images')
           .upload(filePath, file);
         if (uploadError) throw uploadError;
-
         const { data: urlData } = supabaseAdmin.storage
           .from('document-images')
           .getPublicUrl(filePath);
         const publicUrl = urlData.publicUrl;
-
         const visionResponse = await fetch(`https://vision.googleapis.com/v1/images:annotate?key=${geminiApiKey}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -64,19 +64,13 @@ serve(async (req) => {
           })
         });
         if (!visionResponse.ok) throw new Error('Google Vision API hatası.');
-        
         const visionData = await visionResponse.json();
         const extractedText = visionData.responses?.[0]?.fullTextAnnotation?.text;
-        if (extractedText) {
-          allExtractedTexts.push(extractedText);
-        }
-
         await supabaseAdmin.storage.from('document-images').remove([filePath]);
-      }
-      
-      // Tüm metinleri birleştir
-      textToSimplify = allExtractedTexts.join('\n\n--- YENİ SAYFA ---\n\n');
-
+        return extractedText || '';
+      });
+      const allExtractedTexts = await Promise.all(ocrPromises);
+      textToSimplify = allExtractedTexts.filter(Boolean).join('\n\n--- YENİ SAYFA ---\n\n');
     } else {
       throw new Error('Desteklenmeyen içerik türü.');
     }
@@ -85,10 +79,18 @@ serve(async (req) => {
       throw new Error('Yüklenen dosyalarda sadeleştirilecek metin bulunamadı.');
     }
 
-    // Gemini API'si ile metni sadeleştir
-    const prompt = `Aşağıdaki karmaşık hukuki veya resmi metni, Türkiye'de yaşayan ve hukuk terminolojisine hakim olmayan sıradan bir vatandaşın anlayabileceği şekilde, son derece basit, sade ve net bir dille yeniden yaz... İşte sadeleştirilecek metin:\n\n${textToSimplify}`;
+    // Gelişmiş prompt: Belge Özeti + ayraç + sadeleştirilmiş metin
+    const prompt = `Aşağıdaki karmaşık hukuki veya resmi metni iki aşamalı olarak işle:
 
-    const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent?key=${geminiApiKey}`, {
+1. Önce Belge Özeti başlığı altında, en kritik bilgileri (ör. son başvuru tarihi, duruşma günü, para miktarı, taraflar, önemli yükümlülükler) içeren, 2-3 paragraflık kısa bir özet yaz. Bu özetin içinde kritik bilgileri **kalın** yaparak vurgula. Açık, sade ve anlaşılır bir dil kullan.
+
+2. Ardından --- ayırıcıdan sonra, metnin tamamını sadeleştir. Sadeleştirilmiş metinde başlık veya açıklama ekleme, sadece sadeleştirilmiş metni ver.
+
+İşte sadeleştirilecek metin:
+
+${textToSimplify}`;
+
+    const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${geminiApiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -98,11 +100,15 @@ serve(async (req) => {
 
     if (!geminiResponse.ok) throw new Error(`Gemini API hatası: ${geminiResponse.status}`);
     const geminiData = await geminiResponse.json();
-    const simplifiedText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
+    const fullText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!fullText) throw new Error('Gemini API yanıtı beklenen formatta değil.');
 
-    if (!simplifiedText) throw new Error('Gemini API yanıtı beklenen formatta değil.');
+    // Cevabı ayır: "Belge Özeti" ve sadeleştirilmiş metin
+    const [summaryRaw, simplifiedRaw] = fullText.split(/\n?-{3,}\n?/);
+    const summary = summaryRaw?.trim() || '';
+    const simplifiedText = simplifiedRaw?.trim() || '';
 
-    return new Response(JSON.stringify({ simplifiedText }), {
+    return new Response(JSON.stringify({ summary, simplifiedText }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
 

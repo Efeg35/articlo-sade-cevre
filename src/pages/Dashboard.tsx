@@ -13,7 +13,8 @@ const Dashboard = () => {
   const [originalText, setOriginalText] = useState("");
   const [simplifiedText, setSimplifiedText] = useState("");
   const [loading, setLoading] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [summary, setSummary] = useState("");
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -60,7 +61,7 @@ const Dashboard = () => {
   };
 
   const handleSimplify = async () => {
-    if (!originalText.trim() && !selectedFile) {
+    if (!originalText.trim() && selectedFiles.length === 0) {
       toast({
         title: "Metin veya dosya gerekli",
         description: "Lütfen sadeleştirilecek metni girin veya bir fotoğraf yükleyin.",
@@ -71,16 +72,20 @@ const Dashboard = () => {
 
     setLoading(true);
     setSimplifiedText("");
+    setSummary("");
     try {
       let body: FormData | { text: string };
       let originalTextForDb = originalText;
-      if (selectedFile) {
-        body = new FormData();
-        body.append('file', selectedFile);
+      if (selectedFiles.length > 0) {
+        const formData = new FormData();
+        selectedFiles.forEach((file) => {
+          formData.append('files', file);
+        });
         if (originalText.trim()) {
-          body.append('text', originalText);
+          formData.append('text', originalText);
         }
-        originalTextForDb = `[File: ${selectedFile.name}]`;
+        body = formData;
+        originalTextForDb = `[Files: ${selectedFiles.map(f => f.name).join(", ")}]`;
       } else {
         body = { text: originalText };
       }
@@ -92,17 +97,17 @@ const Dashboard = () => {
         throw new Error(errorMsg);
       }
 
-      const simplified = data.simplifiedText;
-      setSimplifiedText(simplified);
+      setSummary(data.summary);
+      setSimplifiedText(data.simplifiedText);
 
       // Save to database
-      if (user && simplified) {
+      if (user && data.simplifiedText) {
         const { error: dbError } = await supabase
           .from('documents')
           .insert({
             user_id: user.id,
             original_text: originalTextForDb,
-            simplified_text: simplified,
+            simplified_text: data.simplifiedText,
           });
         if (dbError) {
           console.error('Database error:', dbError);
@@ -201,10 +206,16 @@ const Dashboard = () => {
                     id="file-upload"
                     type="file"
                     accept="image/*"
+                    multiple
                     className="hidden"
                     onChange={(e) => {
-                      if (e.target.files && e.target.files[0]) {
-                        setSelectedFile(e.target.files[0]);
+                      if (e.target.files && e.target.files.length > 0) {
+                        setSelectedFiles((prev) => [
+                          ...prev,
+                          ...Array.from(e.target.files).filter(
+                            (file) => !prev.some((f) => f.name === file.name && f.size === file.size && f.lastModified === file.lastModified)
+                          )
+                        ]);
                       }
                     }}
                   />
@@ -219,18 +230,22 @@ const Dashboard = () => {
                     </span>
                   </Button>
                 </label>
-                {selectedFile && (
-                  <div className="flex items-center mt-2 bg-muted px-3 py-1 rounded text-sm">
-                    <span className="truncate max-w-[180px]">{selectedFile.name}</span>
-                    <button
-                      type="button"
-                      className="ml-2 text-muted-foreground hover:text-destructive"
-                      onClick={() => setSelectedFile(null)}
-                      aria-label="Dosya seçimini kaldır"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
+                {selectedFiles.length > 0 && (
+                  <ul className="mt-2 space-y-1">
+                    {selectedFiles.map((file, idx) => (
+                      <li key={file.name + file.size + file.lastModified} className="flex items-center bg-muted px-3 py-1 rounded text-sm">
+                        <span className="truncate max-w-[180px]">{file.name}</span>
+                        <button
+                          type="button"
+                          className="ml-2 text-muted-foreground hover:text-destructive"
+                          onClick={() => setSelectedFiles(selectedFiles.filter((_, i) => i !== idx))}
+                          aria-label="Dosya seçimini kaldır"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
                 )}
               </div>
             </CardContent>
@@ -240,7 +255,7 @@ const Dashboard = () => {
           <div className="lg:col-span-1 flex items-center justify-center">
             <Button
               onClick={handleSimplify}
-              disabled={loading || (!originalText.trim() && !selectedFile)}
+              disabled={loading || (!originalText.trim() && selectedFiles.length === 0)}
               variant="success"
               size="lg"
               className="px-8 py-4 text-lg h-auto"
@@ -265,6 +280,12 @@ const Dashboard = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
+              {summary && (
+                <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-md">
+                  <h3 className="font-semibold text-blue-900 mb-2">Belge Özeti</h3>
+                  <div className="text-sm leading-relaxed whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: summary.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') }} />
+                </div>
+              )}
               {simplifiedText ? (
                 <div className="min-h-[400px] p-4 bg-accent/50 rounded-md border">
                   <p className="text-sm leading-relaxed whitespace-pre-wrap">
