@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, LogOut, FileText } from "lucide-react";
+import { Loader2, LogOut, FileText, X } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 
 const Dashboard = () => {
@@ -13,6 +13,7 @@ const Dashboard = () => {
   const [originalText, setOriginalText] = useState("");
   const [simplifiedText, setSimplifiedText] = useState("");
   const [loading, setLoading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -59,42 +60,52 @@ const Dashboard = () => {
   };
 
   const handleSimplify = async () => {
-    if (!originalText.trim()) {
+    if (!originalText.trim() && !selectedFile) {
       toast({
-        title: "Metin gerekli",
-        description: "Lütfen sadeleştirilecek metni girin.",
+        title: "Metin veya dosya gerekli",
+        description: "Lütfen sadeleştirilecek metni girin veya bir fotoğraf yükleyin.",
         variant: "destructive",
       });
       return;
     }
 
     setLoading(true);
+    setSimplifiedText("");
     try {
-      // Call the edge function for AI simplification
-      const { data, error } = await supabase.functions.invoke('simplify-text', {
-        body: { text: originalText }
-      });
+      let body: FormData | { text: string };
+      let originalTextForDb = originalText;
+      if (selectedFile) {
+        body = new FormData();
+        body.append('file', selectedFile);
+        if (originalText.trim()) {
+          body.append('text', originalText);
+        }
+        originalTextForDb = `[File: ${selectedFile.name}]`;
+      } else {
+        body = { text: originalText };
+      }
+
+      const { data, error } = await supabase.functions.invoke('simplify-text', { body });
 
       if (error) {
-        throw error;
+        const errorMsg = typeof error === 'string' ? error : (error?.message || 'Bilinmeyen bir hata oluştu.');
+        throw new Error(errorMsg);
       }
 
       const simplified = data.simplifiedText;
       setSimplifiedText(simplified);
 
       // Save to database
-      if (user) {
+      if (user && simplified) {
         const { error: dbError } = await supabase
           .from('documents')
           .insert({
             user_id: user.id,
-            original_text: originalText,
+            original_text: originalTextForDb,
             simplified_text: simplified,
           });
-
         if (dbError) {
           console.error('Database error:', dbError);
-          // Don't show error to user as the main function worked
         }
       }
 
@@ -102,11 +113,12 @@ const Dashboard = () => {
         title: "Başarılı!",
         description: "Metin başarıyla sadeleştirildi.",
       });
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Simplification error:', error);
+      const errorMsg = error instanceof Error ? error.message : "Metin sadeleştirilemedi. Lütfen tekrar deneyin.";
       toast({
         title: "Hata",
-        description: "Metin sadeleştirilemedi. Lütfen tekrar deneyin.",
+        description: errorMsg,
         variant: "destructive",
       });
     } finally {
@@ -182,6 +194,45 @@ const Dashboard = () => {
                 className="min-h-[400px] resize-none"
                 disabled={loading}
               />
+              {/* Fotoğraf Yükleme Bileşeni */}
+              <div className="mt-4">
+                <label htmlFor="file-upload" className="block w-full">
+                  <input
+                    id="file-upload"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files[0]) {
+                        setSelectedFile(e.target.files[0]);
+                      }
+                    }}
+                  />
+                  <Button
+                    asChild
+                    type="button"
+                    variant="outline"
+                    className="w-full flex justify-center items-center gap-2"
+                  >
+                    <span>
+                      Veya Bir Fotoğraf Yükle
+                    </span>
+                  </Button>
+                </label>
+                {selectedFile && (
+                  <div className="flex items-center mt-2 bg-muted px-3 py-1 rounded text-sm">
+                    <span className="truncate max-w-[180px]">{selectedFile.name}</span>
+                    <button
+                      type="button"
+                      className="ml-2 text-muted-foreground hover:text-destructive"
+                      onClick={() => setSelectedFile(null)}
+                      aria-label="Dosya seçimini kaldır"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+              </div>
             </CardContent>
           </Card>
 
@@ -189,7 +240,7 @@ const Dashboard = () => {
           <div className="lg:col-span-1 flex items-center justify-center">
             <Button
               onClick={handleSimplify}
-              disabled={loading || !originalText.trim()}
+              disabled={loading || (!originalText.trim() && !selectedFile)}
               variant="success"
               size="lg"
               className="px-8 py-4 text-lg h-auto"
