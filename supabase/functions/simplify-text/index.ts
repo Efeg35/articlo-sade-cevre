@@ -79,12 +79,14 @@ serve(async (req) => {
       throw new Error('Yüklenen dosyalarda sadeleştirilecek metin bulunamadı.');
     }
 
-    // Gelişmiş prompt: Belge Özeti + ayraç + sadeleştirilmiş metin
-    const prompt = `Aşağıdaki karmaşık hukuki veya resmi metni iki aşamalı olarak işle:
+    // Gelişmiş prompt: Başlıklar büyük harf ve zorunlu
+    const prompt = `Aşağıdaki metni üç aşamalı olarak işle. Her aşamanın başına mutlaka ve BÜYÜK HARFLERLE, satır başında sırasıyla 'BELGE ÖZETİ', 'SİZİN İÇİN ANLAMI' ve '---' başlıklarını ekle. Hiçbir bölümü atlama, her başlık zorunlu olsun.
 
-1. Önce Belge Özeti başlığı altında, en kritik bilgileri (ör. son başvuru tarihi, duruşma günü, para miktarı, taraflar, önemli yükümlülükler) içeren, 2-3 paragraflık kısa bir özet yaz. Bu özetin içinde kritik bilgileri **kalın** yaparak vurgula. Açık, sade ve anlaşılır bir dil kullan.
+1. BELGE ÖZETİ başlığı altında, en kritik bilgileri (ör. son başvuru tarihi, duruşma günü, para miktarı, taraflar, önemli yükümlülükler) içeren, 2-3 paragraflık kısa bir özet yaz. Bu özetin içinde kritik bilgileri **kalın** yaparak vurgula. Açık, sade ve anlaşılır bir dil kullan.
 
-2. Ardından --- ayırıcıdan sonra, metnin tamamını sadeleştir. Sadeleştirilmiş metinde başlık veya açıklama ekleme, sadece sadeleştirilmiş metni ver.
+2. SİZİN İÇİN ANLAMI başlığı altında, bu belgenin kullanıcıyı nasıl etkilediğini, kullanıcının neyle karşı karşıya olduğunu ve hangi önemli yükümlülükleri olduğunu kısa ve doğrudan bir dille özetle. Kişisel ve net bir açıklama yap.
+
+3. Son olarak --- ayırıcıdan sonra, metnin tamamını sadeleştir. Sadeleştirilmiş metinde başlık veya açıklama ekleme, sadece sadeleştirilmiş metni ver.
 
 İşte sadeleştirilecek metin:
 
@@ -103,12 +105,15 @@ ${textToSimplify}`;
     const fullText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!fullText) throw new Error('Gemini API yanıtı beklenen formatta değil.');
 
-    // Cevabı ayır: "Belge Özeti" ve sadeleştirilmiş metin
-    const [summaryRaw, simplifiedRaw] = fullText.split(/\n?-{3,}\n?/);
-    const summary = summaryRaw?.trim() || '';
-    const simplifiedText = simplifiedRaw?.trim() || '';
+    // Cevabı ayır: summary, meaning, simplifiedText (büyük/küçük harf toleranslı)
+    const summaryMatch = fullText.match(/^(BELGE ÖZETİ|Belge Özeti)[\s\S]*?(?=^SİZİN İÇİN ANLAMI|^Sizin İçin Anlamı|^SİZİN İÇİN ANLAMI\n|^Sizin İçin Anlamı\n|^SİZİN İÇİN ANLAMI\r?\n|^Sizin İçin Anlamı\r?\n)/m);
+    const meaningMatch = fullText.match(/^(SİZİN İÇİN ANLAMI|Sizin İçin Anlamı)[\s\S]*?(?=^---|^---\n|^---\r?\n)/m);
+    const simplifiedRaw = fullText.split(/\n?-{3,}\n?/)[1];
+    const summary = summaryMatch ? summaryMatch[0].replace(/^(BELGE ÖZETİ|Belge Özeti)\s*/i, '').trim() : '';
+    const meaning = meaningMatch ? meaningMatch[0].replace(/^(SİZİN İÇİN ANLAMI|Sizin İçin Anlamı)\s*/i, '').trim() : '';
+    const simplifiedText = simplifiedRaw ? simplifiedRaw.trim() : '';
 
-    return new Response(JSON.stringify({ summary, simplifiedText }), {
+    return new Response(JSON.stringify({ summary, meaning, simplifiedText }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
 
