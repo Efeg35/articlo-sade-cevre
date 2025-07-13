@@ -1,5 +1,5 @@
 import { useState, useEffect, FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -101,7 +101,6 @@ const Auth = () => {
             <TabsTrigger value="signin">Giriş Yap</TabsTrigger>
             <TabsTrigger value="signup">Kayıt Ol</TabsTrigger>
           </TabsList>
-          
           <Card className="mt-4">
             <CardContent className="pt-6">
               <TabsContent value="signin">
@@ -119,8 +118,10 @@ const Auth = () => {
                     Giriş Yap
                   </Button>
                 </form>
+                <div className="text-xs text-muted-foreground mt-4 text-center">
+                  Şifrenizi mi unuttunuz? <span className="underline cursor-pointer">Şifre sıfırlama yakında!</span>
+                </div>
               </TabsContent>
-              
               <TabsContent value="signup">
                 <form onSubmit={(e) => handleAuthAction('signUp', e)} className="space-y-4">
                   <div className="space-y-2">
@@ -129,15 +130,39 @@ const Auth = () => {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="signup-password">Şifre</Label>
-                    <Input id="signup-password" type="password" placeholder="En az 6 karakter" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
+                    <Input id="signup-password" type="password" placeholder="En az 6 karakter, harf ve rakam içermeli" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
+                    <span className="text-xs text-muted-foreground">Şifreniz en az 6 karakter olmalı, harf ve rakam içermelidir.</span>
+                  </div>
+                  <div className="text-xs text-muted-foreground flex items-start gap-2">
+                    <input type="checkbox" required className="mt-1" />
+                    <span>
+                      <b>
+                        <Link to="/kullanici-sozlesmesi" target="_blank" className="underline hover:text-foreground">Kullanıcı Sözleşmesi</Link>
+                      </b>
+                      ve
+                      <b>
+                        <Link to="/kvkk-aydinlatma" target="_blank" className="underline hover:text-foreground">KVKK Aydınlatma Metni</Link>
+                      </b>
+                      'ni okudum, kabul ediyorum.
+                    </span>
                   </div>
                   <Button type="submit" className="w-full" disabled={loading}>
                     {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Hesap Oluştur
                   </Button>
                 </form>
+                <div className="mt-6 bg-muted/50 border rounded-lg p-4 text-xs text-muted-foreground">
+                  <b>Avantajlar:</b>
+                  <ul className="list-disc pl-5 mt-2 space-y-1">
+                    <li>Belgelerinizi güvenle ve gizlilikle sadeleştirin.</li>
+                    <li>Hızlı, kolay ve ücretsiz kullanım.</li>
+                    <li>Hesabınızla tüm sadeleştirme geçmişinizi görüntüleyin (çok yakında).</li>
+                  </ul>
+                  <div className="mt-3">
+                    <b>Gizlilik:</b> E-posta adresiniz ve belgeleriniz asla 3. kişilerle paylaşılmaz. Tüm işlemler şifreli ve güvenlidir.
+                  </div>
+                </div>
               </TabsContent>
-              
               {error && (
                 <Alert variant="destructive" className="mt-4">
                   <AlertTitle>Hata</AlertTitle>
