@@ -5,8 +5,16 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, LogOut, FileText, X } from "lucide-react";
+import { Loader2, LogOut, FileText, X, Sparkles, ArrowRight, BrainCircuit, ListChecks, FileJson, Redo } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
+
+type View = 'input' | 'result';
+type Entity = {
+  tip: string;
+  değer: string;
+  rol?: string;
+  açıklama?: string;
+};
 
 const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -16,6 +24,8 @@ const Dashboard = () => {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [summary, setSummary] = useState("");
   const [actionPlan, setActionPlan] = useState("");
+  const [entities, setEntities] = useState<Entity[]>([]);
+  const [view, setView] = useState<View>('input');
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -60,6 +70,16 @@ const Dashboard = () => {
       });
     }
   };
+  
+  const handleReset = () => {
+    setOriginalText("");
+    setSelectedFiles([]);
+    setSimplifiedText("");
+    setSummary("");
+    setActionPlan("");
+    setEntities([]);
+    setView('input');
+  };
 
   const handleSimplify = async () => {
     if (!originalText.trim() && selectedFiles.length === 0) {
@@ -74,6 +94,8 @@ const Dashboard = () => {
     setLoading(true);
     setSummary("");
     setActionPlan("");
+    setEntities([]);
+    setSimplifiedText("");
     try {
       let body: FormData | { text: string };
       let originalTextForDb = originalText;
@@ -86,7 +108,7 @@ const Dashboard = () => {
           formData.append('text', originalText);
         }
         body = formData;
-        originalTextForDb = `[Files: ${selectedFiles.map(f => f.name).join(", ")}]`;
+        originalTextForDb = `[Files: ${selectedFiles.map(f => f.name).join(", ")}] ${originalText}`;
       } else {
         body = { text: originalText };
       }
@@ -97,10 +119,12 @@ const Dashboard = () => {
         const errorMsg = typeof error === 'string' ? error : (error?.message || 'Bilinmeyen bir hata oluştu.');
         throw new Error(errorMsg);
       }
-
+      
+      setView('result');
       setSummary(data.summary);
       setSimplifiedText(data.simplifiedText);
       setActionPlan(data.actionPlan);
+      setEntities(Array.isArray(data.entities) ? data.entities : []);
 
       // Save to database
       if (user && data.simplifiedText) {
@@ -144,9 +168,160 @@ const Dashboard = () => {
     );
   }
 
+  const renderInputView = () => (
+    <div className="flex flex-col items-center">
+      <div className="text-center mb-8">
+        <h2 className="text-3xl font-bold text-primary mb-2">
+          Hukuki Belgeni Sadeleştir
+        </h2>
+        <p className="text-muted-foreground max-w-2xl mx-auto">
+          Karmaşık hukuki metninizi aşağıdaki alana yapıştırın veya dosya olarak yükleyin.
+        </p>
+      </div>
+      <Card className="w-full max-w-2xl shadow-lg">
+        <CardContent className="p-6">
+          <Textarea
+            placeholder="Karmaşık hukuki belgenizi buraya yapıştırın..."
+            value={originalText}
+            onChange={(e) => setOriginalText(e.target.value)}
+            className="min-h-[300px] resize-none"
+            disabled={loading}
+          />
+          <div className="my-4 text-center text-muted-foreground">VEYA</div>
+            <label htmlFor="file-upload" className="block w-full">
+              <input
+                id="file-upload"
+                type="file"
+                accept="image/*,application/pdf,.doc,.docx"
+                multiple
+                className="hidden"
+                disabled={loading}
+                onChange={(e) => {
+                  if (e.target.files && e.target.files.length > 0) {
+                    setSelectedFiles((prev) => [
+                      ...prev,
+                      ...Array.from(e.target.files).filter(
+                        (file) => !prev.some((f) => f.name === file.name && f.size === file.size && f.lastModified === file.lastModified)
+                      )
+                    ]);
+                  }
+                }}
+              />
+              <Button
+                asChild
+                type="button"
+                variant="outline"
+                className="w-full flex justify-center items-center gap-2 cursor-pointer"
+                disabled={loading}
+              >
+                <span>
+                  Dosya Yükle
+                </span>
+              </Button>
+            </label>
+            {selectedFiles.length > 0 && (
+              <ul className="mt-4 space-y-2">
+                {selectedFiles.map((file, idx) => (
+                  <li key={`${file.name}-${idx}`} className="flex items-center justify-between bg-muted px-3 py-2 rounded text-sm">
+                    <span className="truncate">{file.name}</span>
+                    <button
+                      type="button"
+                      className="ml-2 text-muted-foreground hover:text-destructive disabled:opacity-50"
+                      onClick={() => setSelectedFiles(selectedFiles.filter((_, i) => i !== idx))}
+                      aria-label="Dosya seçimini kaldır"
+                      disabled={loading}
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+        </CardContent>
+      </Card>
+      <Button
+        onClick={handleSimplify}
+        disabled={loading}
+        className="mt-6 w-full max-w-2xl text-lg py-6"
+      >
+        {loading ? (
+          <Loader2 className="h-6 w-6 animate-spin mr-2" />
+        ) : (
+          <Sparkles className="h-6 w-6 mr-2" />
+        )}
+        Sadeleştir
+      </Button>
+    </div>
+  );
+
+  const renderResultView = () => (
+    <div className="space-y-8">
+      <div className="flex justify-between items-center">
+        <h2 className="text-3xl font-bold text-primary">Sadeleştirme Sonuçları</h2>
+        <Button onClick={handleReset} variant="outline" className="flex items-center gap-2">
+            <Redo className="h-4 w-4" />
+            Yeni Belge Sadeleştir
+        </Button>
+      </div>
+      
+      <Card className="shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-3">
+            <BrainCircuit className="h-6 w-6 text-primary" />
+            Belge Özeti
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="prose prose-blue max-w-none" dangerouslySetInnerHTML={{ __html: summary.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') }} />
+      </Card>
+
+      <Card className="shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-3">
+            <ArrowRight className="h-6 w-6 text-primary" />
+            Anlaşılması Kolaylaştırılmış Versiyon
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="prose prose-blue max-w-none">{simplifiedText}</CardContent>
+      </Card>
+
+      <Card className="shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-3">
+            <ListChecks className="h-6 w-6 text-primary" />
+            Şimdi Ne Yapmalıyım?
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="prose prose-blue max-w-none">{actionPlan}</CardContent>
+      </Card>
+      
+      {entities.length > 0 && (
+          <Card className="shadow-lg">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-3">
+                <FileJson className="h-6 w-6 text-primary" />
+                Kilit Varlık Tespiti
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {entities.map((entity, index) => (
+                  <li key={index} className="p-3 bg-muted rounded-md text-sm">
+                    <span className="font-semibold text-primary">{entity.tip}: </span>
+                    <span>{entity.değer}</span>
+                    {entity.rol && <span className="text-xs text-muted-foreground ml-2">({entity.rol})</span>}
+                    {entity.açıklama && <p className="text-xs text-muted-foreground mt-1">{entity.açıklama}</p>}
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
+      )}
+    </div>
+  );
+
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 to-accent/20">
-      {/* Header */}
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
@@ -172,153 +347,8 @@ const Dashboard = () => {
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-primary mb-2">
-            Hukuki Belgeni Sadeleştir
-          </h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
-            Karmaşık hukuki metni sol tarafa yapıştırın ve "Sadeleştir" butonuna tıklayarak 
-            anlaşılır hale getirin.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Input Column */}
-          <Card className="lg:col-span-1 shadow-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <FileText className="h-5 w-5 mr-2" />
-                Orijinal Metin
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Textarea
-                placeholder="Karmaşık hukuki belgenizi buraya yapıştırın..."
-                value={originalText}
-                onChange={(e) => setOriginalText(e.target.value)}
-                className="min-h-[400px] resize-none"
-                disabled={loading}
-              />
-              {/* Fotoğraf Yükleme Bileşeni */}
-              <div className="mt-4">
-                <label htmlFor="file-upload" className="block w-full">
-                  <input
-                    id="file-upload"
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    className="hidden"
-                    onChange={(e) => {
-                      if (e.target.files && e.target.files.length > 0) {
-                        setSelectedFiles((prev) => [
-                          ...prev,
-                          ...Array.from(e.target.files).filter(
-                            (file) => !prev.some((f) => f.name === file.name && f.size === file.size && f.lastModified === file.lastModified)
-                          )
-                        ]);
-                      }
-                    }}
-                  />
-                  <Button
-                    asChild
-                    type="button"
-                    variant="outline"
-                    className="w-full flex justify-center items-center gap-2"
-                  >
-                    <span>
-                      Veya Bir Fotoğraf Yükle
-                    </span>
-                  </Button>
-                </label>
-                {selectedFiles.length > 0 && (
-                  <ul className="mt-2 space-y-1">
-                    {selectedFiles.map((file, idx) => (
-                      <li key={file.name + file.size + file.lastModified} className="flex items-center bg-muted px-3 py-1 rounded text-sm">
-                        <span className="truncate max-w-[180px]">{file.name}</span>
-                        <button
-                          type="button"
-                          className="ml-2 text-muted-foreground hover:text-destructive"
-                          onClick={() => setSelectedFiles(selectedFiles.filter((_, i) => i !== idx))}
-                          aria-label="Dosya seçimini kaldır"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Center Button Column */}
-          <div className="lg:col-span-1 flex items-center justify-center">
-            <Button
-              onClick={handleSimplify}
-              disabled={loading || (!originalText.trim() && selectedFiles.length === 0)}
-              variant="success"
-              size="lg"
-              className="px-8 py-4 text-lg h-auto"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  Sadeleştiriliyor...
-                </>
-              ) : (
-                "Sadeleştir"
-              )}
-            </Button>
-          </div>
-
-          {/* Output Column */}
-          <Card className="lg:col-span-1 shadow-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <FileText className="h-5 w-5 mr-2" />
-                Sadeleştirilmiş Metin
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {summary && (
-                <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-md">
-                  <h3 className="font-semibold text-blue-900 mb-2">Belge Özeti</h3>
-                  <div className="text-sm leading-relaxed whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: summary.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') }} />
-                </div>
-              )}
-              {simplifiedText ? (
-                <div className="min-h-[400px] p-4 bg-accent/50 rounded-md border">
-                  <h3 className="font-semibold text-primary mb-2">Anlaşılması Kolaylaştırılmış Versiyon</h3>
-                  <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                    {simplifiedText}
-                  </p>
-                </div>
-              ) : (
-                <div className="min-h-[400px] flex items-center justify-center border-2 border-dashed border-muted rounded-md">
-                  <p className="text-muted-foreground text-center">
-                    Sadeleştirilmiş metin burada görünecek
-                  </p>
-                </div>
-              )}
-              {actionPlan && (
-                <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
-                  <h3 className="font-semibold text-yellow-900 mb-2">Şimdi Ne Yapmalıyım?</h3>
-                  <div className="text-sm leading-relaxed whitespace-pre-wrap">{actionPlan}</div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Legal Disclaimer */}
-        <div className="mt-12 p-6 bg-amber-50 border border-amber-200 rounded-lg">
-          <p className="text-sm text-amber-800 leading-relaxed">
-            <strong>ÖNEMLİ UYARI:</strong> Artiklo tarafından sunulan bilgiler hukuki danışmanlık yerine geçmez. 
-            Yasal bir işlem yapmadan önce mutlaka yetkin bir avukata danışmanız gerekmektedir.
-          </p>
-        </div>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {view === 'input' ? renderInputView() : renderResultView()}
       </main>
     </div>
   );
