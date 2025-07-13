@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, LogOut, FileText, X, Sparkles, ArrowRight, BrainCircuit, ListChecks, FileJson, Redo } from "lucide-react";
+import { Loader2, X, Sparkles, ArrowRight, BrainCircuit, ListChecks, FileJson, Redo } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 
 type View = 'input' | 'result';
@@ -54,18 +54,7 @@ const Dashboard = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
-  const handleSignOut = async () => {
-    try {
-      await supabase.auth.signOut();
-    } catch (error) {
-      console.error("Error signing out:", error);
-      toast({
-        title: "Hata",
-        description: "Çıkış yaparken bir hata oluştu.",
-        variant: "destructive",
-      });
-    }
-  };
+  // handleSignOut artık Navbar içinde, burada gereksiz
   
   const handleReset = () => {
     setOriginalText("");
@@ -296,31 +285,7 @@ const Dashboard = () => {
   );
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="bg-background border-b sticky top-0 z-50">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-2">
-              <FileText className="h-7 w-7 text-foreground" />
-              <h1 className="text-2xl font-bold text-foreground">Artiklo</h1>
-            </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-muted-foreground hidden sm:inline">
-                {user.email}
-              </span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleSignOut}
-              >
-                <LogOut className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Çıkış</span>
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
-
+    <div className="min-h-screen bg-background pt-16">
       <main className="max-w-5xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-12">
         {view === 'input' ? renderInputView() : renderResultView()}
       </main>
