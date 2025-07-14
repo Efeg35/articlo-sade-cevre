@@ -338,7 +338,26 @@ const Dashboard = () => {
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsProModalOpen(false)}>Kapat</Button>
-            <Button onClick={() => { setIsProModalOpen(false); toast({ title: "Harika! Listeye eklendiniz." }); }}>Evet, Beni Listeye Ekle</Button>
+            <Button
+              onClick={async () => {
+                try {
+                  const { data, error } = await supabase.functions.invoke('add-to-waitlist');
+                  setIsProModalOpen(false);
+                  if (error) {
+                    toast({ title: "Bir hata oluştu", description: error.message || "Bekleme listesine eklenirken hata oluştu.", variant: "destructive" });
+                  } else if (data?.message) {
+                    toast({ title: data.message });
+                  } else {
+                    toast({ title: "Harika! Listeye eklendiniz." });
+                  }
+                } catch (err) {
+                  setIsProModalOpen(false);
+                  toast({ title: "Bir hata oluştu", description: err instanceof Error ? err.message : String(err), variant: "destructive" });
+                }
+              }}
+            >
+              Evet, Beni Listeye Ekle
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
