@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, X, Sparkles, ArrowRight, BrainCircuit, ListChecks, FileJson, Redo } from "lucide-react";
+import { Loader2, X, Sparkles, ArrowRight, BrainCircuit, ListChecks, FileJson, Redo, Copy } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 import {
   Dialog,
@@ -129,6 +129,31 @@ const Dashboard = () => {
       });
     } finally {
       setLoading(null);
+    }
+  };
+
+  const handleCopySummary = async () => {
+    try {
+      await navigator.clipboard.writeText(summary);
+      toast({ title: "Kopyalandı!", description: "Özet panoya başarıyla kopyalandı." });
+    } catch (err) {
+      toast({ title: "Kopyalama Hatası", description: "Özet kopyalanırken bir hata oluştu.", variant: "destructive" });
+    }
+  };
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(simplifiedText);
+      toast({ title: "Kopyalandı!", description: "Metin panoya başarıyla kopyalandı." });
+    } catch (err) {
+      toast({ title: "Kopyalama Hatası", description: "Metin kopyalanırken bir hata oluştu.", variant: "destructive" });
+    }
+  };
+  const handleCopyActionPlan = async () => {
+    try {
+      await navigator.clipboard.writeText(actionPlan);
+      toast({ title: "Kopyalandı!", description: "Eylem planı panoya başarıyla kopyalandı." });
+    } catch (err) {
+      toast({ title: "Kopyalama Hatası", description: "Eylem planı kopyalanırken bir hata oluştu.", variant: "destructive" });
     }
   };
 
@@ -267,10 +292,23 @@ const Dashboard = () => {
         <div className="lg:col-span-2 space-y-6">
           <Card className="border shadow-sm">
             <CardHeader>
-              <CardTitle className="flex items-center gap-3 text-xl">
-                <BrainCircuit className="h-6 w-6 text-foreground" />
-                Belge Özeti
-              </CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-3 text-xl">
+                  <BrainCircuit className="h-6 w-6 text-foreground" />
+                  Belge Özeti
+                </CardTitle>
+                {summary && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="ml-2"
+                    onClick={handleCopySummary}
+                    aria-label="Kopyala Özeti"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
             </CardHeader>
             <CardContent className="whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: summary.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') }} />
           </Card>
@@ -278,20 +316,46 @@ const Dashboard = () => {
 
         <Card className="border shadow-sm">
           <CardHeader>
-            <CardTitle className="flex items-center gap-3 text-xl">
-              <ArrowRight className="h-6 w-6 text-foreground" />
-              Anlaşılır Versiyon
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-3 text-xl">
+                <ArrowRight className="h-6 w-6 text-foreground" />
+                Anlaşılır Versiyon
+              </CardTitle>
+              {simplifiedText && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="ml-2"
+                  onClick={handleCopy}
+                  aria-label="Kopyala"
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
           </CardHeader>
           <CardContent className="whitespace-pre-wrap">{simplifiedText}</CardContent>
         </Card>
 
         <Card className="border shadow-sm">
           <CardHeader>
-            <CardTitle className="flex items-center gap-3 text-xl">
-              <ListChecks className="h-6 w-6 text-foreground" />
-              Eylem Planı
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-3 text-xl">
+                <ListChecks className="h-6 w-6 text-foreground" />
+                Eylem Planı
+              </CardTitle>
+              {actionPlan && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="ml-2"
+                  onClick={handleCopyActionPlan}
+                  aria-label="Kopyala Eylem Planı"
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
           </CardHeader>
           <CardContent className="whitespace-pre-wrap">{actionPlan}</CardContent>
         </Card>
