@@ -286,16 +286,12 @@ const Index = () => {
         {/* Features Grid */}
         <section ref={featuresRef} className="py-24 sm:py-32">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="mx-auto max-w-2xl text-center mb-16">
-              <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-                Neden Artiklo?
-          </h2>
-              <p className="mt-4 text-lg text-muted-foreground">
-                Hukuki belgeleri anlamak artık çok kolay. İşte Artiklo'nun size sunduğu avantajlar.
-              </p>
-              <p className="mt-6 text-base text-primary font-semibold">
-                Her Dilde Belgeyi Anlar, Türkçeye Sadeleştirir<br/>
-                Artiklo, yalnızca Türkçe değil; İngilizce, Almanca, Fransızca, Arapça ve daha birçok dildeki hukuki belgeleri de otomatik olarak algılar. Yüklediğiniz belge hangi dilde olursa olsun, metni analiz eder ve Türkçe olarak sadeleştirilmiş, anlaşılır bir özet ve eylem planı sunar. Böylece, yabancı dildeki resmi evraklarınızı da kolayca anlayabilirsiniz.
+            <div className="mx-auto max-w-2xl text-center mb-8 mt-0">
+              <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mt-0 mb-2">
+                Kişisel Hukuk Tercümanınız
+              </h2>
+              <p className="mt-2 text-lg text-muted-foreground mb-0">
+                Karmaşık hukuki dili sadeleştirip belgenin asıl niyetini ve size olan etkisini ortaya çıkarır; ardından metni hangi dilde olursa olsun analiz eder ve size özel, anlaşılır bir Türkçe özet ve eylem planı sunar.
               </p>
             </div>
             <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
