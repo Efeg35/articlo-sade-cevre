@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import mammoth from "https://esm.sh/mammoth@1.7.0";
 
 const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
 const corsHeaders = {
@@ -43,33 +44,93 @@ serve(async (req) => {
       if (!files || files.length === 0) {
         throw new Error('Dosya yüklenemedi.');
       }
-      const ocrPromises = files.map(async (file) => {
-        const filePath = `public/${Date.now()}-${file.name}`;
-        const { error: uploadError } = await supabaseAdmin.storage
-          .from('document-images')
-          .upload(filePath, file);
-        if (uploadError) throw uploadError;
-        const { data: urlData } = supabaseAdmin.storage
-          .from('document-images')
-          .getPublicUrl(filePath);
-        const publicUrl = urlData.publicUrl;
-        const visionResponse = await fetch(`https://vision.googleapis.com/v1/images:annotate?key=${geminiApiKey}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            requests: [{
-              image: { source: { imageUri: publicUrl } },
-              features: [{ type: 'TEXT_DETECTION' }]
-            }]
-          })
-        });
-        if (!visionResponse.ok) throw new Error('Google Vision API hatası.');
-        const visionData = await visionResponse.json();
-        const extractedText = visionData.responses?.[0]?.fullTextAnnotation?.text;
-        await supabaseAdmin.storage.from('document-images').remove([filePath]);
-        return extractedText || '';
+      const fileProcessingPromises = files.map(async (file) => {
+        let extractedText = '';
+        if (file.type.startsWith('image/')) {
+          // Görüntü dosyaları için önce storage'a yükle, sonra OCR
+          const filePath = `public/${Date.now()}-${file.name}`;
+          const { error: uploadError } = await supabaseAdmin.storage
+            .from('document-images')
+            .upload(filePath, file);
+          if (uploadError) throw uploadError;
+          const { data: urlData } = supabaseAdmin.storage
+            .from('document-images')
+            .getPublicUrl(filePath);
+          const publicUrl = urlData.publicUrl;
+          const visionResponse = await fetch(`https://vision.googleapis.com/v1/images:annotate?key=${geminiApiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              requests: [{
+                image: { source: { imageUri: publicUrl } },
+                features: [{ type: 'TEXT_DETECTION' }]
+              }]
+            })
+          });
+          if (!visionResponse.ok) throw new Error('Google Vision API hatası.');
+          const visionData = await visionResponse.json();
+          extractedText = visionData.responses?.[0]?.fullTextAnnotation?.text || '';
+          // Görsel dosyayı storage'dan sil
+          await supabaseAdmin.storage.from('document-images').remove([filePath]);
+        } else if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
+          // PDF dosyası için doğrudan Gemini'ye base64 gönder
+          try {
+            const fileArrayBuffer = await file.arrayBuffer();
+            const base64Data = btoa(String.fromCharCode(...new Uint8Array(fileArrayBuffer)));
+            const geminiFileResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${geminiApiKey}`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                contents: [{
+                  parts: [
+                    { text: "Bu PDF dosyasındaki tüm metni çıkar ve döndür. Sadece metin içeriğini ver, başka açıklama ekleme." },
+                    {
+                      inline_data: {
+                        mime_type: "application/pdf",
+                        data: base64Data
+                      }
+                    }
+                  ]
+                }]
+              })
+            });
+            if (geminiFileResponse.ok) {
+              const geminiFileData = await geminiFileResponse.json();
+              extractedText = geminiFileData.candidates?.[0]?.content?.parts?.[0]?.text || '';
+            } else {
+              throw new Error('PDF işleme hatası');
+            }
+          } catch (error) {
+            console.error('PDF işleme hatası:', error);
+            extractedText = `PDF dosyası işlenemedi: ${file.name}`;
+          }
+        } else if (file.type === 'text/plain' || file.name.toLowerCase().endsWith('.txt')) {
+          // TXT dosyası için direkt metin oku
+          extractedText = await file.text();
+        } else if (
+          file.type === 'application/msword' || 
+          file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+          file.name.toLowerCase().endsWith('.doc') || 
+          file.name.toLowerCase().endsWith('.docx')
+        ) {
+          // DOC/DOCX dosyasından metin çıkarmak için Mammoth.js kullan
+          try {
+            const arrayBuffer = await file.arrayBuffer();
+            const result = await mammoth.extractRawText({ arrayBuffer: arrayBuffer });
+            extractedText = result.value; // The raw text
+            if (result.messages && result.messages.length > 0) {
+              result.messages.forEach(msg => console.warn("Mammoth message:", msg));
+            }
+          } catch (error) {
+            console.error('Mammoth.js DOCX ayrıştırma hatası:', error);
+            extractedText = `Word dosyası metni çıkarılamadı: ${file.name}`;
+          }
+        } else {
+          extractedText = `Desteklenmeyen dosya türü: ${file.name}`;
+        }
+        return extractedText;
       });
-      const allExtractedTexts = await Promise.all(ocrPromises);
+      const allExtractedTexts = await Promise.all(fileProcessingPromises);
       textToSimplify = allExtractedTexts.filter(Boolean).join('\n\n--- YENİ SAYFA ---\n\n');
     } else {
       throw new Error('Desteklenmeyen içerik türü.');

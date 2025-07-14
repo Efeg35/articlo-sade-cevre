@@ -163,13 +163,40 @@ const Dashboard = () => {
               <input
                 id="file-upload"
                 type="file"
-                accept="image/*,application/pdf,.doc,.docx"
+                accept="image/*,application/pdf,.doc,.docx,.txt,.rtf"
                 multiple
                 className="hidden"
                 disabled={loading}
                 onChange={(e) => {
                   if (e.target.files) {
-                    setSelectedFiles(Array.from(e.target.files));
+                    const files = Array.from(e.target.files);
+                    const supportedTypes = [
+                      'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp',
+                      'application/pdf',
+                      'application/msword',
+                      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                      'text/plain',
+                      'application/rtf'
+                    ];
+                    
+                    const validFiles = files.filter(file => 
+                      supportedTypes.includes(file.type) || 
+                      file.name.toLowerCase().endsWith('.doc') ||
+                      file.name.toLowerCase().endsWith('.docx') ||
+                      file.name.toLowerCase().endsWith('.pdf') ||
+                      file.name.toLowerCase().endsWith('.txt') ||
+                      file.name.toLowerCase().endsWith('.rtf')
+                    );
+                    
+                    if (validFiles.length !== files.length) {
+                      toast({
+                        title: "Desteklenmeyen Dosya Türü",
+                        description: "Sadece PDF, DOC, DOCX, TXT, RTF ve görüntü dosyaları desteklenmektedir.",
+                        variant: "destructive",
+                      });
+                    }
+                    
+                    setSelectedFiles(validFiles);
                   }
                 }}
               />
@@ -180,7 +207,7 @@ const Dashboard = () => {
                 className="w-full cursor-pointer"
                 disabled={loading}
               >
-                <span>Dosya Seç</span>
+                <span>📄 Dosya Seç (PDF, DOC, DOCX, TXT, Görüntü)</span>
               </Button>
             </label>
             {selectedFiles.length > 0 && (
