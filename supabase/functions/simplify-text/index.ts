@@ -140,102 +140,85 @@ serve(async (req) => {
       throw new Error('Yüklenen dosyalarda sadeleştirilecek metin bulunamadı.');
     }
 
-    // Yeni prompt: 3 başlık + entity extraction (GENİŞLETİLMİŞ)
-    const prompt = `Aşağıdaki metni üç aşamalı olarak işle. Her aşamanın başına ve sonuna mutlaka ve BÜYÜK HARFLERLE, satır başında ve tek başına sırasıyla '## BELGE ÖZETİ ##', '## ANLAŞILMASI KOLAYLAŞTIRILMIŞ VERSİYON ##', '## ŞİMDİ NE YAPMALIYIM? ##' başlıklarını ekle. Hiçbir bölümü atlama, her başlık ve bölüm ZORUNLU ve DOLU olmalı, asla boş bırakma! BELGE ÖZETİ kısmında kritik bilgileri **kalın** (çift yıldızla) vurgula. ANLAŞILMASI KOLAYLAŞTIRILMIŞ VERSİYON kısmında hem sadeleştirilmiş metni hem de kullanıcının anlaması için özet ve açıklamaları birleştir. ŞİMDİ NE YAPMALIYIM? kısmında her adımı madde madde ve en az 2 öneriyle yaz.
+    // ADIM 1: Özet ve Sadeleştirilmiş Metni Oluştur
+    const simplificationPrompt = `Aşağıdaki karmaşık hukuki metni analiz et ve iki bölümde yanıt ver. Her bölümün başına BÜYÜK HARFLERLE '## BELGE ÖZETİ ##' ve '## ANLAŞILIR VERSİYON ##' başlıklarını ekle.
+- 'BELGE ÖZETİ' bölümünde, metnin en kritik noktalarını (taraflar, tarihler, tutarlar, temel talep/konu) içeren kısa, 1-2 paragraflık bir yönetici özeti sun. Bu özetteki en önemli bilgileri (son başvuru tarihi, para miktarı, vb.) **kalın** (çift yıldız ile) olarak vurgula.
+- 'ANLAŞILIR VERSİYON' bölümünde, belgenin tamamını ortalama bir vatandaşın anlayacağı şekilde, basit ve akıcı bir dille yeniden yaz.
 
-Ayrıca, sadeleştirilmiş metindeki önemli varlıkları aşağıdaki gibi bir JSON dizisi olarak çıkar. Lütfen sadece geçerli JSON döndür, açıklama ekleme. Varlık tipleri ve örnekleri:
-- Kişi adları (ör: kiracı, kiralayan, kefil, vekil)
-- Kimlik bilgileri (ör: T.C. kimlik no, vergi no)
-- Tarihler (ör: sözleşme başlangıç ve bitiş tarihi, tahliye tarihi, artış tarihi)
-- Tutarlar (ör: kira bedeli, depozito, cezai şart)
-- Adresler (ör: kiralanan yerin adresi)
-- Sözleşme süresi (ör: 1 yıl, 12 ay)
-- Taşınmaz bilgileri (ör: tapu, ada/parsel, bağımsız bölüm)
-- İletişim bilgileri (ör: telefon, e-posta)
-- Ödeme bilgileri (ör: ödeme şekli, banka hesabı, ödeme günü)
-- Zam oranı ve artış şartları (ör: %25, TÜFE, artış tarihi)
-- Fesih ve tahliye şartları (ör: erken fesih, tahliye tarihi, cezai şart)
-- Ek sözleşme maddeleri (ör: özel hükümler, ek protokol)
-- Yetkili mahkeme ve icra dairesi
-- Diğer önemli bilgiler
+METİN:
+---
+${textToSimplify}
+---
+`;
 
-Çıktı örneği:
-[
-  { "tip": "Kişi", "değer": "Ahmet Yılmaz", "rol": "Kiracı" },
-  { "tip": "Kişi", "değer": "Mehmet Demir", "rol": "Kiralayan" },
-  { "tip": "Kimlik", "değer": "12345678901", "açıklama": "Kiracı T.C. Kimlik No" },
-  { "tip": "Tarih", "değer": "01.01.2024", "açıklama": "Başlangıç tarihi" },
-  { "tip": "Tutar", "değer": "15.000 TL", "açıklama": "Aylık kira bedeli" },
-  { "tip": "Adres", "değer": "İstanbul, Kadıköy, ...", "açıklama": "Kiralık daire adresi" },
-  { "tip": "Süre", "değer": "12 ay", "açıklama": "Sözleşme süresi" },
-  { "tip": "Taşınmaz", "değer": "Ada: 123, Parsel: 456", "açıklama": "Tapu bilgisi" },
-  { "tip": "İletişim", "değer": "0555 555 55 55", "açıklama": "Kiracı telefon" },
-  { "tip": "Ödeme", "değer": "Her ayın 5'i", "açıklama": "Ödeme günü" },
-  { "tip": "Zam", "değer": "%25", "açıklama": "Yıllık zam oranı" },
-  { "tip": "Fesih", "değer": "Erken fesih halinde 2 aylık bedel", "açıklama": "Cezai şart" },
-  { "tip": "Ek Madde", "değer": "Evcil hayvan yasaktır", "açıklama": "Özel hüküm" },
-  { "tip": "Mahkeme", "değer": "Kadıköy Sulh Hukuk Mahkemesi", "açıklama": "Yetkili mahkeme" }
-]
-
-Format:
-## BELGE ÖZETİ ##
-...
-
-## ANLAŞILMASI KOLAYLAŞTIRILMIŞ VERSİYON ##
-...
-
-## ŞİMDİ NE YAPMALIYIM? ##
-...
-
-[JSON]
-
-Şimdi aşağıdaki metni bu formatta işle:
-
-${textToSimplify}`;
-
-    const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${geminiApiKey}`, {
+    const simplificationResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${geminiApiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }]
-      })
+      body: JSON.stringify({ contents: [{ parts: [{ text: simplificationPrompt }] }] })
     });
+    if (!simplificationResponse.ok) throw new Error(`Gemini sadeleştirme API hatası: ${simplificationResponse.status}`);
+    
+    const simplificationData = await simplificationResponse.json();
+    const simplifiedContent = simplificationData.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!simplifiedContent) throw new Error('Gemini sadeleştirme API yanıtı boş.');
 
-    if (!geminiResponse.ok) throw new Error(`Gemini API hatası: ${geminiResponse.status}`);
-    const geminiData = await geminiResponse.json();
-    const fullText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!fullText) throw new Error('Gemini API yanıtı beklenen formatta değil.');
+    const summaryMatch = simplifiedContent.match(/## BELGE ÖZETİ ##([\s\S]*?)(?=## ANLAŞILIR VERSİYON ##|$)/);
+    const simplifiedMatch = simplifiedContent.match(/## ANLAŞILIR VERSİYON ##([\s\S]*)/);
+    const summary = summaryMatch ? summaryMatch[1].trim() : "Özet oluşturulamadı.";
+    const simplifiedText = simplifiedMatch ? simplifiedMatch[1].trim() : "Sadeleştirilmiş metin oluşturulamadı.";
 
-    // Cevabı ayır: summary, simplifiedText, actionPlan (## ... ## başlıklarına göre) + entities JSON
-    const summaryMatch = fullText.match(/## BELGE ÖZETİ ##([\s\S]*?)(?=## ANLAŞILMASI KOLAYLAŞTIRILMIŞ VERSİYON ##)/);
-    const simplifiedMatch = fullText.match(/## ANLAŞILMASI KOLAYLAŞTIRILMIŞ VERSİYON ##([\s\S]*?)(?=## ŞİMDİ NE YAPMALIYIM\? ##)/);
-    const actionPlanMatch = fullText.match(/## ŞİMDİ NE YAPMALIYIM\? ##([\s\S]*?)(?=\n\[|\n\s*\[|$)/);
-    const entitiesMatch = fullText.match(/\n\s*(\[.*\])\s*$/s);
-    const summary = summaryMatch ? summaryMatch[1].trim() : '';
-    const simplifiedText = simplifiedMatch ? simplifiedMatch[1].trim() : '';
-    let actionPlan = actionPlanMatch ? actionPlanMatch[1].trim() : '';
-    let entities: unknown[] = [];
-    if (entitiesMatch) {
-      try {
-        entities = JSON.parse(entitiesMatch[1].replace(/'/g, '"'));
-      } catch (e) {
-        entities = [];
-      }
-    }
+    // ADIM 2: Eylem Planı Oluştur
+    const actionPlanPrompt = `Aşağıda bir hukuki durumun özeti ve açıklaması yer alıyor. Bu bilgilere dayanarak, kullanıcının atması gereken adımları "Şimdi Ne Yapmalıyım?" başlığı altında, kısa ve net maddeler halinde sırala. En az 2, en fazla 5 eylem önerisi sun. Önerilerin somut ve pratik olsun.
 
-    if (!actionPlan) {
-      const planPrompt = `Aşağıda bir hukuki belgenin özeti ve sadeleştirilmiş açıklaması yer alıyor. Kullanıcının atması gereken adımları madde madde, net ve uygulanabilir biçimde sırala. En az 2 ve en fazla 5 madde yaz. Her madde kısa ve eylem odaklı olsun.\n\nÖZET:\n${summary}\n\nAÇIKLAMA:\n${simplifiedText}\n\nMADDE MADDE EYLEM PLANI:`;
-      const planResp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${geminiApiKey}`, {
+ÖZET:
+${summary}
+
+AÇIKLAMA:
+${simplifiedText}
+`;
+    const actionPlanResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${geminiApiKey}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents: [{ parts: [{ text: planPrompt }] }] })
-      });
-      if (planResp.ok) {
-        const planData = await planResp.json();
-        actionPlan = planData.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
-      }
+        body: JSON.stringify({ contents: [{ parts: [{ text: actionPlanPrompt }] }] })
+    });
+
+    let actionPlan = "Eylem planı oluşturulamadı.";
+    if (actionPlanResponse.ok) {
+        const actionPlanData = await actionPlanResponse.json();
+        actionPlan = actionPlanData.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || actionPlan;
     }
 
+    // ADIM 3: Kilit Varlıkları Çıkar
+    const entitiesPrompt = `Aşağıdaki metinden kilit hukuki varlıkları (Entity) çıkar ve bir JSON dizisi olarak döndür. Sadece JSON çıktısı ver, başka bir açıklama ekleme. JSON formatı: [{"tip": "Varlık Türü", "değer": "Varlık Değeri", "rol": "Opsiyonel Rol"}].
+Varlık Tipleri: Kişi, Kurum, Tarih, Tutar, Adres, Süre, Kanun/Madde, Kimlik No, Mahkeme.
+
+METİN:
+---
+${textToSimplify}
+---
+`;
+    const entitiesResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${geminiApiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ parts: [{ text: entitiesPrompt }] }] })
+    });
+    
+    let entities: unknown[] = [];
+    if (entitiesResponse.ok) {
+        const entitiesData = await entitiesResponse.json();
+        const rawEntities = entitiesData.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+        if (rawEntities) {
+            try {
+                // Gemini'den gelebilecek markdown formatını temizle
+                const jsonString = rawEntities.replace(/```json\n?/, '').replace(/```$/, '');
+                entities = JSON.parse(jsonString);
+            } catch (e) {
+                console.error("JSON parse hatası:", e);
+                entities = [];
+            }
+        }
+    }
+    
     return new Response(JSON.stringify({ summary, simplifiedText, actionPlan, entities }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
