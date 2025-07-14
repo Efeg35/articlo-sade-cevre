@@ -20,7 +20,7 @@ const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
   const [originalText, setOriginalText] = useState("");
   const [simplifiedText, setSimplifiedText] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<null | 'flash' | 'pro'>(null);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [summary, setSummary] = useState("");
   const [actionPlan, setActionPlan] = useState("");
@@ -66,7 +66,7 @@ const Dashboard = () => {
     setView('input');
   };
 
-  const handleSimplify = async () => {
+  const handleSimplify = async (model: 'flash' | 'pro') => {
     if (!originalText.trim() && selectedFiles.length === 0) {
       toast({
         title: "Giriş Eksik",
@@ -75,8 +75,7 @@ const Dashboard = () => {
       });
       return;
     }
-
-    setLoading(true);
+    setLoading(model);
     setSummary("");
     setActionPlan("");
     setEntities([]);
@@ -84,8 +83,6 @@ const Dashboard = () => {
     try {
       let body: FormData | { text: string; model: string };
       let originalTextForDb = originalText;
-      const model = 'gemini-1.5-pro-latest'; 
-
       if (selectedFiles.length > 0) {
         const formData = new FormData();
         selectedFiles.forEach((file) => formData.append('files', file));
@@ -96,17 +93,13 @@ const Dashboard = () => {
       } else {
         body = { text: originalText, model };
       }
-
       const { data, error } = await supabase.functions.invoke('simplify-text', { body });
-
       if (error) throw new Error(error.message || 'Bilinmeyen bir fonksiyon hatası oluştu.');
-      
       setView('result');
       setSummary(data.summary || "");
       setSimplifiedText(data.simplifiedText || "");
       setActionPlan(data.actionPlan || "");
       setEntities(Array.isArray(data.entities) ? data.entities : []);
-
       if (user) {
         await supabase.from('documents').insert({
           user_id: user.id,
@@ -114,7 +107,6 @@ const Dashboard = () => {
           simplified_text: data.simplifiedText || "Sadeleştirilmiş metin yok.",
         });
       }
-
       toast({
         title: "Başarılı!",
         description: "Belgeniz başarıyla sadeleştirildi.",
@@ -127,7 +119,7 @@ const Dashboard = () => {
         variant: "destructive",
       });
     } finally {
-      setLoading(false);
+      setLoading(null);
     }
   };
 
@@ -156,7 +148,7 @@ const Dashboard = () => {
             value={originalText}
             onChange={(e) => setOriginalText(e.target.value)}
             className="min-h-[300px] resize-none"
-            disabled={loading}
+            disabled={loading !== null}
           />
           <div className="my-4 text-center text-xs uppercase text-muted-foreground">Veya</div>
             <label htmlFor="file-upload" className="block w-full">
@@ -166,7 +158,7 @@ const Dashboard = () => {
                 accept="image/*,application/pdf,.doc,.docx,.txt,.rtf"
                 multiple
                 className="hidden"
-                disabled={loading}
+                disabled={loading !== null}
                 onChange={(e) => {
                   if (e.target.files) {
                     const files = Array.from(e.target.files);
@@ -205,7 +197,7 @@ const Dashboard = () => {
                 type="button"
                 variant="outline"
                 className="w-full cursor-pointer"
-                disabled={loading}
+                disabled={loading !== null}
               >
                 <span>📄 Dosya Seç (PDF, DOC, DOCX, TXT, Görüntü)</span>
               </Button>
@@ -220,7 +212,7 @@ const Dashboard = () => {
                       className="ml-2 text-muted-foreground hover:text-destructive disabled:opacity-50"
                       onClick={() => setSelectedFiles(selectedFiles.filter((_, i) => i !== idx))}
                       aria-label="Dosyayı kaldır"
-                      disabled={loading}
+                      disabled={loading !== null}
                     >
                       <X className="w-4 h-4" />
                     </button>
@@ -231,13 +223,23 @@ const Dashboard = () => {
         </CardContent>
       </Card>
       <Button
-        onClick={handleSimplify}
-        disabled={loading}
+        onClick={() => handleSimplify('flash')}
+        disabled={loading !== null}
         size="lg"
         className="mt-6 w-full max-w-2xl"
       >
-        {loading ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <Sparkles className="h-5 w-5 mr-2" />}
-        Sadeleştir
+        {loading === 'flash' ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <Sparkles className="h-5 w-5 mr-2" />}
+        {loading === 'flash' ? 'Sadeleştiriliyor...' : 'Sadeleştir'}
+      </Button>
+      <Button
+        onClick={() => handleSimplify('pro')}
+        disabled={loading !== null}
+        size="lg"
+        variant="outline"
+        className="mt-3 w-full max-w-2xl"
+      >
+        {loading === 'pro' ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <BrainCircuit className="h-5 w-5 mr-2" />}
+        {loading === 'pro' ? 'PRO ile İnceleniyor...' : 'PRO ile Detaylı İncele'}
       </Button>
     </div>
   );
