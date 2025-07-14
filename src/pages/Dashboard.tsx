@@ -7,6 +7,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, X, Sparkles, ArrowRight, BrainCircuit, ListChecks, FileJson, Redo } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+  DialogDescription
+} from "@/components/ui/dialog";
 
 type View = 'input' | 'result';
 type Entity = {
@@ -28,6 +36,7 @@ const Dashboard = () => {
   const [view, setView] = useState<View>('input');
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [isProModalOpen, setIsProModalOpen] = useState(false);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -232,14 +241,14 @@ const Dashboard = () => {
         {loading === 'flash' ? 'Sadeleştiriliyor...' : 'Sadeleştir'}
       </Button>
       <Button
-        onClick={() => handleSimplify('pro')}
+        onClick={() => setIsProModalOpen(true)}
         disabled={loading !== null}
         size="lg"
         variant="outline"
         className="mt-3 w-full max-w-2xl"
       >
-        {loading === 'pro' ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <BrainCircuit className="h-5 w-5 mr-2" />}
-        {loading === 'pro' ? 'PRO ile İnceleniyor...' : 'PRO ile Detaylı İncele'}
+        <BrainCircuit className="h-5 w-5 mr-2" />
+        PRO ile Detaylı İncele
       </Button>
     </div>
   );
@@ -318,6 +327,21 @@ const Dashboard = () => {
       <main className="max-w-5xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-12">
         {view === 'input' ? renderInputView() : renderResultView()}
       </main>
+      {/* PRO Coming Soon Modal */}
+      <Dialog open={isProModalOpen} onOpenChange={setIsProModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Artiklo PRO Çok Yakında!</DialogTitle>
+            <DialogDescription>
+              'PRO ile Detaylı İncele' gibi gelişmiş özellikler, yakında sunulacak olan Artiklo PRO abonelerine özeldir. PRO özellikleri kullanıma sunulduğunda ilk siz haberdar olmak ve özel lansman indirimlerinden faydalanmak ister misiniz?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsProModalOpen(false)}>Kapat</Button>
+            <Button onClick={() => { setIsProModalOpen(false); toast({ title: "Harika! Listeye eklendiniz." }); }}>Evet, Beni Listeye Ekle</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
