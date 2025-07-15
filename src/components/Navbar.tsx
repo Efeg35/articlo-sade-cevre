@@ -5,14 +5,17 @@ import { Button } from "@/components/ui/button";
 import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger } from "@/components/ui/navigation-menu";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import { FileText, ChevronDown, LogIn, User as UserIcon, Archive, LogOut } from "lucide-react";
+import { FileText, ChevronDown, LogIn, User as UserIcon, Archive, LogOut, Sparkles } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
+import { useCredits } from "../hooks/useCredits";
+import { Badge } from "@/components/ui/badge";
 
 const Navbar = () => {
   const [user, setUser] = useState<User | null>(null);
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const { credits, loading: creditsLoading, error: creditsError } = useCredits(user?.id);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -187,6 +190,16 @@ const Navbar = () => {
                       {user.user_metadata?.full_name || user.email}
                     </p>
                     <p className="text-xs text-muted-foreground">Kullanıcı Paneli</p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <Sparkles className="h-4 w-4 text-yellow-500" />
+                      {creditsLoading ? (
+                        <span>Kredi yükleniyor...</span>
+                      ) : creditsError ? (
+                        <span className="text-red-500">Kredi alınamadı</span>
+                      ) : (
+                        <Badge variant="outline">Kalan Kredi: {credits}</Badge>
+                      )}
+                    </div>
                   </div>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onSelect={handleSignOut} className="cursor-pointer">

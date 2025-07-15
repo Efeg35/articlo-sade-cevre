@@ -49,6 +49,27 @@ export type Database = {
           entities?: Json | null
         }
         Relationships: []
+      },
+      profiles: {
+        Row: {
+          id: string
+          email: string | null
+          full_name: string | null
+          credits: number
+        }
+        Insert: {
+          id: string
+          email?: string | null
+          full_name?: string | null
+          credits?: number
+        }
+        Update: {
+          id?: string
+          email?: string | null
+          full_name?: string | null
+          credits?: number
+        }
+        Relationships: []
       }
     }
     Views: {
