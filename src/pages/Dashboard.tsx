@@ -170,14 +170,14 @@ const Dashboard = () => {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center pt-20 md:pt-16 pt-[env(safe-area-inset-top)]">
         <Loader2 className="h-8 w-8 animate-spin text-foreground" />
       </div>
     );
   }
 
   const renderInputView = () => (
-    <div className="flex flex-col items-center">
+    <div className="flex flex-col items-center pt-4 md:pt-0 pt-[env(safe-area-inset-top)]">
       <div className="text-center mb-8">
         <h2 className="text-3xl font-bold text-foreground mb-2">
           Hukuki Belgeni Sadeleştir

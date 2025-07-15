@@ -222,7 +222,7 @@ const Index = () => {
   ];
 
   return (
-    <div className="flex flex-col min-h-screen bg-background pt-16">
+    <div className="flex flex-col min-h-screen bg-background pt-20 md:pt-16 pt-[env(safe-area-inset-top)]">
       {/* Progress Bar */}
       <div 
         className="fixed top-0 left-0 h-1 bg-primary z-50 transition-all duration-300"
