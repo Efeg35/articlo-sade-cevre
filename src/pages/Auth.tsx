@@ -9,10 +9,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, ArrowLeft, FileText } from "lucide-react";
+import type { User } from "@supabase/supabase-js";
 
 const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [fullName, setFullName] = useState(""); // Ad soyad state'i
+  const [isSignUp, setIsSignUp] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
@@ -132,6 +135,17 @@ const Auth = () => {
                     <Label htmlFor="signup-password">Şifre</Label>
                     <Input id="signup-password" type="password" placeholder="En az 6 karakter, harf ve rakam içermeli" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
                     <span className="text-xs text-muted-foreground">Şifreniz en az 6 karakter olmalı, harf ve rakam içermelidir.</span>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-fullname">Ad Soyad</Label>
+                    <Input
+                      id="signup-fullname"
+                      type="text"
+                      placeholder="Adınız Soyadınız"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      required
+                    />
                   </div>
                   <div className="text-xs text-muted-foreground flex items-start gap-2">
                     <input type="checkbox" required className="mt-1" />

@@ -32,6 +32,11 @@ ON public.documents
 FOR DELETE 
 USING (auth.uid() = user_id);
 
+-- Yeni alanlar: summary, action_plan, entities
+ALTER TABLE public.documents ADD COLUMN summary TEXT;
+ALTER TABLE public.documents ADD COLUMN action_plan TEXT;
+ALTER TABLE public.documents ADD COLUMN entities JSONB;
+
 -- Create function to update timestamps
 CREATE OR REPLACE FUNCTION public.update_updated_at_column()
 RETURNS TRIGGER AS $$

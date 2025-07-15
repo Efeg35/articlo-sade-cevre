@@ -443,12 +443,12 @@ const Index = () => {
       </section>
 
         {/* How It Works Section */}
-        <section className="py-24 sm:py-32 bg-muted/30">
+        <section className="bg-background py-20 sm:py-24">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="mx-auto max-w-2xl text-center mb-16">
-              <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
                 Nasıl Çalışır?
-          </h2>
+              </h2>
               <p className="mt-4 text-lg text-muted-foreground">
                 Artiklo ile hukuki belgeleri anlamak çok kolay. İşte adım adım süreç:
               </p>
@@ -467,55 +467,53 @@ const Index = () => {
         </section>
 
         {/* Pricing Section */}
-        <section className="py-24 sm:py-32">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="mx-auto max-w-2xl text-center mb-16">
-              <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-                Fiyatlandırma
+        <section className="py-20 sm:py-24 bg-muted/30">
+          <div className="container mx-auto px-4">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+                Size Uygun Planı Seçin
               </h2>
               <p className="mt-4 text-lg text-muted-foreground">
-                Her bütçeye uygun, şeffaf fiyatlandırma. İstediğiniz zaman iptal edebilirsiniz.
+                İhtiyaçlarınıza en uygun abonelik planını seçerek hemen kullanmaya başlayın.
               </p>
             </div>
-            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 max-w-5xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
               <PricingCard
-                title="Ücretsiz"
-                description="Temel özellikler ile başlayın"
+                title="Başlangıç"
+                description="Temel özelliklerle başlamak için harika bir seçenek."
                 price="Ücretsiz"
                 features={[
-                  "Ayda 3 belge sadeleştirme",
-                  "Temel analiz",
-                  "Türkçe dil desteği",
-                  "Web arayüzü"
+                  "Ayda 5 belge sadeleştirme",
+                  "Standart AI modeli",
+                  "E-posta desteği"
                 ]}
-                buttonText="Ücretsiz Başla"
+                buttonText="Hemen Başla"
               />
               <PricingCard
-                title="Pro"
-                description="Bireysel kullanıcılar için"
-                price="99₺"
+                title="PRO"
+                description="Profesyoneller ve sık kullanım için ideal."
+                price="₺199"
                 features={[
                   "Sınırsız belge sadeleştirme",
-                  "Detaylı hukuki analiz",
-                  "Öncelikli destek",
+                  "Gelişmiş PRO AI modeli",
+                  "Dosya yükleme (PDF, Word)",
                   "Belge arşivi",
-                  "OCR desteği"
+                  "Öncelikli destek"
                 ]}
-                buttonText="Pro'ya Geç"
-                popular
+                buttonText="PRO'ya Geç"
+                popular={true}
               />
               <PricingCard
-                title="İşletme"
-                description="Şirketler ve profesyoneller için"
-                price="499₺"
+                title="Kurumsal"
+                description="Ekip ve şirketler için özel çözümler."
+                price="Teklif Alın"
                 features={[
-                  "Tüm Pro özellikleri",
-                  "5 takım üyesi",
-                  "API erişimi",
+                  "PRO'daki her şey",
+                  "Ekip yönetimi",
                   "Özel entegrasyonlar",
-                  "7/24 öncelikli destek"
+                  "API erişimi"
                 ]}
-                buttonText="İletişime Geç"
+                buttonText="Bize Ulaşın"
               />
             </div>
           </div>
@@ -634,7 +632,7 @@ const Index = () => {
         </section>
 
         {/* CTA Section */}
-        <section className="relative isolate overflow-hidden bg-primary py-16 sm:py-24 lg:py-32">
+        <section className="py-20 sm:py-24 bg-primary text-primary-foreground">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="mx-auto max-w-2xl text-center">
               <h2 className="text-3xl font-bold tracking-tight text-primary-foreground sm:text-4xl">

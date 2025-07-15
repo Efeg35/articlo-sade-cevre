@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -110,16 +110,27 @@ const Dashboard = () => {
       setActionPlan(data.actionPlan || "");
       setEntities(Array.isArray(data.entities) ? data.entities : []);
       if (user) {
-        await supabase.from('documents').insert({
+        const { error: insertError } = await supabase.from('documents').insert({
           user_id: user.id,
           original_text: originalTextForDb,
           simplified_text: data.simplifiedText || "Sadeleştirilmiş metin yok.",
+          summary: data.summary || "",
+          action_plan: data.actionPlan || "",
+          entities: data.entities || null,
         });
+        if (insertError) {
+          toast({
+            title: "Kayıt Hatası",
+            description: insertError.message || "Belge Supabase'a kaydedilemedi.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Başarılı!",
+            description: "Belgeniz başarıyla sadeleştirildi ve kaydedildi.",
+          });
+        }
       }
-      toast({
-        title: "Başarılı!",
-        description: "Belgeniz başarıyla sadeleştirildi.",
-      });
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Bir hata oluştu. Lütfen tekrar deneyin.";
       toast({
@@ -387,7 +398,13 @@ const Dashboard = () => {
   );
 
   return (
-    <div className="min-h-screen bg-background pt-16">
+    <main className="container mx-auto px-4 pt-24 pb-16">
+      {/* <header className="max-w-5xl mx-auto w-full px-4 sm:px-6 lg:px-8 flex justify-end items-center gap-4 pt-6">
+        <span className="text-sm text-muted-foreground mr-2">{user.email}</span>
+        <Link to="/archive">
+          <Button variant="ghost" className="text-sm">Dosyalarım</Button>
+        </Link>
+      </header> */}
       <main className="max-w-5xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-12">
         {view === 'input' ? renderInputView() : renderResultView()}
       </main>
@@ -425,7 +442,7 @@ const Dashboard = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </main>
   );
 };
 

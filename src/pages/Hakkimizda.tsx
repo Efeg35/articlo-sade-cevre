@@ -1,61 +1,39 @@
+import { Button } from "../components/ui/button";
+import { Link } from "react-router-dom";
+
 const Hakkimizda = () => (
   <div className="max-w-3xl mx-auto px-4 py-16">
-    <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-8 text-center">Hakkımızda & Vizyon</h1>
+    <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-8 text-center">Bir Fikirden Daha Fazlası: Artiklo'nun Hikayesi</h1>
     <section className="mb-10">
-      <h2 className="text-xl font-semibold mb-2 text-foreground">Kuruluş Amacı</h2>
-      <p className="text-muted-foreground">Artiklo, hukuki ve bürokratik belgeleri herkesin anlayabileceği sade Türkçeye çevirerek bilgiye erişimi demokratikleştirmek amacıyla kurulmuştur. Amacımız, vatandaşların haklarını ve yükümlülüklerini kolayca anlamasını sağlamak, toplumsal güçlenmeye katkıda bulunmaktır.</p>
+      <h2 className="text-xl font-semibold mb-4 text-foreground text-center">Her şey basit bir soruyla başladı: Hayatımızı doğrudan etkileyen belgeleri neden anlamak zorunda değilmişiz gibi davranıyoruz?</h2>
+      <p className="text-muted-foreground text-center mb-6">Bir mahkeme tebligatı, bir kira kontratı, bir veraset ilamı... Bu belgelerle karşılaştığımızda hissettiğimiz o yabancılık ve çaresizlik hissini hepimiz biliriz. Anlamadığımız bir dil yüzünden haklarımızın kaybolabileceği veya yanlış bir adım atabileceğimiz korkusuyla yaşarız.<br/><br/>Biz, bu duruma bir son vermek için yola çıktık. Bilginin, sadece hukukçuların veya uzmanların elinde bir güç olduğu bir dünyayı kabul etmedik. Artiklo, bu inancın bir ürünüdür.</p>
     </section>
     <section className="mb-10">
-      <h2 className="text-xl font-semibold mb-2 text-foreground">Vizyonumuz</h2>
+      <h2 className="text-xl font-semibold mb-4 text-foreground">Misyonumuz: Bilgiyi Demokratikleştirmek</h2>
+      <p className="text-muted-foreground">Artiklo'daki temel misyonumuz; en karmaşık hukuki, resmi ve bürokratik dili herkes için anında anlaşılır, erişilebilir ve eyleme geçirilebilir bilgiye dönüştürmektir. Teknolojiyi, vatandaş ile adalet arasındaki duvarları yıkmak için bir köprü olarak kullanıyoruz. Amacımız, tek bir tıkla belirsizliği ortadan kaldırmak ve her bireyi kendi hakları konusunda daha bilinçli ve daha güçlü kılmaktır.</p>
+    </section>
+    <section className="mb-10">
+      <h2 className="text-xl font-semibold mb-4 text-foreground">Vizyonumuz: Herkes İçin Dijital Adalet</h2>
+      <p className="text-muted-foreground">Türkiye'de ve dünyada hukuki okuryazarlığın bir lüks değil, bir standart haline geldiği bir gelecek hayal ediyoruz. Vizyonumuz, Artiklo'nun sadece bir "belge sadeleştirme" aracı olmasının ötesine geçerek, adalete erişimde fırsat eşitliği sağlayan bir sosyal inovasyon lideri olmasıdır. Hiç kimsenin, anlamadığı bir belge yüzünden geceleri uykusunun kaçmadığı bir dünya yaratmak, bizim en büyük hedefimizdir.</p>
+    </section>
+    <section className="mb-10">
+      <h2 className="text-xl font-semibold mb-4 text-foreground">Bize Yol Gösteren Değerler</h2>
       <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-        <li>Türkiye’de ve dünyada hukuki okuryazarlığı artırmak.</li>
-        <li>Hukuki bilgiye erişimde fırsat eşitliği sağlamak.</li>
-        <li>Yapay zeka ile toplumsal fayda ve sosyal inovasyon yaratmak.</li>
-        <li>Güvenli, şeffaf ve etik bir dijital hizmet sunmak.</li>
+        <li><b>Önce İnsan:</b> Teknolojiyi insanlar için geliştiriyoruz. Arayüzümüzün sadeliğinden metinlerimizin anlaşılırlığına kadar her detayda, odağımızda her zaman siz varsınız.</li>
+        <li><b>Gizliliğin Kutsallığı:</b> Güven, her şeyden önce gelir. Verilerinizin sadece size ait olduğuna inanıyor ve bu ilkeyi sarsılmaz bir taahhütle koruyoruz.</li>
+        <li><b>Erişilebilirlik:</b> Bilgi temel bir haktır. Bu hakka erişimin önünde finansal veya teknik hiçbir engel olmamalıdır.</li>
+        <li><b>Cesaret ve İnovasyon:</b> Statükoya meydan okumaktan ve en zor sorunlara teknolojiyle çözüm aramaktan asla çekinmeyiz.</li>
       </ul>
     </section>
-    <section className="mb-10">
-      <h2 className="text-xl font-semibold mb-2 text-foreground">Sosyal İnovasyon ve Etki</h2>
-      <p className="text-muted-foreground">Artiklo, sadece bir yazılım değil, bilgiye erişimde fırsat eşitliği sunan bir sosyal inovasyon projesidir. Avukata ulaşamayan, hukuki terimlerden çekinen veya resmi yazılardan korkan herkes için destek sunar.</p>
-      <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-        <li>Toplumsal farkındalık ve bilinç artışı.</li>
-        <li>Hukuki süreçlerde panik ve endişenin azalması.</li>
-        <li>Vatandaşların kendi haklarını savunabilme gücü.</li>
-      </ul>
-    </section>
-    <section className="mb-10">
-      <h2 className="text-xl font-semibold mb-2 text-foreground">Teknoloji ve Güvenlik</h2>
-      <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-        <li>En güncel yapay zeka modelleri (Google Gemini API) ile çalışır.</li>
-        <li>Tüm veri transferleri şifreli ve güvenlidir.</li>
-        <li>Belgeleriniz ve kişisel bilgileriniz asla sistemde saklanmaz, işlem sonrası kalıcı olarak silinir.</li>
-        <li>Gizlilik ve veri güvenliği en yüksek önceliğimizdir.</li>
-      </ul>
-    </section>
-    <section className="mb-10">
-      <h2 className="text-xl font-semibold mb-2 text-foreground">Etik İlkelerimiz</h2>
-      <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-        <li>Tarafsızlık ve şeffaflık.</li>
-        <li>Kullanıcı verilerine saygı ve gizlilik.</li>
-        <li>Hukuki danışmanlık iddiasında bulunmamak.</li>
-        <li>Toplumsal fayda ve sorumluluk bilinciyle hareket etmek.</li>
-      </ul>
-    </section>
-    <section className="mb-10">
-      <h2 className="text-xl font-semibold mb-2 text-foreground">Ekibimiz</h2>
-      <p className="text-muted-foreground">Artiklo, hukuk, yazılım ve yapay zeka alanlarında deneyimli bir ekip tarafından geliştirilmiştir. Ekibimiz, kullanıcı odaklı ve etik değerleri ön planda tutarak sürekli olarak platformu geliştirmeye devam etmektedir.</p>
-    </section>
-    <section className="mb-10">
-      <h2 className="text-xl font-semibold mb-2 text-foreground">Uzun Vadeli Hedefler</h2>
-      <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-        <li>Kurumsal ve B2B çözümlerle daha fazla kişiye ulaşmak.</li>
-        <li>Uluslararasılaşma ve çok dilli destek.</li>
-        <li>Hukuki sadeleştirme dışında farklı alanlarda da toplumsal fayda sağlamak.</li>
-      </ul>
-    </section>
-    <section className="mb-10">
-      <h2 className="text-xl font-semibold mb-2 text-foreground">Bize Ulaşın</h2>
-      <p className="text-muted-foreground">Her türlü görüş, öneri ve iş birliği için <a href="mailto:destek@artiklo.legal" className="underline hover:text-foreground">destek@artiklo.legal</a> adresine e-posta gönderebilirsiniz.</p>
+    <section className="mb-10 text-center">
+      <h2 className="text-xl font-semibold mb-4 text-foreground">Bu Yolculuğun Bir Parçası Olun</h2>
+      <p className="text-muted-foreground mb-6">Artiklo, bir ekipten daha fazlasıdır; ortak bir amaca inanan bir topluluktur. Bu vizyonu paylaşıyorsanız, sizi de aramızda görmekten mutluluk duyarız.</p>
+      <Button asChild size="lg" className="px-8 py-4 text-lg font-bold mb-4">
+        <a href="/" aria-label="Artiklo'yu Şimdi Deneyin">Artiklo'yu Şimdi Deneyin</a>
+      </Button>
+      <div>
+        <Link to="/nedenartiklo" className="underline text-primary hover:text-foreground text-base font-medium">Neden Bizi Seçmelisiniz?</Link>
+      </div>
     </section>
   </div>
 );

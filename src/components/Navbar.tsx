@@ -3,8 +3,9 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger } from "@/components/ui/navigation-menu";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import { FileText, ChevronDown, LogIn } from "lucide-react";
+import { FileText, ChevronDown, LogIn, User as UserIcon, Archive, LogOut } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 
 const Navbar = () => {
@@ -15,10 +16,8 @@ const Navbar = () => {
 
   useEffect(() => {
     const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        setUser(session.user);
-      }
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
     };
     checkUser();
 
@@ -50,6 +49,7 @@ const Navbar = () => {
   };
 
   const isDashboard = location.pathname.startsWith("/dashboard");
+  const isArchive = location.pathname.startsWith("/archive");
 
   return (
     <header
@@ -71,7 +71,7 @@ const Navbar = () => {
         </Link>
 
         {/* Navigation Links */}
-        {!isDashboard && (
+        {!isDashboard && !isArchive && (
           <NavigationMenu>
             <NavigationMenuList>
               <NavigationMenuItem>
@@ -156,10 +156,16 @@ const Navbar = () => {
         )}
 
         {/* Auth Buttons */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
           {user ? (
             <>
-              {!isDashboard && (
+              {isDashboard || isArchive ? (
+                <Link to={isDashboard ? "/archive" : "/dashboard"}>
+                  <Button variant="ghost" className="text-sm font-medium">
+                    {isDashboard ? "Dosyalarım" : "Dashboard"}
+                  </Button>
+                </Link>
+              ) : (
                 <Button
                   variant="ghost"
                   className="text-sm"
@@ -168,20 +174,33 @@ const Navbar = () => {
                   Dashboard
                 </Button>
               )}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleSignOut}
-              >
-                Çıkış Yap
-              </Button>
+              
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="rounded-full">
+                    <UserIcon className="h-5 w-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-64">
+                  <div className="px-3 py-2 space-y-1">
+                    <p className="text-sm font-medium text-foreground truncate">
+                      {user.user_metadata?.full_name || user.email}
+                    </p>
+                    <p className="text-xs text-muted-foreground">Kullanıcı Paneli</p>
+                  </div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onSelect={handleSignOut} className="cursor-pointer">
+                    <LogOut className="w-4 h-4 mr-2" /> Çıkış Yap
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </>
           ) : (
             <Button
               onClick={() => navigate("/auth")}
-              className="group"
+              className="group flex items-center gap-2"
             >
-              <LogIn className="group-hover:-translate-y-0.5 transition-transform" />
+              <LogIn className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
               Giriş Yap
             </Button>
           )}

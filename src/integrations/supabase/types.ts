@@ -22,6 +22,9 @@ export type Database = {
           simplified_text: string
           updated_at: string
           user_id: string
+          summary: string | null
+          action_plan: string | null
+          entities: Json | null
         }
         Insert: {
           created_at?: string
@@ -30,6 +33,9 @@ export type Database = {
           simplified_text: string
           updated_at?: string
           user_id: string
+          summary?: string | null
+          action_plan?: string | null
+          entities?: Json | null
         }
         Update: {
           created_at?: string
@@ -38,6 +44,9 @@ export type Database = {
           simplified_text?: string
           updated_at?: string
           user_id?: string
+          summary?: string | null
+          action_plan?: string | null
+          entities?: Json | null
         }
         Relationships: []
       }

@@ -15,6 +15,9 @@ import SSS from "./pages/SSS";
 import Hakkimizda from "./pages/Hakkimizda";
 import KullaniciSozlesmesi from "./pages/KullaniciSozlesmesi";
 import KvkkAydinlatma from "./pages/KvkkAydinlatma";
+import Blog from "./pages/Blog";
+import BlogPost from "./pages/BlogPost";
+import ArchivePage from "./pages/ArchivePage";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +39,9 @@ const App = () => (
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/kullanici-sozlesmesi" element={<KullaniciSozlesmesi />} />
           <Route path="/kvkk-aydinlatma" element={<KvkkAydinlatma />} />
+          <Route path="/blog" element={<Blog />} />
+          <Route path="/blog/:id" element={<BlogPost />} />
+          <Route path="/archive" element={<ArchivePage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
