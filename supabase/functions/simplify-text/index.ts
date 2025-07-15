@@ -1,8 +1,15 @@
+// @ts-expect-error Deno ortamı, tip bulunamıyor
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
+// @ts-expect-error Deno ortamı, tip bulunamıyor
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+// @ts-expect-error Deno ortamı, tip bulunamıyor
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+// @ts-expect-error Deno ortamı, tip bulunamıyor
 import mammoth from "https://esm.sh/mammoth@1.7.0";
+// @ts-expect-error Deno ortamı, tip bulunamıyor
+import { decode } from "https://deno.land/x/djwt@v2.8/mod.ts";
 
+// @ts-expect-error Deno ortamı, tip bulunamıyor
 const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -20,9 +27,42 @@ serve(async (req) => {
     }
 
     const supabaseAdmin = createClient(
+      // @ts-expect-error Deno ortamı, tip bulunamıyor
       Deno.env.get('SUPABASE_URL') ?? '',
+      // @ts-expect-error Deno ortamı, tip bulunamıyor
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
+
+    // --- JWT'den kullanıcıyı çek ---
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: 'Authorization header eksik.' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+    const jwt = authHeader.replace('Bearer ', '');
+    let userId: string | undefined;
+    try {
+      const payload = await decode(jwt);
+      // Supabase JWT payload'ında 'sub' alanı user id'dir
+      if (Array.isArray(payload)) {
+        const payloadObj = payload[1] as Record<string, unknown>;
+        userId = payloadObj.sub as string;
+      }
+    } catch (e) {
+      return new Response(JSON.stringify({ error: 'JWT çözümlenemedi.' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+    if (!userId) {
+      return new Response(JSON.stringify({ error: 'Kullanıcı kimliği bulunamadı.' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+    // Profili çek
+    const { data: profile, error: profileError } = await supabaseAdmin
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single();
+    if (profileError || !profile) {
+      return new Response(JSON.stringify({ error: 'Profil bulunamadı.' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+    const user = { id: userId };
     
     let textToSimplify: string | undefined;
     let modelName = 'gemini-1.5-flash-latest';
@@ -219,6 +259,9 @@ ${textToSimplify}
         }
     }
     
+    // Gemini ve diğer işlemlerden sonra, başarılıysa:
+    await supabaseAdmin.from('profiles').update({ credits: profile.credits - 1 }).eq('id', user.id);
+
     return new Response(JSON.stringify({ summary, simplifiedText, actionPlan, entities }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
