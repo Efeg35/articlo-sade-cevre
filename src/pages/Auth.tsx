@@ -68,6 +68,13 @@ const Auth = () => {
         setSuccessMessage("Hesabınız oluşturuldu! E-posta adresinize gönderilen doğrulama bağlantısına tıklayın.");
         setEmail("");
         setPassword("");
+        // Profil tablosuna ekle
+        await supabase.from('profiles').insert({
+          id: data.user.id,
+          email: data.user.email,
+          full_name: fullName,
+          credits: 3
+        });
       }
 
       if (data.session) {

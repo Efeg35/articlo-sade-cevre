@@ -62,6 +62,9 @@ serve(async (req) => {
     if (profileError || !profile) {
       return new Response(JSON.stringify({ error: 'Profil bulunamadı.' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
+    if (profile.credits < 1) {
+      return new Response(JSON.stringify({ error: 'Yetersiz kredi. Yeni belge sadeleştirmek için krediniz yok.' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
     const user = { id: userId };
     
     let textToSimplify: string | undefined;
@@ -259,8 +262,11 @@ ${textToSimplify}
         }
     }
     
-    // Gemini ve diğer işlemlerden sonra, başarılıysa:
-    await supabaseAdmin.from('profiles').update({ credits: profile.credits - 1 }).eq('id', user.id);
+    // Kredi azaltma işlemini atomik ve güvenli yap
+    const { error: creditError } = await supabaseAdmin.rpc('decrement_credit', { user_id_param: user.id });
+    if (creditError) {
+      console.error('Kredi azaltılamadı:', creditError.message);
+    }
 
     return new Response(JSON.stringify({ summary, simplifiedText, actionPlan, entities }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
