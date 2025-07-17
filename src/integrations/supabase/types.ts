@@ -73,6 +73,54 @@ export type Database = {
           has_completed_onboarding?: boolean
         }
         Relationships: []
+      },
+      law_firm_profiles: {
+        Row: {
+          id: string;
+          created_at: string;
+          name: string;
+          slug: string;
+          city: string;
+          specialties: string[];
+          logo_url: string | null;
+          status: string;
+          address: string | null;
+          phone: string | null;
+          email: string | null;
+          website: string | null;
+          description: string | null;
+        }
+        Insert: {
+          id?: string;
+          created_at?: string;
+          name: string;
+          slug: string;
+          city: string;
+          specialties: string[];
+          logo_url?: string | null;
+          status: string;
+          address?: string | null;
+          phone?: string | null;
+          email?: string | null;
+          website?: string | null;
+          description?: string | null;
+        }
+        Update: {
+          id?: string;
+          created_at?: string;
+          name?: string;
+          slug?: string;
+          city?: string;
+          specialties?: string[];
+          logo_url?: string | null;
+          status?: string;
+          address?: string | null;
+          phone?: string | null;
+          email?: string | null;
+          website?: string | null;
+          description?: string | null;
+        }
+        Relationships: []
       }
     }
     Views: {

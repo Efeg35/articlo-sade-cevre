@@ -52,7 +52,7 @@ const Dashboard = () => {
         return;
       }
       setUser(session.user);
-      // Sadece mobilde ve giriş yaptıysa onboarding kontrolü
+      // Sadece mobilde onboarding kontrolü
       if (Capacitor.isNativePlatform()) {
         const { data, error } = await supabase
           .from("profiles")
@@ -433,6 +433,20 @@ const Dashboard = () => {
             </CardContent>
           </Card>
       )}
+      {/* CTA Bölümü */}
+      <Card className="border-2 border-primary/40 bg-primary/5 mt-8">
+        <CardHeader>
+          <CardTitle className="text-xl text-primary">Profesyonel Destek Mi Arıyorsunuz?</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="mb-4 text-muted-foreground">
+            Bu analiz hukuki bir danışmanlık yerine geçmez. Dilerseniz, şehrinizdeki Artiklo Onaylı Hukuk Büroları Rehberi'ne göz atarak uzman avukatlarla iletişime geçebilirsiniz.
+          </p>
+          <Button asChild size="lg" className="w-full md:w-auto">
+            <Link to="/rehber">Rehbere Git</Link>
+          </Button>
+        </CardContent>
+      </Card>
     </div>
   );
 

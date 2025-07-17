@@ -17,6 +17,8 @@ import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import ArchivePage from "./pages/ArchivePage";
 import MobileWelcome from "./pages/MobileWelcome";
+import RehberPage from "./pages/RehberPage";
+import RehberDetayPage from "./pages/RehberDetayPage";
 
 const AppRoutes = () => {
   const { isMobile } = usePlatform();
@@ -35,9 +37,11 @@ const AppRoutes = () => {
     return <MobileWelcome />;
   }
 
+  const hideNavbar = ["/auth", "/login", "/signup"].includes(location.pathname);
+
   return (
     <>
-      <Navbar />
+      {!hideNavbar && <Navbar />}
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/neden-artiklo" element={<NedenArtiklo />} />
@@ -54,6 +58,8 @@ const AppRoutes = () => {
         <Route path="/blog" element={<Blog />} />
         <Route path="/blog/:id" element={<BlogPost />} />
         <Route path="/archive" element={<ArchivePage />} />
+        <Route path="/rehber" element={<RehberPage />} />
+        <Route path="/rehber/:slug" element={<RehberDetayPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </>

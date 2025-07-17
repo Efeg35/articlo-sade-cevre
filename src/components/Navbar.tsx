@@ -54,6 +54,13 @@ const Navbar = () => {
   const isDashboard = location.pathname.startsWith("/dashboard");
   const isArchive = location.pathname.startsWith("/archive");
 
+  const handleLogoClick = (e: React.MouseEvent) => {
+    if (user && !isDashboard && !isArchive) {
+      e.preventDefault();
+      navigate("/dashboard");
+    }
+  };
+
   return (
     <header
       className={cn(
@@ -66,108 +73,34 @@ const Navbar = () => {
       <nav className="container mx-auto px-4 h-16 flex items-center justify-between">
         {/* Logo */}
         <Link
-          to="/"
+          to={user ? "/dashboard" : "/"}
           className="flex items-center gap-2 font-semibold text-lg hover:opacity-80 transition-opacity"
+          // onClick kaldırıldı, yönlendirme Link ile yapılacak
         >
           <FileText className="h-6 w-6" />
           <span>Artiklo</span>
         </Link>
 
         {/* Navigation Links */}
-        {!isDashboard && !isArchive && (
-          <NavigationMenu>
-            <NavigationMenuList>
-              <NavigationMenuItem>
-                <Link to="/neden-artiklo">
-                  <NavigationMenuLink
-                    className={cn(
-                      "group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50",
-                      location.pathname === "/neden-artiklo" && "bg-accent/50"
-                    )}
-                  >
-                    Neden Artiklo?
-                  </NavigationMenuLink>
-                </Link>
-              </NavigationMenuItem>
-              <NavigationMenuItem>
-                <Link to="/blog">
-                  <NavigationMenuLink
-                    className={cn(
-                      "group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50",
-                      location.pathname === "/blog" && "bg-accent/50"
-                    )}
-                  >
-                    Blog
-                  </NavigationMenuLink>
-                </Link>
-              </NavigationMenuItem>
-              <NavigationMenuItem>
-                <NavigationMenuTrigger>Hakkımızda</NavigationMenuTrigger>
-                <NavigationMenuContent>
-                  <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
-                    <li className="row-span-3">
-                      <Link
-                        to="/hakkimizda"
-                        className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-muted/50 to-muted p-6 no-underline outline-none focus:shadow-md"
-                      >
-                        <div className="mb-2 mt-4 text-lg font-medium">
-                          Artiklo Hakkında
-                        </div>
-                        <p className="text-sm leading-tight text-muted-foreground">
-                          Vizyonumuz, değerlerimiz ve ekibimiz hakkında detaylı bilgi alın.
-                        </p>
-                      </Link>
-                    </li>
-                    <li>
-                      <Link
-                        to="/sss"
-                        className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                      >
-                        <div className="text-sm font-medium leading-none">SSS</div>
-                        <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                          Sıkça sorulan sorular ve cevapları
-                        </p>
-                      </Link>
-                    </li>
-                    <li>
-                      <Link
-                        to="/kullanici-sozlesmesi"
-                        className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                      >
-                        <div className="text-sm font-medium leading-none">Kullanıcı Sözleşmesi</div>
-                        <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                          Kullanım koşulları ve yasal bilgiler
-                        </p>
-                      </Link>
-                    </li>
-                    <li>
-                      <Link
-                        to="/kvkk-aydinlatma"
-                        className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                      >
-                        <div className="text-sm font-medium leading-none">KVKK Aydınlatma Metni</div>
-                        <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                          Kişisel verilerin korunması
-                        </p>
-                      </Link>
-                    </li>
-                  </ul>
-                </NavigationMenuContent>
-              </NavigationMenuItem>
-            </NavigationMenuList>
-          </NavigationMenu>
-        )}
+        {/* Artık landing page menüleri yok, sadece logo ve sağda dashboard/auth butonu var */}
 
         {/* Auth Buttons */}
         <div className="flex items-center gap-2">
           {user ? (
             <>
               {isDashboard || isArchive ? (
-                <Link to={isDashboard ? "/archive" : "/dashboard"}>
-                  <Button variant="ghost" className="text-sm font-medium">
-                    {isDashboard ? "Dosyalarım" : "Dashboard"}
-                  </Button>
-                </Link>
+                <>
+                  <Link to={isDashboard ? "/archive" : "/dashboard"}>
+                    <Button variant="ghost" className="text-sm font-medium">
+                      {isDashboard ? "Dosyalarım" : "Dashboard"}
+                    </Button>
+                  </Link>
+                  <Link to="/rehber">
+                    <Button variant="outline" className="text-sm font-medium ml-1">
+                      Avukat Rehberi
+                    </Button>
+                  </Link>
+                </>
               ) : (
                 <Button
                   variant="ghost"

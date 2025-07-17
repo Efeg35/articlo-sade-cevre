@@ -1,5 +1,5 @@
 import { useState, useEffect, FormEvent } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +21,9 @@ const Auth = () => {
   const [successMessage, setSuccessMessage] = useState("");
   const navigate = useNavigate();
   const { toast } = useToast();
+  const location = useLocation();
+  const initialTab = location.pathname === "/signup" ? "signup" : "signin";
+  const [activeTab, setActiveTab] = useState(initialTab);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -65,7 +68,10 @@ const Auth = () => {
       }
 
       if (action === 'signUp' && data.user) {
-        setSuccessMessage("Hesabınız oluşturuldu! E-posta adresinize gönderilen doğrulama bağlantısına tıklayın.");
+        toast({
+          title: "Başarılı!",
+          description: "Hesabınız başarıyla oluşturuldu! Lütfen e-posta adresinize gelen aktivasyon bağlantısına tıklayın.",
+        });
         setEmail("");
         setPassword("");
         // Profil tablosuna ekle
@@ -73,7 +79,8 @@ const Auth = () => {
           id: data.user.id,
           email: data.user.email,
           full_name: fullName,
-          credits: 3
+          credits: 3,
+          has_completed_onboarding: false
         });
       }
 
@@ -101,7 +108,7 @@ const Auth = () => {
           <ArrowLeft className="mr-2 h-4 w-4" />
           Ana Sayfaya Dön
         </a>
-        <Tabs defaultValue="signin" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <div className="text-center mb-6">
             <FileText className="h-10 w-10 text-foreground mx-auto mb-2" />
             <h1 className="text-3xl font-bold text-foreground">Artiklo</h1>
@@ -190,12 +197,7 @@ const Auth = () => {
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
               )}
-              {successMessage && !error && (
-                 <Alert variant="default" className="mt-4 border-green-500 text-green-700">
-                  <AlertTitle>Başarılı</AlertTitle>
-                  <AlertDescription>{successMessage}</AlertDescription>
-                </Alert>
-              )}
+              {/* successMessage sadece toast ile gösterilecek, Alert kaldırıldı */}
             </CardContent>
           </Card>
         </Tabs>
