@@ -5,6 +5,7 @@ import { Loader2, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Dialog as ConfirmDialog, DialogContent as ConfirmDialogContent, DialogHeader as ConfirmDialogHeader, DialogTitle as ConfirmDialogTitle, DialogFooter as ConfirmDialogFooter } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+// import TabBar from "@/components/TabBar";
 
 interface Entity {
   tip: string;
@@ -100,6 +101,7 @@ const ArchivePage = () => {
   }, []);
 
   return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-background text-center p-4 pt-16">
     <main className="container mx-auto px-4 pt-24 pb-16">
       <div className="mb-12 text-center">
         <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl">
@@ -156,6 +158,7 @@ const ArchivePage = () => {
           </div>
         )}
       </div>
+        </main>
 
       {/* Modal for document details */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
@@ -246,7 +249,7 @@ const ArchivePage = () => {
           </ConfirmDialogFooter>
         </ConfirmDialogContent>
       </ConfirmDialog>
-    </main>
+        </div>
   );
 };
 

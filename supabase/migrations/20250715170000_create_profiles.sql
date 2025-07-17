@@ -15,4 +15,6 @@ CREATE POLICY "Users can view their own profile" ON public.profiles
 
 -- Kullanıcılar sadece kendi profilini güncelleyebilsin
 CREATE POLICY "Users can update their own profile" ON public.profiles
-  FOR UPDATE USING (auth.uid() = id); 
+  FOR UPDATE USING (auth.uid() = id);
+
+ALTER TABLE public.profiles ADD COLUMN has_completed_onboarding BOOLEAN NOT NULL DEFAULT false; 

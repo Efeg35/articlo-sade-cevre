@@ -15,6 +15,9 @@ import {
   DialogTitle,
   DialogDescription
 } from "@/components/ui/dialog";
+import { Capacitor } from "@capacitor/core";
+import OnboardingTour from "@/components/OnboardingTour";
+// import TabBar from "@/components/TabBar";
 
 type View = 'input' | 'result';
 type Entity = {
@@ -37,18 +40,33 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isProModalOpen, setIsProModalOpen] = useState(false);
+  const [showTip, setShowTip] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [profileId, setProfileId] = useState<string | null>(null);
 
   useEffect(() => {
-    const checkAuth = async () => {
+    const checkAuthAndOnboarding = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         navigate("/auth");
         return;
       }
       setUser(session.user);
+      // Sadece mobilde ve giriş yaptıysa onboarding kontrolü
+      if (Capacitor.isNativePlatform()) {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("id, has_completed_onboarding")
+          .eq("id", session.user.id)
+          .single();
+        if (!error && data && data.has_completed_onboarding === false) {
+          setShowOnboarding(true);
+          setProfileId(data.id);
+        }
+      }
     };
 
-    checkAuth();
+    checkAuthAndOnboarding();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
@@ -62,6 +80,17 @@ const Dashboard = () => {
 
     return () => subscription.unsubscribe();
   }, [navigate]);
+
+  useEffect(() => {
+    if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+      const seen = localStorage.getItem("artiklo_dashboard_tip_seen");
+      setShowTip(!seen);
+    }
+  }, []);
+  const handleCloseTip = () => {
+    localStorage.setItem("artiklo_dashboard_tip_seen", "1");
+    setShowTip(false);
+  };
 
   // handleSignOut artık Navbar içinde, burada gereksiz
   
@@ -168,6 +197,18 @@ const Dashboard = () => {
     }
   };
 
+  // Onboarding bitince Supabase Edge Function çağır
+  const handleOnboardingFinish = async () => {
+    setShowOnboarding(false);
+    if (profileId) {
+      try {
+        await supabase.functions.invoke('complete-onboarding', { body: {} });
+      } catch (e) {
+        // Hata yönetimi
+      }
+    }
+  };
+
   if (!user) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center pt-20 md:pt-16 pt-[env(safe-area-inset-top)]">
@@ -178,14 +219,12 @@ const Dashboard = () => {
 
   const renderInputView = () => (
     <div className="flex flex-col items-center pt-4 md:pt-0 pt-[env(safe-area-inset-top)]">
-      <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-foreground mb-2">
-          Hukuki Belgeni Sadeleştir
-        </h2>
-        <p className="text-muted-foreground max-w-2xl mx-auto">
-          Karmaşık hukuki metninizi aşağıdaki alana yapıştırın veya dosya olarak yükleyin.
-        </p>
-      </div>
+      {showTip && (
+        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 bg-primary text-primary-foreground px-4 py-2 rounded shadow-lg flex items-center gap-2 animate-fade-in">
+          <span>Belgelerinizi yükleyin veya yapıştırın, saniyeler içinde sadeleştirin!</span>
+          <button onClick={handleCloseTip} className="ml-2 text-lg font-bold">×</button>
+        </div>
+      )}
       <Card className="w-full max-w-2xl border shadow-sm">
         <CardContent className="p-6">
           <Textarea
@@ -398,17 +437,20 @@ const Dashboard = () => {
   );
 
   return (
-    <main className="container mx-auto px-4 pt-24 pb-16">
-      {/* <header className="max-w-5xl mx-auto w-full px-4 sm:px-6 lg:px-8 flex justify-end items-center gap-4 pt-6">
-        <span className="text-sm text-muted-foreground mr-2">{user.email}</span>
-        <Link to="/archive">
-          <Button variant="ghost" className="text-sm">Dosyalarım</Button>
-        </Link>
-      </header> */}
-      <main className="max-w-5xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-12">
-        {view === 'input' ? renderInputView() : renderResultView()}
-      </main>
-      {/* PRO Coming Soon Modal */}
+    <>
+      <OnboardingTour open={showOnboarding} onFinish={handleOnboardingFinish} />
+      <div className="min-h-screen bg-background flex flex-col items-center pt-16 px-2">
+        <div className="w-full max-w-2xl flex flex-col items-center mt-4 mb-8">
+          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-2 text-center">Hukuki Belgeni Sadeleştir</h2>
+          <p className="text-muted-foreground text-center max-w-xl mb-6">
+            Karmaşık hukuki metninizi aşağıdaki alana yapıştırın veya dosya olarak yükleyin.
+          </p>
+        </div>
+        <div className="w-full max-w-2xl">
+          {view === 'input' ? renderInputView() : renderResultView()}
+        </div>
+      </div>
+    {/* PRO Coming Soon Modal */}
       <Dialog open={isProModalOpen} onOpenChange={setIsProModalOpen}>
         <DialogContent>
           <DialogHeader>
@@ -442,7 +484,7 @@ const Dashboard = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </main>
+    </>
   );
 };
 
