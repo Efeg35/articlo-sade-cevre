@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { 
@@ -141,6 +141,7 @@ const Index = () => {
   const navigate = useNavigate();
   const featuresRef = useRef<HTMLDivElement>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
+  const [showAuthButtons, setShowAuthButtons] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -466,6 +467,60 @@ const Index = () => {
           </div>
         </section>
 
+        {/* Trust Badges Section */}
+        <section className="py-16 bg-muted/30">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="flex items-center justify-center gap-2 text-muted-foreground">
+                <Shield className="h-6 w-6" />
+                <span>KVKK Uyumlu</span>
+              </div>
+              <div className="flex items-center justify-center gap-2 text-muted-foreground">
+                <Lock className="h-6 w-6" />
+                <span>256-bit SSL Güvenlik</span>
+              </div>
+              <div className="flex items-center justify-center gap-2 text-muted-foreground">
+                <Clock className="h-6 w-6" />
+                <span>7/24 Destek</span>
+              </div>
+              <div className="flex items-center justify-center gap-2 text-muted-foreground">
+                <Users className="h-6 w-6" />
+                <span>10.000+ Kullanıcı</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Law Firm Directory Promo Section */}
+        <section className="py-20 sm:py-24 bg-background border-t">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid md:grid-cols-2 gap-12 items-center">
+              {/* Text Column */}
+              <div>
+                <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-4">
+                  İhtiyacınız Olan Uzmanı Bulun: Artiklo Onaylı Avukat & Hukuk Bürosu Rehberi
+                </h2>
+                <p className="mb-8 text-lg text-muted-foreground">
+                  Sadeleştirdiğiniz belgeler hakkında profesyonel bir görüşe mi ihtiyacınız var? Türkiye'nin dört bir yanından farklı uzmanlık alanlarına sahip onaylı hukuk bürolarına ve avukatlara rehberimiz üzerinden kolayca ulaşabilirsiniz.
+                </p>
+                <Link to="/rehber">
+                  <Button size="lg">
+                    Rehberi Keşfet
+                  </Button>
+                </Link>
+              </div>
+              {/* Visual Column */}
+              <div className="flex items-center justify-center">
+                <img
+                  src="/lawyer.jpg"
+                  alt="Hukuk bürosu"
+                  className="rounded-lg h-64 w-full max-w-xs md:max-w-sm lg:max-w-md object-cover shadow"
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Pricing Section */}
         <section className="py-20 sm:py-24 bg-muted/30">
           <div className="container mx-auto px-4">
@@ -631,6 +686,33 @@ const Index = () => {
           </div>
         </section>
 
+        {/* Partner CTA Section */}
+        <section className="py-20 sm:py-24 bg-background border-t">
+          <div className="mx-auto max-w-2xl text-center px-4 sm:px-6 lg:px-8">
+            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-4">Hukuk Büroları İçin</h2>
+            <p className="mb-8 text-lg text-muted-foreground">
+              Artiklo Partner Programı'na katılarak daha fazla müvekkile ulaşın, dijitalde öne çıkın ve yeni nesil hukuki hizmetlere erişin. Onaylı partnerlerimiz için özel avantajlar ve görünürlük fırsatları sunuyoruz.
+            </p>
+            {!showAuthButtons ? (
+              <Button size="lg" onClick={() => setShowAuthButtons(true)}>
+                Programa Katıl
+              </Button>
+            ) : (
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <Link to="/partner/basvuru" className="w-full sm:w-auto">
+                  <Button size="lg" className="w-full sm:w-auto">
+                    Yeni Başvuru Yap
+                  </Button>
+                </Link>
+                <Link to="/partner/giris-yap" className="w-full sm:w-auto">
+                  <Button size="lg" variant="outline" className="w-full sm:w-auto">
+                    Partner Girişi
+                  </Button>
+                </Link>
+              </div>
+            )}
+          </div>
+        </section>
         {/* CTA Section */}
         <section className="py-20 sm:py-24 bg-primary text-primary-foreground">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

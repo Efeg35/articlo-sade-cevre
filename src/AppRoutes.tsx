@@ -19,6 +19,11 @@ import ArchivePage from "./pages/ArchivePage";
 import MobileWelcome from "./pages/MobileWelcome";
 import RehberPage from "./pages/RehberPage";
 import RehberDetayPage from "./pages/RehberDetayPage";
+import PartnerSignUpPage from "./pages/partner/PartnerSignUpPage";
+import PartnerLoginPage from "./pages/partner/PartnerLoginPage";
+import ProfilePage from "./pages/partner/ProfilePage";
+import DashboardPage from "./pages/partner/DashboardPage";
+import ApplicationPage from "./pages/partner/ApplicationPage";
 
 const AppRoutes = () => {
   const { isMobile } = usePlatform();
@@ -60,6 +65,11 @@ const AppRoutes = () => {
         <Route path="/archive" element={<ArchivePage />} />
         <Route path="/rehber" element={<RehberPage />} />
         <Route path="/rehber/:slug" element={<RehberDetayPage />} />
+        <Route path="/partner/kayit-ol" element={<PartnerSignUpPage />} />
+        <Route path="/partner/giris-yap" element={<PartnerLoginPage />} />
+        <Route path="/partner/profil" element={<ProfilePage />} />
+        <Route path="/partner/dashboard" element={<DashboardPage />} />
+        <Route path="/partner/basvuru" element={<ApplicationPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </>
