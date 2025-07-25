@@ -18,6 +18,68 @@ export type BlogPost = {
 // Örnek blog verisi
 export const blogPosts: BlogPost[] = [
   {
+    id: "veraset-ilami-nasil-okunur",
+    title: "Veraset İlamı Nedir ve Nasıl Okunur? (Adım Adım Anlama Rehberi)",
+    summary: "Veraset ilamı (mirasçılık belgesi) karmaşık görünebilir, ancak bu rehber size belgeyi adım adım anlamanız için yardımcı olacak. Hukuki terimlerin anlamından, sonraki adımlara kadar her şey bu yazıda.",
+    content: `Yakınınızı kaybettikten sonraki zorlu süreçte elinize Noter veya Mahkeme'den "Veraset İlamı" ya da yeni adıyla "Mirasçılık Belgesi" başlıklı bir evrak ulaştıysa, ne anlama geldiğini merak etmeniz çok doğal.
+
+İlk bakışta karmaşık ve eski kelimelerle dolu bu belge, aslında mirasçı olarak haklarınızı gösteren resmi bir yol haritasıdır. Çoğu zaman kafa karıştırıcı olsa da, içeriğini anladığınızda tüm süreç sizin için daha net hale gelecektir.
+
+Bu rehber, o haritayı sizin için adım adım okuyacak ve anlaşılır hale getirecek.
+
+Veraset İlamı (Mirasçılık Belgesi) Tam Olarak Nedir?
+Kısaca bu belge, vefat eden bir kişinin (hukuki adıyla 'muris') geride bıraktığı yasal mirasçılarının kimler olduğunu ve bu mirasçıların her birinin mirastan ne kadar pay ('hisse') alacağını kanıtlayan resmi bir kimlik kartı gibidir.
+
+Bu belge olmadan, vefat eden yakınınızın bankadaki parası, evi, arabası veya diğer mal varlıkları üzerinde hiçbir yasal işlem yapamazsınız. Tapuda ev devri, bankadan para çekme veya araba satışı gibi tüm işlemler için bu belgenin ibraz edilmesi zorunludur. Kısacası, bu belge sizin mirastaki haklarınızın resmi anahtarıdır.
+
+Belgedeki Yaygın Hukuki Terimler İçin Sade Bir Sözlük
+Belgeyi okumanızı kolaylaştıracak en temel kelimelerin anlamları şunlardır:
+
+Muris: Vefat eden ve mirası kalan kişi.
+
+Mirasçı (Varis): Murisin mirası üzerinde yasal hak sahibi olan kişi veya kişiler.
+
+Tereke: Murisin geride bıraktığı her şey: Ev, araba, bankadaki para gibi tüm varlıkları VE varsa tüm borçları. Miras, sadece mal varlıklarından değil, borçlardan da oluşabilen bir bütündür.
+
+Hisse (Pay): Her mirasçının bu bütünden alacağı pay. Genellikle 1/4 veya 8/24 gibi kesirli sayılarla gösterilir.
+
+İzale-i Şuyu: Mirasçılar arasında paylaşılamayan (örneğin tek bir ev gibi) bir malın, mahkeme yoluyla satılarak parasının mirasçılar arasında paylaştırılması. Kısaca "ortaklığın sonlandırılması" davası demektir.
+
+Pay Oranları (Örn: 8/24) Nasıl Anlaşılır?
+Belgede genellikle "8/24 payın Ayşe Yılmaz'a ait olduğu..." gibi ifadeler görürsünüz ve bu kesirler kafa karıştırabilir. Mantığı aslında basittir:
+
+Mirasın tamamı (tereke), kesrin altındaki sayı (payda) olarak kabul edilir. Örneğimizde miras 24 birimdir. Kesrin üstündeki sayı (pay) ise sizin o bütünden aldığınız payı gösterir.
+
+Yani, payınız 8/24 ise, bu 24 birimlik mirasın 8 biriminin, yani üçte birinin (1/3) size ait olduğu anlamına gelir. Diğer mirasçıların payları da toplandığında bütünün tamamını (24/24) oluşturmalıdır.
+
+Veraset İlamını Aldıktan Sonra Atılacak Adımlar
+Belgeyi Doğru Anlamak ve Yorumlamak (İlk Adım): Her şeyden önce, elinizdeki belgedeki tüm tarafları, pay oranlarını ve özel durumları net bir şekilde anladığınızdan emin olun. Belgenin bir fotoğrafını çekip Artiklo'ya yükleyerek, kimin "muris", kimin "mirasçı" olduğunu ve size düşen payın ne anlama geldiğini saniyeler içinde, sade bir Türkçe ile görebilirsiniz.
+
+Veraset ve İntikal Vergisini Beyan Etmek: Mirasçılık belgesini aldıktan sonra 4 ay içinde ilgili vergi dairesine giderek "Veraset ve İntikal Vergisi Beyannamesi" vermeniz gerekir. Bu, miras kalan malların devlete bildirilmesi işlemidir.
+
+Mirasın İntikal İşlemlerini Başlatmak (Tapu, Banka vb.): Vergi dairesinden alacağınız "ilişiği yoktur" yazısı ve veraset ilamı ile birlikte, vefat eden kişinin üzerine kayıtlı olan ev, arsa gibi mülkleri tapu dairesinde kendi adınıza işletebilir, banka hesaplarındaki parayı payınız oranında çekebilirsiniz.
+
+Anlaşmazlık Durumunda Hukuki Destek Almak: Eğer mirasçılar arasında mal paylaşımı konusunda bir anlaşmazlık varsa (örneğin biri evi satmak isterken diğeri istemiyorsa), bu noktada bir "izale-i şuyu" davası gündeme gelebilir. Bu tür karmaşık ve çekişmeli durumlarda mutlaka bir avukattan profesyonel destek almalısınız.
+
+Artiklo, Miras Belgenizi Nasıl "Tercüme" Eder?
+Artiklo'ya veraset ilamınızı yüklediğinizde, yapay zeka saniyeler içinde:
+
+Belgedeki "muris" ve tüm "mirasçıları" isim isim listeler.
+
+Her bir mirasçıya düşen hisse oranını (8/24 gibi) tespit eder ve "Mirasın üçte biri" gibi anlaşılır bir ifadeye çevirir.
+
+"İzale-i şuyu" gibi karmaşık hukuki terimleri sizin için sade bir dille açıklar.
+
+Size, bir sonraki adımda ne yapmanız gerektiğine dair basit bir eylem planı sunar.
+
+Sonuç: Anlamak, Haklarınızı Korumanın İlk Adımıdır
+Miras süreci, duygusal olarak zorlayıcı bir dönemde atılması gereken hukuki adımlarla dolu olabilir. Bu sürecin ilk ve en önemli adımı, haklarınızın ne olduğunu gösteren mirasçılık belgesini doğru anlamaktır. Belgeyi anladığınızda, süreci daha sakin ve bilinçli yönetebilir, haklarınızı koruyabilir ve olası anlaşmazlıkları en aza indirebilirsiniz.
+
+Önemli Yasal Uyarı
+Artiklo ve bu blog yazısı, karmaşık hukuki metinleri anlamanız için tasarlanmış güçlü bir yardımcıdır. Ancak, içeriğimiz hiçbir şekilde hukuki tavsiye niteliği taşımaz. Miras intikal işlemleri, vergi beyannamesi veya miras paylaşım davası gibi yasal bir eylemde bulunmadan önce mutlaka alanında uzman bir avukata danışmanız kritik önem taşımaktadır. Artiklo'yu en iyi yol arkadaşınız, avukatınızı ise en güvenilir rehberiniz olarak görün.`,
+    publishedAt: "2024-01-20",
+  },
+  {
     id: "kira-kontrati-7-kritik-madde-2025",
     title: "Kira Kontratı İmzalamadan Önce Hayat Kurtaran 7 Kritik Madde (2025 Güncel)",
     summary: "Hayallerinizdeki evi buldunuz ve önünüze kira kontratı kondu. Peki o karmaşık belgedeki kritik maddeleri biliyor musunuz? İşte size hayat kurtaran 7 madde.",

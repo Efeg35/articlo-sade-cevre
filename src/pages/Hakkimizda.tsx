@@ -170,7 +170,7 @@ const Hakkimizda = () => {
                     Neden Bizi Seçmelisiniz?
                     <ArrowRight className="h-4 w-4 ml-2" />
                   </Link>
-                </Button>
+      </Button>
               </div>
             </CardContent>
           </Card>
@@ -198,8 +198,8 @@ const Hakkimizda = () => {
           </Card>
         </div>
       </div>
-    </div>
-  );
+  </div>
+);
 };
 
 export default Hakkimizda; 
