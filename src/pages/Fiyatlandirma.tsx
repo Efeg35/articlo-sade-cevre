@@ -3,8 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Check, Zap, Lock, Infinity, Shield, Users, Clock } from "lucide-react";
+import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 interface PricingCardProps {
   title: string;
@@ -86,26 +92,6 @@ const Fiyatlandirma = () => {
           </p>
         </div>
 
-        {/* Trust Indicators */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-16 text-center">
-          <div className="flex flex-col items-center">
-            <Shield className="h-8 w-8 text-primary mb-2" />
-            <span className="text-sm font-medium">KVKK Uyumlu</span>
-          </div>
-          <div className="flex flex-col items-center">
-            <Lock className="h-8 w-8 text-primary mb-2" />
-            <span className="text-sm font-medium">256-bit SSL Güvenlik</span>
-          </div>
-          <div className="flex flex-col items-center">
-            <Clock className="h-8 w-8 text-primary mb-2" />
-            <span className="text-sm font-medium">7/24 Destek</span>
-          </div>
-          <div className="flex flex-col items-center">
-            <Users className="h-8 w-8 text-primary mb-2" />
-            <span className="text-sm font-medium">10.000+ Kullanıcı</span>
-          </div>
-        </div>
-
         {/* Pricing Cards */}
         <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
           <PricingCard
@@ -113,7 +99,7 @@ const Fiyatlandirma = () => {
             description="Temel özelliklerle başlamak için harika bir seçenek."
             price="Ücretsiz"
             features={[
-              "Ayda 5 belge sadeleştirme",
+              "Ayda 3 belge sadeleştirme",
               "Standart AI modeli",
               "E-posta desteği"
             ]}
@@ -157,32 +143,68 @@ const Fiyatlandirma = () => {
           <h2 className="text-3xl font-bold text-center mb-12">
             Sık Sorulan Sorular
           </h2>
-          <div className="grid md:grid-cols-2 gap-8">
-            <div>
-              <h3 className="text-lg font-semibold mb-2">Ücretsiz plan sınırları nelerdir?</h3>
-              <p className="text-muted-foreground">
-                Ücretsiz planda ayda 5 belge sadeleştirme hakkınız vardır. Bu belgeleri istediğiniz zaman kullanabilirsiniz.
-              </p>
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold mb-2">PRO planı ne zaman faturalandırılır?</h3>
-              <p className="text-muted-foreground">
-                PRO plan aylık olarak faturalandırılır. İstediğiniz zaman iptal edebilirsiniz.
-              </p>
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold mb-2">Belgelerim güvende mi?</h3>
-              <p className="text-muted-foreground">
-                Evet, tüm belgeler 256-bit SSL şifreleme ile korunur ve KVKK standartlarına uygun olarak işlenir.
-              </p>
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold mb-2">Kurumsal plan neleri içerir?</h3>
-              <p className="text-muted-foreground">
-                Kurumsal plan, ekip yönetimi, özel entegrasyonlar ve API erişimi gibi gelişmiş özellikler sunar.
-              </p>
-            </div>
-          </div>
+          <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value="item-1">
+              <AccordionTrigger className="text-left">
+                Ücretsiz planın limitleri tam olarak nedir ve limitim dolunca ne olur?
+              </AccordionTrigger>
+              <AccordionContent className="text-muted-foreground leading-relaxed">
+                Ücretsiz planımız, Artiklo'nun temel gücünü deneyimlemeniz için harikadır. Bu plan kapsamında her ay 3 adet belge sadeleştirme hakkınız bulunur. Bu hak, her ayın aynı gününde otomatik olarak yenilenir. Aylık 3 belge limitinize ulaştığınızda, belgeleriniz arşivinizde güvende kalır ancak yeni bir belge analizi yapamazsınız. Analize devam etmek için bir sonraki ayın yenilenme tarihini bekleyebilir veya dilediğiniz zaman tek tıkla PRO plana geçerek sınırsız analize başlayabilirsiniz.
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="item-2">
+              <AccordionTrigger className="text-left">
+                PRO aboneliğimi istediğim zaman iptal edebilir miyim? Süreç nasıl işliyor?
+              </AccordionTrigger>
+              <AccordionContent className="text-muted-foreground leading-relaxed">
+                Elbette. Şeffaflık bizim için esastır. PRO aboneliğinizde hiçbir uzun vadeli taahhüt yoktur. Hesabınızın ayarlar bölümünden aboneliğinizi dilediğiniz an tek tıkla iptal edebilirsiniz. İptal ettiğinizde, ödemesini yaptığınız dönemin sonuna kadar tüm PRO özelliklerini kullanmaya devam edersiniz. Dönem sonunda hesabınız otomatik olarak Ücretsiz plana döner ve sizden başka bir ücret tahsil edilmez.
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="item-3">
+              <AccordionTrigger className="text-left">
+                Belgelerimin ve kişisel verilerimin güvenliğinden nasıl emin olabilirim?
+              </AccordionTrigger>
+              <AccordionContent className="text-muted-foreground leading-relaxed">
+                <div className="space-y-3">
+                  <p className="font-semibold text-foreground">Artiklo'da gizlilik bir özellik değil, bir yemindir.</p>
+                  <ul className="space-y-2 ml-4">
+                    <li>• Yüklediğiniz hiçbir belge veya içeriği sunucularımızda kalıcı olarak saklamayız. Analiz işlemi tamamlandıktan sonra belgeleriniz sistemden silinir, sadece sizin hesabınızdaki arşivde size özel olarak tutulur.</li>
+                    <li>• Tüm veri akışı, bankacılık sistemlerinde kullanılan 256-bit SSL şifrelemesiyle korunur.</li>
+                    <li>• Biz dahil hiç kimse belgelerinizi göremez. Tüm süreçler KVKK standartlarıyla tam uyumludur.</li>
+                  </ul>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="item-4">
+              <AccordionTrigger className="text-left">
+                Bir "belge sadeleştirme hakkı" ne anlama geliyor? Sayfa sayısı önemli mi?
+              </AccordionTrigger>
+              <AccordionContent className="text-muted-foreground leading-relaxed">
+                Bir "belge sadeleştirme hakkı", tek bir yükleme ve analiz işlemini ifade eder. Yüklediğiniz belgenin 5 sayfa ya da 50 sayfa olması fark etmez; her biri tek bir hak olarak sayılır. Adil kullanım politikamız dahilinde, belgelerinizin uzunluğu konusunda endişelenmenize gerek yoktur.
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="item-5">
+              <AccordionTrigger className="text-left">
+                Yıllık ödemelerde indirim yapıyor musunuz?
+              </AccordionTrigger>
+              <AccordionContent className="text-muted-foreground leading-relaxed">
+                Evet! PRO planımızı aylık yerine yıllık olarak satın alarak çok daha avantajlı bir fiyata sahip olabilirsiniz. Yıllık ödeme seçeneğiyle sadece 10 ay öder, tam 12 ay boyunca sınırsız kullanım hakkı kazanırsınız. Bu, size yaklaşık %17'lik bir indirim, yani 2 ay ücretsiz kullanım sağlar!
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="item-6">
+              <AccordionTrigger className="text-left">
+                PRO ve Kurumsal (Teklif Alın) planı arasındaki temel farklar nelerdir?
+              </AccordionTrigger>
+              <AccordionContent className="text-muted-foreground leading-relaxed">
+                PRO plan, bireysel avukatlar, hukuk öğrencileri, küçük işletme sahipleri ve yoğun belge analizi ihtiyacı olan tüm profesyoneller için idealdir. Kurumsal plan ise, birden fazla çalışanı olan hukuk büroları, şirketlerin hukuk departmanları veya teknolojimizi kendi sistemlerine entegre etmek isteyen kuruluşlar için tasarlanmıştır. Ekip yönetimi, merkezi faturalandırma, özel entegrasyonlar (API) ve öncelikli destek gibi özellikler sunar. İhtiyaçlarınızı görüşmek için "Bize Ulaşın" butonuna tıklamanız yeterlidir.
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </div>
       </div>
     </div>

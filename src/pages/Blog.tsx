@@ -1,5 +1,10 @@
 import React, { useState } from "react";
-import BlogPreviewCard from "../components/BlogPreviewCard";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Search, Calendar, Clock, ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 
 // Blog makalesi tipi
 export type BlogPost = {
@@ -131,6 +136,52 @@ Artiklo'yu en iyi yol arkadaşınız, avukatınızı ise en güvenilir rehberini
   },
 ];
 
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('tr-TR', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+};
+
+const calculateReadTime = (content: string) => {
+  const wordsPerMinute = 200;
+  const wordCount = content.split(' ').length;
+  const readTime = Math.ceil(wordCount / wordsPerMinute);
+  return readTime;
+};
+
+const BlogPreviewCard = ({ post }: { post: BlogPost }) => {
+  return (
+    <Card className="hover:shadow-lg transition-all duration-300 group">
+      <CardHeader className="pb-3">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+          <Calendar className="h-4 w-4" />
+          <span>{formatDate(post.publishedAt)}</span>
+          <span>•</span>
+          <Clock className="h-4 w-4" />
+          <span>{calculateReadTime(post.content)} dk okuma</span>
+        </div>
+        <CardTitle className="text-xl font-semibold leading-tight group-hover:text-primary transition-colors">
+          {post.title}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="pt-0">
+        <p className="text-muted-foreground leading-relaxed mb-4">
+          {post.summary}
+        </p>
+        <Link to={`/blog/${post.id}`}>
+          <Button variant="ghost" className="p-0 h-auto font-semibold text-primary hover:bg-transparent">
+            Devamını Oku
+            <ArrowRight className="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform" />
+          </Button>
+        </Link>
+      </CardContent>
+    </Card>
+  );
+};
+
 const Blog = () => {
   const [search, setSearch] = useState("");
 
@@ -140,24 +191,75 @@ const Blog = () => {
   );
 
   return (
-    <div className="max-w-3xl mx-auto px-2 sm:px-4 py-10 sm:py-16">
-      <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-6 sm:mb-8 text-center">Artiklo Blog</h1>
-      <div className="mb-6 sm:mb-8 flex justify-center">
-        <input
-          type="text"
-          placeholder="Makalelerde ara..."
-          className="w-full max-w-md px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-base bg-background text-foreground shadow-sm"
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-        />
-      </div>
-      <div className="space-y-4 sm:space-y-6">
-        {filteredPosts.length === 0 && (
-          <div className="text-center text-muted-foreground">Aradığınız kriterlere uygun makale bulunamadı.</div>
+    <div className="min-h-screen bg-gradient-to-b from-background to-secondary/20 pt-24">
+      <div className="container mx-auto px-4 py-8">
+        {/* Header Section */}
+        <div className="text-center mb-12">
+          <h1 className="text-3xl md:text-4xl font-bold mb-4">
+            Artiklo Blog
+          </h1>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
+            Hukuki konularda bilgilenin, haklarınızı öğrenin ve belgelerinizi daha iyi anlayın.
+          </p>
+          
+          {/* Search */}
+          <div className="relative max-w-md mx-auto">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            <Input
+              type="text"
+              placeholder="Makalelerde ara..."
+              className="pl-10"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+            />
+          </div>
+        </div>
+
+        {/* Blog Posts */}
+        <div className="max-w-4xl mx-auto">
+          {filteredPosts.length === 0 && (
+            <Card className="text-center py-12">
+              <CardContent>
+                <p className="text-muted-foreground text-lg">
+                  Aradığınız kriterlere uygun makale bulunamadı.
+                </p>
+                <Button 
+                  variant="outline" 
+                  className="mt-4"
+                  onClick={() => setSearch("")}
+                >
+                  Tüm Makaleleri Göster
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+          
+          <div className="grid gap-6">
+            {filteredPosts.map(post => (
+              <BlogPreviewCard key={post.id} post={post} />
+            ))}
+          </div>
+        </div>
+
+        {/* CTA Section */}
+        {filteredPosts.length > 0 && (
+          <div className="mt-16 text-center">
+            <div className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-xl p-6 md:p-8 max-w-3xl mx-auto">
+              <h2 className="text-2xl md:text-3xl font-bold mb-3 text-foreground">
+                Kendi Belgelerinizi Analiz Edin
+              </h2>
+              <p className="text-muted-foreground mb-6 max-w-xl mx-auto">
+                Blog yazılarımızdan ilham aldınız mı? Şimdi kendi belgelerinizi Artiklo ile analiz ederek net cevaplar alın.
+              </p>
+              <Link to="/auth">
+                <Button size="lg" className="font-semibold">
+                  Ücretsiz Analiz Başlat
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </Button>
+              </Link>
+            </div>
+          </div>
         )}
-        {filteredPosts.map(post => (
-          <BlogPreviewCard key={post.id} post={post} />
-        ))}
       </div>
     </div>
   );
