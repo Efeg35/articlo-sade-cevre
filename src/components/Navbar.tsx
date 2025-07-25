@@ -54,13 +54,6 @@ const Navbar = () => {
   const isDashboard = location.pathname.startsWith("/dashboard");
   const isArchive = location.pathname.startsWith("/archive");
 
-  const handleLogoClick = (e: React.MouseEvent) => {
-    if (user && !isDashboard && !isArchive) {
-      e.preventDefault();
-      navigate("/dashboard");
-    }
-  };
-
   return (
     <header
       className={cn(
@@ -75,14 +68,31 @@ const Navbar = () => {
         <Link
           to={user ? "/dashboard" : "/"}
           className="flex items-center gap-2 font-semibold text-lg hover:opacity-80 transition-opacity"
-          // onClick kaldırıldı, yönlendirme Link ile yapılacak
         >
           <FileText className="h-6 w-6" />
           <span>Artiklo</span>
         </Link>
 
-        {/* Navigation Links */}
-        {/* Artık landing page menüleri yok, sadece logo ve sağda dashboard/auth butonu var */}
+        {/* Navigation Links - sadece giriş yapmamış kullanıcılar için */}
+        {!user && (
+          <div className="hidden md:flex items-center gap-6">
+            <Link to="/nasil-calisir" className="text-sm font-medium hover:text-primary transition-colors">
+              Nasıl Çalışır?
+            </Link>
+            <Link to="/fiyatlandirma" className="text-sm font-medium hover:text-primary transition-colors">
+              Fiyatlandırma
+            </Link>
+            <Link to="/blog" className="text-sm font-medium hover:text-primary transition-colors">
+              Blog
+            </Link>
+            <Link to="/sss" className="text-sm font-medium hover:text-primary transition-colors">
+              SSS
+            </Link>
+            <Link to="/hakkimizda" className="text-sm font-medium hover:text-primary transition-colors">
+              Hakkımızda
+            </Link>
+          </div>
+        )}
 
         {/* Auth Buttons */}
         <div className="flex items-center gap-2">

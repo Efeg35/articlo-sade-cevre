@@ -13,22 +13,11 @@ import {
   Clock, 
   LucideIcon, 
   ChevronDown,
-  Zap,
-  Lock,
-  Infinity,
-  PieChart,
-  HelpCircle,
-  Check
+  Lock
 } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { cn, addIntersectionObserver } from "@/lib/utils";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
 
 interface FeatureCardProps {
   icon: LucideIcon;
@@ -69,79 +58,11 @@ const FeatureCard = ({ icon: Icon, title, description, delay = 0 }: FeatureCardP
   );
 };
 
-interface PricingCardProps {
-  title: string;
-  description: string;
-  price: string;
-  features: string[];
-  buttonText: string;
-  popular?: boolean;
-}
-
-const PricingCard = ({ title, description, price, features, buttonText, popular }: PricingCardProps) => {
-  return (
-    <Card className={cn(
-      "relative flex flex-col",
-      popular && "border-primary shadow-lg scale-105"
-    )}>
-      {popular && (
-        <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-3 py-1 bg-primary text-primary-foreground text-sm rounded-full">
-          En Popüler
-        </div>
-      )}
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
-        <CardDescription>{description}</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="mb-4">
-          <span className="text-4xl font-bold">{price}</span>
-          {price !== "Ücretsiz" && <span className="text-muted-foreground">/ay</span>}
-        </div>
-        <ul className="space-y-2">
-          {features.map((feature, i) => (
-            <li key={i} className="flex items-center gap-2">
-              <Check className="h-5 w-5 text-primary" />
-              <span>{feature}</span>
-            </li>
-          ))}
-        </ul>
-      </CardContent>
-      <CardFooter className="mt-auto">
-        <Button className="w-full" variant={popular ? "default" : "outline"}>
-          {buttonText}
-        </Button>
-      </CardFooter>
-    </Card>
-  );
-};
-
-interface StepCardProps {
-  number: number;
-  title: string;
-  description: string;
-}
-
-const StepCard = ({ number, title, description }: StepCardProps) => {
-  return (
-    <div className="flex gap-4 items-start">
-      <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold">
-        {number}
-      </div>
-      <div>
-        <h3 className="text-lg font-semibold mb-2">{title}</h3>
-        <p className="text-muted-foreground">{description}</p>
-      </div>
-    </div>
-  );
-};
-
 const Index = () => {
   const [user, setUser] = useState<User | null>(null);
   const navigate = useNavigate();
   const featuresRef = useRef<HTMLDivElement>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
-  const [showAuthButtons, setShowAuthButtons] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -184,44 +105,6 @@ const Index = () => {
     featuresRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const steps = [
-    {
-      number: 1,
-      title: "Belgenizi Yükleyin",
-      description: "PDF, Word veya fotoğraf formatındaki hukuki belgenizi platforma yükleyin."
-    },
-    {
-      number: 2,
-      title: "Yapay Zeka Analizi",
-      description: "Gelişmiş AI teknolojimiz belgenizi analiz eder ve önemli noktaları tespit eder."
-    },
-    {
-      number: 3,
-      title: "Sade Türkçe Açıklama",
-      description: "Saniyeler içinde belgenizin anlaşılır bir özetini ve yapmanız gerekenleri görün."
-    },
-    {
-      number: 4,
-      title: "Akıllı Özetleme",
-      description: "Belgenin kritik bilgilerini içeren 'Yönetici Özeti' ve vurgulanan önemli noktalar sunulur."
-    },
-    {
-      number: 5,
-      title: "'Sizin İçin Anlamı' Analizi",
-      description: "Belgenin sizi nasıl etkilediğini açıklayan özel bir bölüm sunulur."
-    },
-    {
-      number: 6,
-      title: "Eylem Planı",
-      description: "Belgeyle ilgili atmanız gereken adımları somut bir liste halinde görün."
-    },
-    {
-      number: 7,
-      title: "Kilit Varlık Tespiti",
-      description: "Metin içindeki önemli bilgiler (tarihler, tutarlar, isimler vb.) otomatik olarak tespit edilir ve vurgulanır."
-    }
-  ];
-
   return (
     <div className="flex flex-col min-h-screen bg-background pt-20 md:pt-16 pt-[env(safe-area-inset-top)]">
       {/* Progress Bar */}
@@ -244,34 +127,34 @@ const Index = () => {
                   <span className="relative whitespace-nowrap">
                     <span className="relative bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
                       Anında
-            </span>
+                    </span>
                   </span>{' '}
                   Anlayın
-          </h1>
+                </h1>
                 <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-muted-foreground">
                   Artiklo, karmaşık resmi yazıları ve sözleşmeleri saniyeler içinde sadeleştirir.
                   Ne yapmanız gerektiğini, haklarınızı ve risklerinizi kolayca öğrenin.
                 </p>
               </div>
               <div className="mt-10 flex items-center justify-center gap-x-6 animate-fade-in-up" style={{ animationDelay: "200ms" }}>
-            <Button 
-              size="lg" 
-              variant="hero" 
+                <Button 
+                  size="lg" 
+                  variant="hero" 
                   onClick={handleNavigate}
                   className="group"
-            >
+                >
                   Hemen Başlayın
                   <ArrowRight className="group-hover:translate-x-1 transition-transform" />
-            </Button>
-              <Button 
+                </Button>
+                <Button 
                   variant="outline"
-                size="lg" 
+                  size="lg" 
                   onClick={handleScrollToFeatures}
                   className="group"
-              >
+                >
                   Nasıl Çalışır?
                   <ChevronDown className="group-hover:translate-y-0.5 transition-transform" />
-              </Button>
+                </Button>
               </div>
             </div>
           </div>
@@ -280,9 +163,9 @@ const Index = () => {
           <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
             <div className="w-6 h-10 border-2 border-muted-foreground rounded-full p-1">
               <div className="w-1.5 h-1.5 bg-muted-foreground rounded-full animate-scroll-down" />
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
         {/* Features Grid */}
         <section ref={featuresRef} className="py-24 sm:py-32">
@@ -333,7 +216,7 @@ const Index = () => {
                 delay={500}
               />
             </div>
-                </div>
+          </div>
         </section>
 
         {/* Testimonials */}
@@ -388,8 +271,8 @@ const Index = () => {
                       <p className="text-sm text-muted-foreground">İzmir</p>
                     </div>
                   </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
             </div>
           </div>
         </section>
@@ -404,19 +287,19 @@ const Index = () => {
               <p className="mt-4 text-lg text-muted-foreground">
                 Artiklo'nun farklı kullanım alanlarından örnekler.
               </p>
-                </div>
+            </div>
             <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
               <Card className="bg-muted/30 hover:bg-muted/50 transition-all duration-300 transform hover:-translate-y-1">
                 <CardContent className="p-6">
                   <div className="flex flex-col items-center text-center gap-4">
                     <span className="text-4xl transform transition-transform group-hover:scale-110">👴</span>
                     <h3 className="text-xl font-semibold">Emekli Ahmet Bey</h3>
-                <p className="text-muted-foreground">
+                    <p className="text-muted-foreground">
                       Veraset ilamındaki terimleri anlamadığı için endişeleniyordu. Artiklo ile haklarını ve sonraki adımları kolayca öğrendi.
-                </p>
+                    </p>
                   </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
               <Card className="bg-muted/30 hover:bg-muted/50 transition-all duration-300 transform hover:-translate-y-1">
                 <CardContent className="p-6">
                   <div className="flex flex-col items-center text-center gap-4">
@@ -425,7 +308,7 @@ const Index = () => {
                     <p className="text-muted-foreground">
                       Kira kontratındaki teknik maddeleri Artiklo sayesinde sade Türkçe ile anladı, güvenle imzaladı.
                     </p>
-                </div>
+                  </div>
                 </CardContent>
               </Card>
               <Card className="bg-muted/30 hover:bg-muted/50 transition-all duration-300 transform hover:-translate-y-1">
@@ -433,113 +316,12 @@ const Index = () => {
                   <div className="flex flex-col items-center text-center gap-4">
                     <span className="text-4xl transform transition-transform group-hover:scale-110">💼</span>
                     <h3 className="text-xl font-semibold">KOBİ Sahibi Murat</h3>
-                <p className="text-muted-foreground">
+                    <p className="text-muted-foreground">
                       Vergi dairesinden gelen ödeme emrinin aciliyetini Artiklo ile kavradı, süreci zamanında yönetti.
-                </p>
+                    </p>
                   </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-        {/* How It Works Section */}
-        <section className="bg-background py-20 sm:py-24">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-                Nasıl Çalışır?
-              </h2>
-              <p className="mt-4 text-lg text-muted-foreground">
-                Artiklo ile hukuki belgeleri anlamak çok kolay. İşte adım adım süreç:
-              </p>
-            </div>
-            <div className="grid gap-8 max-w-3xl mx-auto">
-              {steps.map((step) => (
-                <StepCard
-                  key={step.number}
-                  number={step.number}
-                  title={step.title}
-                  description={step.description}
-                />
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Trust Badges Section */}
-        <section className="py-16 bg-muted/30">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-              <div className="flex items-center justify-center gap-2 text-muted-foreground">
-                <Shield className="h-6 w-6" />
-                <span>KVKK Uyumlu</span>
-              </div>
-              <div className="flex items-center justify-center gap-2 text-muted-foreground">
-                <Lock className="h-6 w-6" />
-                <span>256-bit SSL Güvenlik</span>
-              </div>
-              <div className="flex items-center justify-center gap-2 text-muted-foreground">
-                <Clock className="h-6 w-6" />
-                <span>7/24 Destek</span>
-              </div>
-              <div className="flex items-center justify-center gap-2 text-muted-foreground">
-                <Users className="h-6 w-6" />
-                <span>10.000+ Kullanıcı</span>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Pricing Section */}
-        <section className="py-20 sm:py-24 bg-muted/30">
-          <div className="container mx-auto px-4">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-                Size Uygun Planı Seçin
-              </h2>
-              <p className="mt-4 text-lg text-muted-foreground">
-                İhtiyaçlarınıza en uygun abonelik planını seçerek hemen kullanmaya başlayın.
-              </p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
-              <PricingCard
-                title="Başlangıç"
-                description="Temel özelliklerle başlamak için harika bir seçenek."
-                price="Ücretsiz"
-                features={[
-                  "Ayda 5 belge sadeleştirme",
-                  "Standart AI modeli",
-                  "E-posta desteği"
-                ]}
-                buttonText="Hemen Başla"
-              />
-              <PricingCard
-                title="PRO"
-                description="Profesyoneller ve sık kullanım için ideal."
-                price="₺199"
-                features={[
-                  "Sınırsız belge sadeleştirme",
-                  "Gelişmiş PRO AI modeli",
-                  "Dosya yükleme (PDF, Word)",
-                  "Belge arşivi",
-                  "Öncelikli destek"
-                ]}
-                buttonText="PRO'ya Geç"
-                popular={true}
-              />
-              <PricingCard
-                title="Kurumsal"
-                description="Ekip ve şirketler için özel çözümler."
-                price="Teklif Alın"
-                features={[
-                  "PRO'daki her şey",
-                  "Ekip yönetimi",
-                  "Özel entegrasyonlar",
-                  "API erişimi"
-                ]}
-                buttonText="Bize Ulaşın"
-              />
+                </CardContent>
+              </Card>
             </div>
           </div>
         </section>
@@ -580,57 +362,9 @@ const Index = () => {
                   <div className="text-muted-foreground">Ortalama İşlem Süresi</div>
                 </CardContent>
               </Card>
+            </div>
           </div>
-        </div>
-      </section>
-
-        {/* FAQ Section */}
-        <section className="py-24 sm:py-32">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="mx-auto max-w-2xl text-center mb-16">
-              <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-                Sık Sorulan Sorular
-          </h2>
-              <p className="mt-4 text-lg text-muted-foreground">
-                Artiklo hakkında merak edilenler
-              </p>
-            </div>
-            <div className="max-w-3xl mx-auto">
-              <Accordion type="single" collapsible>
-                <AccordionItem value="item-1">
-                  <AccordionTrigger>Artiklo'yu nasıl kullanabilirim?</AccordionTrigger>
-                  <AccordionContent>
-                    Artiklo'yu kullanmak çok kolay! Ücretsiz hesap oluşturun, belgenizi yükleyin ve saniyeler içinde sadeleştirilmiş versiyonunu alın. Herhangi bir teknik bilgi veya hukuk eğitimi gerektirmez.
-                  </AccordionContent>
-                </AccordionItem>
-                <AccordionItem value="item-2">
-                  <AccordionTrigger>Belgelerim güvende mi?</AccordionTrigger>
-                  <AccordionContent>
-                    Kesinlikle! Yüklediğiniz belgeler analiz edildikten hemen sonra sistemden silinir. Verileriniz asla üçüncü taraflarla paylaşılmaz ve en yüksek güvenlik standartlarıyla korunur.
-                  </AccordionContent>
-                </AccordionItem>
-                <AccordionItem value="item-3">
-                  <AccordionTrigger>Hangi belge türlerini destekliyorsunuz?</AccordionTrigger>
-                  <AccordionContent>
-                    Mahkeme tebligatları, sözleşmeler, veraset ilamları, icra takip belgeleri, vergi bildirimleri ve daha birçok resmi belgeyi destekliyoruz. PDF, Word ve görüntü formatlarını kabul ediyoruz.
-                  </AccordionContent>
-                </AccordionItem>
-                <AccordionItem value="item-4">
-                  <AccordionTrigger>Sadeleştirme ne kadar doğru?</AccordionTrigger>
-                  <AccordionContent>
-                    Yapay zeka modelimiz %99.9 doğruluk oranıyla çalışır ve sürekli olarak geliştirilir. Ancak, önemli kararlar için her zaman bir hukuk profesyoneline danışmanızı öneririz.
-                  </AccordionContent>
-                </AccordionItem>
-                <AccordionItem value="item-5">
-                  <AccordionTrigger>Ücretlendirme nasıl işliyor?</AccordionTrigger>
-                  <AccordionContent>
-                    Ücretsiz planımızla ayda 3 belge sadeleştirebilirsiniz. Daha fazlası için Pro veya İşletme paketlerimizi inceleyebilirsiniz. Tüm planlar aylık faturalandırılır ve istediğiniz zaman iptal edilebilir.
-                  </AccordionContent>
-                </AccordionItem>
-              </Accordion>
-            </div>
-        </div>
-      </section>
+        </section>
 
         {/* Trust Badges Section */}
         <section className="py-16 bg-muted/30">

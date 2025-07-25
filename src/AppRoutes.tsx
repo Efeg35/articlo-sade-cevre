@@ -17,6 +17,8 @@ import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import ArchivePage from "./pages/ArchivePage";
 import MobileWelcome from "./pages/MobileWelcome";
+import NasilCalisir from "./pages/NasilCalisir";
+import Fiyatlandirma from "./pages/Fiyatlandirma";
 import RehberPage from "./pages/RehberPage";
 import RehberDetayPage from "./pages/RehberDetayPage";
 import PartnerSignUpPage from "./pages/partner/PartnerSignUpPage";
@@ -49,6 +51,8 @@ const AppRoutes = () => {
       {!hideNavbar && <Navbar />}
       <Routes>
         <Route path="/" element={<Index />} />
+        <Route path="/nasil-calisir" element={<NasilCalisir />} />
+        <Route path="/fiyatlandirma" element={<Fiyatlandirma />} />
         <Route path="/neden-artiklo" element={<NedenArtiklo />} />
         <Route path="/yorumlar" element={<Yorumlar />} />
         <Route path="/senaryolar" element={<Senaryolar />} />
