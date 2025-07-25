@@ -433,7 +433,7 @@ const Dashboard = () => {
             </CardContent>
           </Card>
       )}
-      {/* CTA Bölümü */}
+      {/*
       <Card className="border-2 border-primary/40 bg-primary/5 mt-8">
         <CardHeader>
           <CardTitle className="text-xl text-primary">Profesyonel Destek Mi Arıyorsunuz?</CardTitle>
@@ -447,6 +447,7 @@ const Dashboard = () => {
           </Button>
         </CardContent>
       </Card>
+      */}
     </div>
   );
 

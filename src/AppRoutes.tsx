@@ -63,13 +63,13 @@ const AppRoutes = () => {
         <Route path="/blog" element={<Blog />} />
         <Route path="/blog/:id" element={<BlogPost />} />
         <Route path="/archive" element={<ArchivePage />} />
-        <Route path="/rehber" element={<RehberPage />} />
-        <Route path="/rehber/:slug" element={<RehberDetayPage />} />
-        <Route path="/partner/kayit-ol" element={<PartnerSignUpPage />} />
-        <Route path="/partner/giris-yap" element={<PartnerLoginPage />} />
-        <Route path="/partner/profil" element={<ProfilePage />} />
-        <Route path="/partner/dashboard" element={<DashboardPage />} />
-        <Route path="/partner/basvuru" element={<ApplicationPage />} />
+        {/* <Route path="/rehber" element={<RehberPage />} /> */}
+        {/* <Route path="/rehber/:slug" element={<RehberDetayPage />} /> */}
+        {/* <Route path="/partner/basvuru" element={<ApplicationPage />} /> */}
+        {/* <Route path="/partner/kayit-ol" element={<PartnerSignUpPage />} /> */}
+        {/* <Route path="/partner/giris-yap" element={<PartnerLoginPage />} /> */}
+        {/* <Route path="/partner/profil" element={<ProfilePage />} /> */}
+        {/* <Route path="/partner/dashboard" element={<DashboardPage />} /> */}
         <Route path="*" element={<NotFound />} />
       </Routes>
     </>

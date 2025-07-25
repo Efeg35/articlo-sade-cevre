@@ -90,16 +90,16 @@ const Navbar = () => {
             <>
               {isDashboard || isArchive ? (
                 <>
-                  <Link to={isDashboard ? "/archive" : "/dashboard"}>
-                    <Button variant="ghost" className="text-sm font-medium">
-                      {isDashboard ? "Dosyalarım" : "Dashboard"}
-                    </Button>
-                  </Link>
-                  <Link to="/rehber">
-                    <Button variant="outline" className="text-sm font-medium ml-1">
-                      Avukat Rehberi
-                    </Button>
-                  </Link>
+                <Link to={isDashboard ? "/archive" : "/dashboard"}>
+                  <Button variant="ghost" className="text-sm font-medium">
+                    {isDashboard ? "Belgelerim" : "Dashboard"}
+                  </Button>
+                </Link>
+                {/* <Link to="/rehber">
+                  <Button variant="outline" className="text-sm font-medium ml-1">
+                    Avukat Rehberi
+                  </Button>
+                </Link> */}
                 </>
               ) : (
                 <Button
