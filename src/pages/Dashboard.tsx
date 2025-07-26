@@ -854,17 +854,41 @@ const Dashboard = () => {
           </DialogHeader>
           <div className="flex-1 p-6 bg-white border rounded-lg shadow-sm overflow-hidden flex flex-col">
             {editMode ? (
-              <Textarea 
-                value={draftedText}
-                onChange={(e) => setDraftedText(e.target.value)}
-                className="flex-1 resize-none border-0 focus:ring-0 focus:outline-none text-sm leading-relaxed font-mono p-4"
-                style={{ minHeight: '60vh' }}
-              />
-            ) : (
-              <div className="flex-1 overflow-y-auto p-6 bg-white">
-                <div className="prose prose-sm max-w-none leading-relaxed text-gray-800 whitespace-pre-wrap">
-                  <ReactMarkdown>{draftedText}</ReactMarkdown>
+              <div className="flex-1 bg-white border border-gray-200 rounded-md shadow-sm overflow-hidden">
+                <div className="bg-gray-50 border-b border-gray-200 px-4 py-2 flex items-center justify-between">
+                  <div className="flex items-center gap-4 text-sm text-gray-600">
+                    <span className="font-medium">Düzenleme Modu</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-gray-500">
+                    <span>Times New Roman, 12pt</span>
+                  </div>
                 </div>
+                <Textarea 
+                  value={draftedText}
+                  onChange={(e) => setDraftedText(e.target.value)}
+                  className="flex-1 resize-none border-0 focus:ring-0 focus:outline-none p-6 bg-white"
+                  style={{ 
+                    minHeight: 'calc(60vh - 40px)',
+                    fontFamily: 'Times New Roman, serif',
+                    fontSize: '12pt',
+                    lineHeight: '1.5',
+                    color: '#1f2937'
+                  }}
+                  placeholder="Belge içeriğinizi buraya yazın..."
+                />
+              </div>
+            ) : (
+              <div 
+                className="flex-1 overflow-y-auto p-6 bg-white leading-relaxed text-gray-800 whitespace-pre-wrap border border-gray-200 rounded-md" 
+                style={{ 
+                  maxHeight: 'calc(60vh - 40px)',
+                  fontFamily: 'Times New Roman, serif', 
+                  fontSize: '12pt',
+                  lineHeight: '1.5',
+                  color: '#1f2937'
+                }}
+              >
+                {draftedText}
               </div>
             )}
           </div>
