@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dialog";
 import { Capacitor } from "@capacitor/core";
 import OnboardingTour from "@/components/OnboardingTour";
+import ReactMarkdown from 'react-markdown';
 // import TabBar from "@/components/TabBar";
 
 type View = 'input' | 'result';
@@ -76,6 +77,7 @@ const Dashboard = () => {
   const [isDrafting, setIsDrafting] = useState(false);
   const [draftedText, setDraftedText] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editMode, setEditMode] = useState(false);
 
   useEffect(() => {
     const checkAuthAndOnboarding = async () => {
@@ -296,6 +298,7 @@ const Dashboard = () => {
       if (data && data.draftedDocument) {
         setDraftedText(data.draftedDocument);
         setIsModalOpen(true);
+        setEditMode(false);
       } else {
         throw new Error("Yapay zekadan bir yanıt geldi ancak beklenen belge metni bulunamadı.");
       }
@@ -767,32 +770,57 @@ const Dashboard = () => {
 
       {/* Document Draft Modal */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-[625px]">
-          <DialogHeader>
-            <DialogTitle>Belge Taslağınız Hazır</DialogTitle>
+        <DialogContent className="max-w-5xl w-[95vw] h-[90vh] flex flex-col">
+          <DialogHeader className="flex-shrink-0">
+            <DialogTitle className="text-xl font-semibold">Belge Taslağınız Hazır</DialogTitle>
             <DialogDescription>
               Aşağıdaki metni inceleyebilir, düzenleyebilir, kopyalayabilir veya indirebilirsiniz.
             </DialogDescription>
           </DialogHeader>
-          <Textarea 
-            value={draftedText}
-            onChange={(e) => setDraftedText(e.target.value)}
-            rows={20}
-            className="my-4"
-          />
-          <p className="text-xs text-muted-foreground">
-            *** Yasal Uyarı: Bu belge, Artiklo yazılımı tarafından kullanıcı tarafından sağlanan bilgilere göre oluşturulmuş bir taslaktır. Hukuki bir tavsiye niteliği taşımaz. Bu belgeyi kullanmadan önce mutlaka bir avukata danışmanız önerilir.
-          </p>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => {
-                navigator.clipboard.writeText(draftedText);
-                toast({ title: "Başarılı!", description: "Metin panoya kopyalandı." });
-            }}>Panoya Kopyala</Button>
-            <Button variant="secondary" onClick={handleDownload}>
-              İndir (.txt)
-            </Button>
-            <Button onClick={() => setIsModalOpen(false)}>Kapat</Button>
-          </DialogFooter>
+          <div className="flex-1 p-6 bg-white border rounded-lg shadow-sm overflow-hidden flex flex-col">
+            {editMode ? (
+              <Textarea 
+                value={draftedText}
+                onChange={(e) => setDraftedText(e.target.value)}
+                className="flex-1 resize-none border-0 focus:ring-0 focus:outline-none text-sm leading-relaxed font-mono p-4"
+                style={{ minHeight: '60vh' }}
+              />
+            ) : (
+              <div className="flex-1 overflow-y-auto p-6 bg-white">
+                <div className="prose prose-sm max-w-none leading-relaxed text-gray-800 whitespace-pre-wrap">
+                  <ReactMarkdown>{draftedText}</ReactMarkdown>
+                </div>
+              </div>
+            )}
+          </div>
+          
+          <div className="flex-shrink-0 space-y-4">
+            <p className="text-xs text-muted-foreground px-2">
+              *** Yasal Uyarı: Bu belge, Artiklo yazılımı tarafından kullanıcı tarafından sağlanan bilgilere göre oluşturulmuş bir taslaktır. Hukuki bir tavsiye niteliği taşımaz. Bu belgeyi kullanmadan önce mutlaka bir avukata danışmanız önerilir.
+            </p>
+            
+            <DialogFooter className="flex flex-row justify-between items-center pt-4 border-t">
+              <div>
+                {editMode ? (
+                  <Button onClick={() => setEditMode(false)} size="sm" className="bg-green-600 hover:bg-green-700">
+                    ✓ Görünümü Kaydet
+                  </Button>
+                ) : (
+                  <Button onClick={() => setEditMode(true)} size="sm" variant="outline">
+                    ✏️ Düzenle
+                  </Button>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={() => {
+                    navigator.clipboard.writeText(draftedText);
+                    toast({ title: "Başarılı!", description: "Metin panoya kopyalandı." });
+                }}>📋 Panoya Kopyala</Button>
+                <Button variant="secondary" size="sm" onClick={handleDownload}>📥 İndir (.txt)</Button>
+                <Button onClick={() => setIsModalOpen(false)} size="sm">Kapat</Button>
+              </div>
+            </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
     </>
