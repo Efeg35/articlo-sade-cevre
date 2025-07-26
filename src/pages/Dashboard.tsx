@@ -6,8 +6,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, X, Sparkles, ArrowRight, BrainCircuit, ListChecks, FileJson, Redo, Copy, FileText, CheckCircle, Download } from "lucide-react";
+import { Loader2, X, Sparkles, ArrowRight, BrainCircuit, ListChecks, FileJson, Redo, Copy, FileText, CheckCircle, Download, BookMarked } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 import {
   Dialog,
@@ -43,6 +49,17 @@ interface AnalysisResponse {
   summary: string;
   extractedEntities: ExtractedEntity[];
   actionableSteps: ActionableStep[];
+  generatedDocument?: {
+    addressee: string;
+    caseReference: string;
+    parties: Array<{ role: string; details: string }>;
+    subject: string;
+    explanations: string[];
+    legalGrounds: string;
+    conclusionAndRequest: string;
+    attachments?: string[];
+    signatureBlock: string;
+  };
 }
 
 // Legacy entity type for backwards compatibility
@@ -75,7 +92,6 @@ const Dashboard = () => {
   const [profileId, setProfileId] = useState<string | null>(null);
   
   // Document drafting states
-  const [isDrafting, setIsDrafting] = useState(false);
   const [draftedText, setDraftedText] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
@@ -175,16 +191,40 @@ const Dashboard = () => {
       
       setView('result');
       
+      // Debug: Log the API response
+      console.log('API Response:', data);
+      
       // Check if we received structured response
       if (data.simplifiedText && data.documentType && data.extractedEntities && data.actionableSteps) {
         // New structured response
+        console.log('Using structured response');
         setAnalysisResult(data as AnalysisResponse);
       } else {
         // Legacy response format - maintain backwards compatibility
+        console.log('Using legacy response format');
       setSummary(data.summary || "");
       setSimplifiedText(data.simplifiedText || "");
       setActionPlan(data.actionPlan || "");
       setEntities(Array.isArray(data.entities) ? data.entities : []);
+        
+        // Legacy entities'i AnalysisResponse formatına dönüştür
+        const legacyEntities = Array.isArray(data.entities) ? data.entities : [];
+        const convertedEntities = legacyEntities.map((entity: unknown) => {
+          const entityObj = entity as { tip?: string; entity?: string; değer?: string; value?: string };
+          return {
+            entity: entityObj.tip || entityObj.entity || 'Bilinmeyen',
+            value: entityObj.değer || entityObj.value || ''
+          };
+        });
+        
+        // Legacy response'u AnalysisResponse formatına dönüştür
+        setAnalysisResult({
+          simplifiedText: data.simplifiedText || "",
+          documentType: data.documentType || "Bilinmeyen",
+          summary: data.summary || "",
+          extractedEntities: convertedEntities,
+          actionableSteps: []
+        });
       }
       
       if (user) {
@@ -312,42 +352,31 @@ const Dashboard = () => {
     }
   };
 
-  const handleCreateDraft = async (actionStep: ActionableStep) => {
-    if (!analysisResult || !actionStep.documentToCreate) return;
+  const handleShowDraft = () => {
+    if (analysisResult && analysisResult.generatedDocument) {
+      // Dilekçeyi yapısal JSON'dan okunabilir metne dönüştür
+      const doc = analysisResult.generatedDocument;
+      const partyDetails = doc.parties.map(p => `${p.role}:\n${p.details}`).join('\n\n');
+      const explanationsText = doc.explanations.map((p, i) => `${i + 1}. ${p}`).join('\n\n');
+      const attachmentsText = doc.attachments ? `EKLER:\n${doc.attachments.join('\n')}` : "";
 
-    setIsDrafting(true);
-    try {
-      const getEntityValue = (name: string) => analysisResult.extractedEntities.find(e => e.entity.toLowerCase() === name.toLowerCase())?.value || "";
-      
-      const kullaniciGirdileri = {
-        makam_adi: getEntityValue('Mahkeme') || getEntityValue('İcra Dairesi') || "İLGİLİ MAKAMA",
-        dosya_no: getEntityValue('Dosya No') || getEntityValue('Esas No') || getEntityValue('Karar No'),
-        itiraz_eden_kisi: { ad_soyad: getEntityValue('Sanık') || getEntityValue('Borçlu') || "Ad Soyad" },
-        alacakli_kurum: { unvan: getEntityValue('Alacaklı') || getEntityValue('Davacı') },
-        talep_sonucu: "Karara itirazlarımın kabulü ile ilgili yasal işlemlerin yapılması.",
-      };
+      const formattedText = [
+        doc.addressee.toUpperCase(),
+        `\n${doc.caseReference}`,
+        `\n${partyDetails}`,
+        `\nKONU: ${doc.subject}`,
+        `\nAÇIKLAMALAR:\n\n${explanationsText}`,
+        `\nHUKUKİ NEDENLER: ${doc.legalGrounds}`,
+        `\nSONUÇ VE İSTEM: ${doc.conclusionAndRequest}`,
+        `\n${attachmentsText}`,
+        `\n${doc.signatureBlock}`
+      ].join('\n\n');
 
-      const { data, error } = await supabase.functions.invoke('draft-document', {
-        body: {
-          belge_turu: actionStep.documentToCreate,
-          kullanici_girdileri: kullaniciGirdileri,
-        }
-      });
-
-      if (error) throw new Error(error.message);
-
-      if (data && data.draftedDocument) {
-        setDraftedText(data.draftedDocument);
-        setIsModalOpen(true);
-        setEditMode(false);
-      } else {
-        throw new Error("Yapay zekadan bir yanıt geldi ancak beklenen belge metni bulunamadı.");
-      }
-    } catch (e: unknown) {
-      const message = e instanceof Error ? e.message : "Belge oluşturulurken bir hata oluştu.";
-      toast({ variant: "destructive", title: "Hata", description: message });
-    } finally {
-      setIsDrafting(false);
+      setDraftedText(formattedText);
+      setIsModalOpen(true);
+      setEditMode(false);
+    } else {
+      toast({ variant: "destructive", title: "Hata", description: "Gösterilecek bir belge taslağı bulunamadı." });
     }
   };
 
@@ -592,21 +621,12 @@ const Dashboard = () => {
                       <CheckCircle className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
                       <div className="flex-1">
                         <p className="text-base leading-relaxed">{step.description}</p>
-                        {step.actionType === 'CREATE_DOCUMENT' && step.documentToCreate && (
+                        {step.actionType === 'CREATE_DOCUMENT' && (
                           <Button 
-                            className="mt-3" 
-                            size="sm"
-                            disabled={isDrafting}
-                            onClick={() => handleCreateDraft(step)}
+                            onClick={handleShowDraft} 
+                            className="mt-2"
                           >
-                            {isDrafting ? (
-                              <>
-                                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                                Oluşturuluyor...
-                              </>
-                            ) : (
-                              "Gerekli Belgeyi Oluştur"
-                            )}
+                            Gerekli Belgeyi Oluştur
                           </Button>
                         )}
                       </div>
@@ -617,32 +637,46 @@ const Dashboard = () => {
             </Card>
           </div>
 
-          {/* Extracted Entities - Full Width */}
-          {analysisResult.extractedEntities.length > 0 && (
+          {/* 'Belgedeki Kilit Bilgiler' Tablosu (Akordiyon İçinde) */}
+          {analysisResult && (
             <Card className="border shadow-sm">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-3 text-xl">
-                  <FileJson className="h-6 w-6 text-foreground" />
-                  Belgedeki Kilit Bilgiler
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Bilgi Türü</TableHead>
-                      <TableHead>Değer</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {analysisResult.extractedEntities.map((entity, index) => (
-                      <TableRow key={index}>
-                        <TableCell className="font-medium">{entity.entity}</TableCell>
-                        <TableCell>{entity.value}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+              <CardContent className="p-6">
+                <Accordion type="single" collapsible className="w-full">
+                  <AccordionItem value="item-1">
+                    <AccordionTrigger>
+                      <div className="flex items-center gap-2 text-lg font-semibold">
+                        <BookMarked className="h-5 w-5 text-foreground" />
+                        Belgedeki Kilit Bilgiler (Detaylar için Tıklayın)
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      {analysisResult.extractedEntities && analysisResult.extractedEntities.length > 0 ? (
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Bilgi Türü</TableHead>
+                              <TableHead>Değer</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {analysisResult.extractedEntities.map((entity, index) => (
+                              <TableRow key={index}>
+                                <TableCell className="font-medium">{entity.entity}</TableCell>
+                                <TableCell>{String(entity.value)}</TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      ) : (
+                        <div className="text-center py-8 text-muted-foreground">
+                          <BookMarked className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                          <p>Bu belgeden henüz kilit bilgiler çıkarılmadı.</p>
+                          <p className="text-sm mt-2">API yanıtında extractedEntities alanı bulunamadı.</p>
+                        </div>
+                      )}
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
               </CardContent>
             </Card>
           )}

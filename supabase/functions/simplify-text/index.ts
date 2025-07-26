@@ -3,112 +3,131 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 // @ts-expect-error Deno ortamı, tip bulunamıyor
 import mammoth from "https://esm.sh/mammoth@1.7.0";
 
-// --- Gerekli TypeScript Tipleri (summary eklendi) ---
-interface ExtractedEntity {
-  entity: string;
-  value: string | number;
-}
-interface ActionableStep {
-  description: string;
-  actionType: 'CREATE_DOCUMENT' | 'INFO_ONLY';
-  documentToCreate?: string;
+// --- Sizin Tasarladığınız JSON Yapısına Uygun TypeScript Tipleri ---
+interface ExtractedEntity { entity: string; value: string | number; }
+interface ActionableStep { step: number; description: string; deadline?: string; actionType: 'CREATE_DOCUMENT' | 'INFO_ONLY'; priority: 'high' | 'medium' | 'low'; }
+interface GeneratedDocumentParty { role: string; details: string; }
+interface GeneratedDocument {
+  documentTitle: string;
+  addressee: string;
+  caseReference: string;
+  parties: GeneratedDocumentParty[];
+  subject: string;
+  explanations: string[];
+  legalGrounds: string;
+  conclusionAndRequest: string;
+  attachments?: string[];
+  signatureBlock: string;
 }
 interface AnalysisResponse {
-  summary: string; // YENİ EKLENDİ
+  summary: string;
   simplifiedText: string;
   documentType: string;
   extractedEntities: ExtractedEntity[];
   actionableSteps: ActionableStep[];
+  generatedDocument: GeneratedDocument | null;
 }
 
 const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
 const modelName = 'gemini-1.5-flash-latest';
-
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// --- Ana Fonksiyon ---
+// Sizin yazdığınız prompt'u oluşturan fonksiyon
+const createMasterPrompt = (textToAnalyze: string): string => {
+  const smartPrompt = `
+  SENARYO: Sen, Türkiye Cumhuriyeti hukuk sisteminin tüm inceliklerine hakim, özellikle usul hukuku ve dilekçe yazım teknikleri konusunda uzmanlaşmış, kıdemli bir avukat ve hukukçu yapay zekasın. Amacın, hukuki terminolojiye yabancı olan vatandaşların haklarını korumalarına yardımcı olmak. Sana sunulan resmi belgeyi sadece analiz etmekle kalmayacak, aynı zamanda bu analize dayanarak atılması gereken adımları belirleyecek ve gerekirse profesyonel bir dilekçe taslağı hazırlayacaksın. Vatandaşın avukatı gibi düşünmeli, onun lehine olan tüm detayları yakalamalısın.
+
+  GÖREV: Sana aşağıda "V-E-R-İ" başlığı altında sunulan hukuki metni derinlemesine analiz et ve aşağıdaki iki ana aşamayı tamamlayarak ÇIKTI olarak SADECE geçerli bir JSON nesnesi döndür:
+
+  // --- AŞAMA 1: HUKUKİ ANALİZ VE RAPORLAMA ---
+
+  1.  **Özet (summary):** Metnin en can alıcı noktalarını, hukuki sonuçlarını ve muhatap için ne anlama geldiğini içeren 1-2 paragraflık bir yönetici özeti oluştur. En kritik bilgiler (tarih, tutar, süre gibi) **kalın** olarak işaretlenmelidir.
+  2.  **Sadeleştirilmiş Açıklama (simplifiedText):** Metindeki karmaşık hukuki ifadeleri, bir vatandaşın anlayacağı şekilde, "Bu belge size diyor ki..." veya "Basitçe anlatmak gerekirse..." gibi bir başlangıçla adım adım açıkla.
+  3.  **Belge Türü (documentType):** Belgenin hukuki niteliğini net bir şekilde tanımla (Örnek: "İcra Takibi Ödeme Emri", "İhtiyati Haciz Kararı", "Cevap Dilekçesi", "Tanık Beyanı", "Trafik Cezası Tutanağı", "Asliye Hukuk Mahkemesi Dava Dilekçesi").
+  4.  **Varlık Çıkarımı (extractedEntities):** Metindeki tüm kritik bilgileri, rollerini belirterek çıkar.
+    **KESİN KURAL:** Tüm varlıkları, { "entity": "Varlık Türü", "value": "Varlık Değeri" } formatında nesneler olarak, **TEK BİR DÜZ DİZİ (FLAT ARRAY) İÇİNDE** döndür. Varlıkları kendi içinde kategorilere **AYIRMA**.
+    * **Örnek Çıktı Formatı:** [ { "entity": "Kararı Veren Mahkeme", "value": "İzmir 30. Asliye Ceza Mahkemesi" }, { "entity": "Sanık", "value": "Adnan Kaymaz" } ]
+    * **Kullanılacak Roller:** "Davacı", "Davalı", "Alacaklı", "Borçlu", "Müşteki", "Sanık", "Tanık", "Bilirkişi", "Vekil (Avukat)", "Kararı Veren Mahkeme", "Takibi Yapan İcra Dairesi", "Başvurulan Kurum", "Resmi Kurum", "Dosya Esas No", "Karar No", "İcra Takip No", "Talep Edilen Tutar", "Ceza Miktarı", "Tazminat Miktarı", "Faiz Oranı", "Tebliğ Tarihi", "Son İtiraz Tarihi", "Suç Tarihi", "İsnat Edilen Suç", "Adres", "T.C. Kimlik No", "Kanun/Madde".
+
+  // --- AŞAMA 2: EYLEM PLANI VE DİLEKÇE OLUŞTURMA ---
+
+  5.  **Atılacak Adımlar (actionableSteps):** Belgenin türüne ve içeriğine göre kullanıcı için mantıklı ve stratejik bir eylem planı oluştur. Her adımda ne yapılması gerektiğini, neden önemli olduğunu ve varsa süre kısıtlamalarını belirt.
+      * **ÖNCELİKLİ KURAL:** Eğer belgeye cevap verilmesi, itiraz edilmesi, beyanda bulunulması gibi yasal bir zorunluluk veya hak varsa, atılacak adımların en başına \`"actionType": "CREATE_DOCUMENT"\` ve \`"priority": "high"\` ekle. Diğer adımlar (avukata danışma, delil toplama vb.) daha düşük öncelikli olabilir.
+      * Örnek Adım: \`{"step": 1, "description": "7 gün içinde icra dairesine itiraz etmelisiniz. Bu süre hak düşürücüdür, kaçırırsanız borç kesinleşir.", "deadline": "Tebliğ tarihinden itibaren 7 gün", "actionType": "CREATE_DOCUMENT", "priority": "high"}\`
+
+  6.  **Oluşturulan Belge Taslağı (generatedDocument):** Eğer \`actionType: 'CREATE_DOCUMENT'\` olarak belirlendiyse, aşağıdaki yapıya birebir uyarak, hukuki usule uygun, eksiksiz ve profesyonel bir dilekçe taslağı oluştur. Eğer belge oluşturmak gerekmiyorsa bu alanı \`null\` olarak bırak.
+
+      * **Dilekçe Başlığı (documentTitle):** Belgenin amacını netleştiren büyük harfli başlık. (Örn: "İCRA TAKİBİNE İTİRAZ DİLEKÇESİ", "CEVAP DİLEKÇEMİZİN SUNULMASINDAN İBARETTİR").
+      * **Muhatap Makam (addressee):** Dilekçenin sunulacağı resmi makamın tam ve doğru adı. (Örn: "İSTANBUL ANADOLU 15. İCRA DAİRESİ MÜDÜRLÜĞÜ'NE", "İZMİR 3. ASLİYE HUKUK MAHKEMESİ SAYIN HAKİMLİĞİ'NE").
+      * **Dosya Numarası (caseReference):** "DOSYA NO:" veya "ESAS NO:" şeklinde, referans alınan dosya numarası.
+      * **Taraflar (parties):** Dilekçeyi sunan ve karşı tarafın bilgilerini içeren bir dizi.
+          * Örnek: \`{"role": "İTİRAZ EDEN (BORÇLU)", "details": "Adı Soyadı: [Kullanıcının Adı Soyadı Buraya Gelecek], T.C. Kimlik No: [Kullanıcının T.C. Kimlik No'su Buraya Gelecek], Adres: [Kullanıcının Adresi Buraya Gelecek]"}\`.
+          * **ÖNEMLİ:** Kullanıcının doldurması gereken alanları \`[... Buraya Gelecek]\` şeklinde belirt.
+      * **Konu (subject):** Dilekçenin amacının bir cümleyle özeti. (Örn: "Müdürlüğünüzün 2025/12345 E. sayılı dosyası ile hakkımda başlatılan ilamsız icra takibine, borca, faize ve tüm fer'ilerine itirazlarımın sunulmasından ibarettir.").
+      * **Açıklamalar (explanations):**
+          * Bu bölüm, dilekçenin kalbidir. Mantıksal paragraflar halinde bir dizi (array) olarak oluştur.
+          * İlk paragrafta olayın gelişimini ve takibin/davanın ne olduğunu özetle.
+          * Sonraki paragraflarda, kaynak belgedeki iddialara karşı TEK TEK ve net argümanlar sun. (Örn: "Alacaklı olduğunu iddia eden taraf ile aramda herhangi bir ticari veya hukuki ilişki bulunmamaktadır.", "Talep edilen borç miktarı fahiştir ve gerçeği yansıtmamaktadır.", "İmza bana ait değildir.").
+          * Gerekliyse, kullanıcının eklemesi gereken delillere atıfta bulun. (Örn: "İddialarımı destekleyen banka dekontları dilekçemiz ekinde (EK-1) sunulmuştur.").
+      * **Hukuki Nedenler (legalGrounds):** İlgili kanun maddelerini belirt. (Örn: "İİK m. 62, HMK, TBK ve ilgili tüm yasal mevzuat.").
+      * **Sonuç ve İstem (conclusionAndRequest):** Resmi ve net bir dille mahkemeden/makamdan ne talep edildiğini madde madde yaz. (Örn: "Yukarıda açıklanan ve re'sen gözetilecek nedenlerle; 1- Hakkımda başlatılan haksız ve hukuki dayanaktan yoksun icra takibine itirazımın KABULÜNE, 2- Takibin DURDURULMASINA, 3- Yargılama giderleri ve vekalet ücretinin karşı tarafa YÜKLETİLMESİNE karar verilmesini saygılarımla arz ve talep ederim.").
+      * **Ekler (attachments):** Dilekçeye eklenecek belgelerin listesi. (Örn: ["1- Kimlik Fotokopisi", "2- İlgili Banka Dekontları"]).
+      * **İmza Bloğu (signatureBlock):** Tarih, ad-soyad ve imza için standart bir kapanış formatı oluştur. (Örn: "\\n[Tarih]\\n\\nİtiraz Eden (Borçlu)\\n[Ad Soyad]\\n[İmza]").
+
+  KURALLAR:
+  - Çıktı, baştan sona SADECE geçerli bir JSON nesnesi olmalıdır.
+  - JSON dışında kesinlikle hiçbir metin, açıklama veya not ekleme.
+  - Dilekçe dilini resmi, saygılı ve iddialı tut. Vatandaşın haklarını en güçlü şekilde savunduğundan emin ol.
+  - Bilinmeyen veya belgede yer almayan bilgiler için spekülasyon yapma, bunun yerine kullanıcı tarafından doldurulması için \`[...]\` formatında yer tutucular kullan.
+
+  V-E-R-İ:
+  ---
+  ${textToAnalyze}
+  ---
+  `;
+  return smartPrompt;
+};
+
+// --- Ana Sunucu Fonksiyonu ---
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response('ok', { headers: corsHeaders });
   }
 
   try {
-    if (!geminiApiKey) {
-      throw new Error('Sunucu hatası: GEMINI_API_KEY yapılandırılmamış.');
-    }
-
-    let textToAnalyze: string | undefined;
-    const contentType = req.headers.get('content-type');
-
-    if (contentType?.includes('application/json')) {
-      const body = await req.json();
-      textToAnalyze = body.text;
-    } else if (contentType?.includes('multipart/form-data')) {
-      const formData = await req.formData();
-      const files = formData.getAll('files') as File[];
-      if (!files || files.length === 0) {
-        throw new Error('Formda "files" adında bir dosya bulunamadı.');
-      }
-      const file = files[0];
-
-      if (
-        file.type === 'application/msword' ||
-        file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
-        file.name.toLowerCase().endsWith('.doc') ||
-        file.name.toLowerCase().endsWith('.docx')
-      ) {
-        const arrayBuffer = await file.arrayBuffer();
-        const result = await mammoth.extractRawText({ arrayBuffer: arrayBuffer });
-        textToAnalyze = result.value;
-      } else {
-        throw new Error(`Desteklenmeyen dosya türü: ${file.type}. Şimdilik sadece .docx desteklenmektedir.`);
-      }
-    } else {
-      throw new Error(`Desteklenmeyen içerik türü: ${contentType}`);
-    }
-
-    if (!textToAnalyze || textToAnalyze.trim() === '') {
-      throw new Error('Analiz edilecek metin bulunamadı.');
-    }
+    if (!geminiApiKey) throw new Error('Sunucu hatası: GEMINI_API_KEY yapılandırılmamış.');
     
-    // --- Gemini Prompt'u (Özet istemi eklendi ve Eylem Planı Geliştirildi) ---
-    const smartPrompt = `
-    SENARYO: Sen, Türkiye hukuk sistemine hakim, uzman bir avukat asistanı yapay zekasın. Görevin, sana verilen hukuki metinleri analiz edip yapılandırılmış bir JSON formatında detaylı bir rapor sunmaktır.
+    let textToAnalyze: string = "";
+    const contentType = req.headers.get('content-type');
+    if (contentType?.includes('multipart/form-data')) {
+        const formData = await req.formData();
+        const files = formData.getAll('files') as File[];
+        if (!files || files.length === 0) throw new Error('Formda "files" adında bir dosya bulunamadı.');
+        const file = files[0];
+        if (file.name.toLowerCase().endsWith('.docx')) {
+            const arrayBuffer = await file.arrayBuffer();
+            const result = await mammoth.extractRawText({ arrayBuffer });
+            textToAnalyze = result.value;
+        } // Diğer dosya türleri için mantık eklenebilir
+    } else { // JSON varsayımı
+        const body = await req.json();
+        textToAnalyze = body.text;
+    }
 
-    GÖREV: Sana aşağıda V-E-R-İ başlığı altında sunulan metni analiz et ve aşağıdaki adımları tamamla:
-    1.  Metnin en kritik noktalarını (taraflar, tarihler, tutarlar, temel talep) içeren, 1-2 paragraflık bir yönetici özeti oluştur ve bunu \`summary\` alanına yaz. Bu özetteki en önemli bilgileri (son başvuru tarihi, para miktarı vb.) **kalın** (çift yıldız ile) olarak vurgula.
-    2.  Metni, hukuki terminolojiden arındırarak herkesin anlayabileceği sade bir Türkçeye çevir ve bunu \`simplifiedText\` alanına yaz.
-    3.  Metnin yasal türünü belirle (Ör: "İcra Emri", "Kira Sözleşmesi", "İhtarname", "Bilinmiyor" vb.) ve bunu \`documentType\` alanına yaz.
-    4.  Metnin içindeki kritik bilgileri (tarafların adları, tarihler, dosya numaraları, para tutarları vb.) "varlık" (entity) olarak çıkar. Her varlığı bir \`entity\` (türü) ve \`value\` (değeri) olarak \`extractedEntities\` dizisine ekle.
-    5.  Belgenin türüne göre, kullanıcının atabileceği 1-2 adet mantıklı ve eyleme geçirilebilir adım öner. Her adımı \`description\`, \`actionType\` ve (gerekirse) \`documentToCreate\` alanlarını içeren bir nesne olarak \`actionableSteps\` dizisine ekle. 
-        
-        // --- YENİ EKLENEN KURAL BURADA ---
-        **ÖNEMLİ KURAL:** Eğer metin bir karara itiraz etme (istinaf, temyiz, karar düzeltme), bir talebe cevap verme, bir sözleşme hazırlama veya resmi bir bildirimde bulunma gibi bir sonraki yasal adımı açıkça içeriyorsa, bu adımı gerçekleştirecek bir belge oluşturmayı ("İstinaf Dilekçesi Oluştur", "Cevap Dilekçesi Hazırla" gibi bir açıklamayla) \`actionType: 'CREATE_DOCUMENT'\` olarak **mutlaka önceliklendir.** Sadece bilgilendirici adımlar sunmak yeterli değildir.
-        // --- YENİ KURAL SONU ---
+    if (!textToAnalyze.trim()) throw new Error('Analiz edilecek metin bulunamadı.');
 
-    KURALLAR:
-    - Cevabın SADECE ve SADECE yukarıda tarif edilen yapıya uygun, geçerli bir JSON nesnesi olmalıdır.
-    - JSON dışında hiçbir metin, açıklama veya markdown formatı (\`json\` bloğu dahil) kullanma. Sadece ham JSON döndür.
-
-    V-E-R-İ:
-    ---
-    ${textToAnalyze}
-    ---
-    `;
-
-    // --- Gemini API Çağrısı ve Güvenilir JSON İşleme ---
+    const geminiPrompt = createMasterPrompt(textToAnalyze);
+    
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${geminiApiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents: [{ parts: [{ text: smartPrompt }] }] }),
+      body: JSON.stringify({ contents: [{ parts: [{ text: geminiPrompt }] }] }),
     });
 
-    if (!response.ok) {
-      throw new Error(`Gemini API hatası: ${response.status} ${await response.text()}`);
-    }
+    if (!response.ok) throw new Error(`Gemini API hatası: ${response.status} ${await response.text()}`);
 
     const data = await response.json();
     const rawContent = data.candidates?.[0]?.content?.parts?.[0]?.text;
@@ -117,7 +136,6 @@ serve(async (req) => {
     const startIndex = rawContent.indexOf('{');
     const endIndex = rawContent.lastIndexOf('}');
     if (startIndex === -1 || endIndex === -1) throw new Error('AI yanıtında JSON bulunamadı.');
-    
     const jsonString = rawContent.substring(startIndex, endIndex + 1);
     const parsedResponse: AnalysisResponse = JSON.parse(jsonString);
 
@@ -127,7 +145,6 @@ serve(async (req) => {
     });
 
   } catch (error) {
-    console.error("Fonksiyon Hatası:", error);
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 500,
