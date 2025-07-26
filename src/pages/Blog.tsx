@@ -253,14 +253,14 @@ const Blog = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-secondary/20 pt-24">
-      <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen bg-gradient-to-b from-background to-secondary/20 pt-20 md:pt-24">
+      <div className="container mx-auto px-4 py-6 md:py-8">
         {/* Header Section */}
-        <div className="text-center mb-12">
-          <h1 className="text-3xl md:text-4xl font-bold mb-4">
+        <div className="text-center mb-8 md:mb-12">
+          <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-3 md:mb-4">
             Artiklo Blog
           </h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
+          <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto mb-6 md:mb-8">
             Hukuki konularda bilgilenin, haklarınızı öğrenin ve belgelerinizi daha iyi anlayın.
           </p>
           

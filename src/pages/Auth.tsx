@@ -99,27 +99,28 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center pt-20 md:pt-16 pt-[env(safe-area-inset-top)]">
+    <div className="min-h-screen bg-background flex items-center justify-center pt-20 md:pt-16 pt-[env(safe-area-inset-top)] px-4">
       <div className="w-full max-w-sm relative">
         <a 
           href="/" 
           className="absolute top-0 left-0 -translate-y-16 inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Ana Sayfaya Dön
+          <span className="hidden sm:inline">Ana Sayfaya Dön</span>
+          <span className="sm:hidden">Geri</span>
         </a>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <div className="text-center mb-6">
-            <FileText className="h-10 w-10 text-foreground mx-auto mb-2" />
-            <h1 className="text-3xl font-bold text-foreground">Artiklo</h1>
-            <p className="text-muted-foreground">Hesabınıza erişin veya yeni hesap oluşturun.</p>
+            <FileText className="h-8 w-8 md:h-10 md:w-10 text-foreground mx-auto mb-2" />
+            <h1 className="text-2xl md:text-3xl font-bold text-foreground">Artiklo</h1>
+            <p className="text-muted-foreground text-sm md:text-base">Hesabınıza erişin veya yeni hesap oluşturun.</p>
           </div>
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="signin">Giriş Yap</TabsTrigger>
             <TabsTrigger value="signup">Kayıt Ol</TabsTrigger>
           </TabsList>
           <Card className="mt-4">
-            <CardContent className="pt-6">
+            <CardContent className="pt-4 md:pt-6">
               <TabsContent value="signin">
                 <form onSubmit={(e) => handleAuthAction('signIn', e)} className="space-y-4">
                   <div className="space-y-2">

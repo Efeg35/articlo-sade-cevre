@@ -136,12 +136,12 @@ const Index = () => {
                   Ne yapmanız gerektiğini, haklarınızı ve risklerinizi kolayca öğrenin.
                 </p>
               </div>
-              <div className="mt-10 flex items-center justify-center gap-x-6 animate-fade-in-up" style={{ animationDelay: "200ms" }}>
+              <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-x-6 animate-fade-in-up" style={{ animationDelay: "200ms" }}>
                 <Button 
                   size="lg" 
                   variant="hero" 
                   onClick={handleNavigate}
-                  className="group"
+                  className="group w-full sm:w-auto"
                 >
                   Hemen Başlayın
                   <ArrowRight className="group-hover:translate-x-1 transition-transform" />
@@ -150,7 +150,7 @@ const Index = () => {
                   variant="outline"
                   size="lg" 
                   onClick={handleScrollToFeatures}
-                  className="group"
+                  className="group w-full sm:w-auto"
                 >
                   Nasıl Çalışır?
                   <ChevronDown className="group-hover:translate-y-0.5 transition-transform" />
@@ -178,7 +178,7 @@ const Index = () => {
                 Karmaşık hukuki dili sadeleştirip belgenin asıl niyetini ve size olan etkisini ortaya çıkarır; ardından metni hangi dilde olursa olsun analiz eder ve size özel, anlaşılır bir Türkçe özet ve eylem planı sunar.
               </p>
             </div>
-            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-6 md:gap-8 sm:grid-cols-2 lg:grid-cols-3">
               <FeatureCard
                 icon={Clock}
                 title="Hızlı ve Kolay"
@@ -230,7 +230,7 @@ const Index = () => {
                 Binlerce kullanıcımız Artiklo ile hukuki belgelerini kolayca anladı.
               </p>
             </div>
-            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-6 md:gap-8 sm:grid-cols-2 lg:grid-cols-3">
               <Card className="bg-card hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
                 <CardContent className="p-6">
                   <div className="flex flex-col gap-4">
@@ -288,7 +288,7 @@ const Index = () => {
                 Artiklo'nun farklı kullanım alanlarından örnekler.
               </p>
             </div>
-            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-6 md:gap-8 sm:grid-cols-2 lg:grid-cols-3">
               <Card className="bg-muted/30 hover:bg-muted/50 transition-all duration-300 transform hover:-translate-y-1">
                 <CardContent className="p-6">
                   <div className="flex flex-col items-center text-center gap-4">
@@ -337,29 +337,29 @@ const Index = () => {
                 Türkiye'nin en güvenilir hukuki belge sadeleştirme platformu
               </p>
             </div>
-            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 md:gap-8 sm:grid-cols-2 lg:grid-cols-4">
               <Card className="bg-background">
-                <CardContent className="p-6 text-center">
-                  <div className="text-4xl font-bold mb-2">50K+</div>
-                  <div className="text-muted-foreground">Sadeleştirilen Belge</div>
+                <CardContent className="p-4 md:p-6 text-center">
+                  <div className="text-3xl md:text-4xl font-bold mb-2">50K+</div>
+                  <div className="text-muted-foreground text-sm md:text-base">Sadeleştirilen Belge</div>
                 </CardContent>
               </Card>
               <Card className="bg-background">
-                <CardContent className="p-6 text-center">
-                  <div className="text-4xl font-bold mb-2">10K+</div>
-                  <div className="text-muted-foreground">Mutlu Kullanıcı</div>
+                <CardContent className="p-4 md:p-6 text-center">
+                  <div className="text-3xl md:text-4xl font-bold mb-2">10K+</div>
+                  <div className="text-muted-foreground text-sm md:text-base">Mutlu Kullanıcı</div>
                 </CardContent>
               </Card>
               <Card className="bg-background">
-                <CardContent className="p-6 text-center">
-                  <div className="text-4xl font-bold mb-2">%99.9</div>
-                  <div className="text-muted-foreground">Doğruluk Oranı</div>
+                <CardContent className="p-4 md:p-6 text-center">
+                  <div className="text-3xl md:text-4xl font-bold mb-2">%99.9</div>
+                  <div className="text-muted-foreground text-sm md:text-base">Doğruluk Oranı</div>
                 </CardContent>
               </Card>
               <Card className="bg-background">
-                <CardContent className="p-6 text-center">
-                  <div className="text-4xl font-bold mb-2">3 sn</div>
-                  <div className="text-muted-foreground">Ortalama İşlem Süresi</div>
+                <CardContent className="p-4 md:p-6 text-center">
+                  <div className="text-3xl md:text-4xl font-bold mb-2">3 sn</div>
+                  <div className="text-muted-foreground text-sm md:text-base">Ortalama İşlem Süresi</div>
                 </CardContent>
               </Card>
             </div>
@@ -369,21 +369,21 @@ const Index = () => {
         {/* Trust Badges Section */}
         <section className="py-16 bg-muted/30">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-              <div className="flex items-center justify-center gap-2 text-muted-foreground">
-                <Shield className="h-6 w-6" />
+            <div className="grid gap-4 md:gap-8 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="flex items-center justify-center gap-2 text-muted-foreground text-sm md:text-base">
+                <Shield className="h-5 w-5 md:h-6 md:w-6" />
                 <span>KVKK Uyumlu</span>
               </div>
-              <div className="flex items-center justify-center gap-2 text-muted-foreground">
-                <Lock className="h-6 w-6" />
+              <div className="flex items-center justify-center gap-2 text-muted-foreground text-sm md:text-base">
+                <Lock className="h-5 w-5 md:h-6 md:w-6" />
                 <span>256-bit SSL Güvenlik</span>
               </div>
-              <div className="flex items-center justify-center gap-2 text-muted-foreground">
-                <Clock className="h-6 w-6" />
+              <div className="flex items-center justify-center gap-2 text-muted-foreground text-sm md:text-base">
+                <Clock className="h-5 w-5 md:h-6 md:w-6" />
                 <span>7/24 Destek</span>
               </div>
-              <div className="flex items-center justify-center gap-2 text-muted-foreground">
-                <Users className="h-6 w-6" />
+              <div className="flex items-center justify-center gap-2 text-muted-foreground text-sm md:text-base">
+                <Users className="h-5 w-5 md:h-6 md:w-6" />
                 <span>10.000+ Kullanıcı</span>
               </div>
             </div>
@@ -400,12 +400,12 @@ const Index = () => {
               <p className="mx-auto mt-6 max-w-xl text-lg leading-8 text-primary-foreground/90">
                 Artiklo ile karmaşık hukuki metinleri anında sadeleştirin. Ücretsiz deneyin!
               </p>
-              <div className="mt-10 flex items-center justify-center gap-x-6">
+              <div className="mt-10 flex items-center justify-center">
                 <Button
                   variant="secondary"
                   size="lg"
                   onClick={handleNavigate}
-                  className="group"
+                  className="group w-full sm:w-auto"
                 >
                   Hemen Başlayın
                   <ArrowRight className="group-hover:translate-x-1 transition-transform" />

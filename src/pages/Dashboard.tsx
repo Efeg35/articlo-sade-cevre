@@ -429,20 +429,20 @@ const Dashboard = () => {
   }
 
   const renderInputView = () => (
-    <div className="flex flex-col items-center pt-4 md:pt-0 pt-[env(safe-area-inset-top)]">
+    <div className="flex flex-col items-center pt-4 md:pt-0 pt-[env(safe-area-inset-top)] px-4 md:px-0">
       {showTip && (
-        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 bg-primary text-primary-foreground px-4 py-2 rounded shadow-lg flex items-center gap-2 animate-fade-in">
-          <span>Belgelerinizi yükleyin veya yapıştırın, saniyeler içinde sadeleştirin!</span>
+        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 bg-primary text-primary-foreground px-4 py-2 rounded shadow-lg flex items-center gap-2 animate-fade-in max-w-[90vw]">
+          <span className="text-sm md:text-base">Belgelerinizi yükleyin veya yapıştırın, saniyeler içinde sadeleştirin!</span>
           <button onClick={handleCloseTip} className="ml-2 text-lg font-bold">×</button>
         </div>
       )}
       <Card className="w-full max-w-4xl border shadow-sm">
-        <CardContent className="p-6">
+        <CardContent className="p-4 md:p-6">
           <Textarea
             placeholder="Karmaşık hukuki belgenizi buraya yapıştırın..."
             value={originalText}
             onChange={(e) => setOriginalText(e.target.value)}
-            className="min-h-[300px] resize-none"
+            className="min-h-[200px] md:min-h-[300px] resize-none text-sm md:text-base"
             disabled={loading !== null}
           />
           <div className="my-4 text-center text-xs uppercase text-muted-foreground">Veya</div>
@@ -491,7 +491,7 @@ const Dashboard = () => {
                 asChild
                 type="button"
                 variant="outline"
-                className="w-full cursor-pointer"
+                className="w-full cursor-pointer text-sm md:text-base"
                 disabled={loading !== null}
               >
                 <span>📄 Dosya Seç (PDF, DOC, DOCX, TXT, Görüntü)</span>
@@ -521,7 +521,7 @@ const Dashboard = () => {
         onClick={() => handleSimplify('flash')}
         disabled={loading !== null}
         size="lg"
-        className="mt-6 w-full max-w-4xl"
+        className="mt-6 w-full max-w-4xl text-sm md:text-base"
       >
         {loading === 'flash' ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <Sparkles className="h-5 w-5 mr-2" />}
         {loading === 'flash' ? 'Sadeleştiriliyor...' : 'Sadeleştir'}
@@ -543,10 +543,10 @@ const Dashboard = () => {
     // Render new structured response if available, otherwise fall back to legacy
     if (analysisResult) {
       return (
-        <div className="space-y-6">
+        <div className="space-y-6 px-4 md:px-0">
           <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-            <h2 className="text-3xl font-bold text-foreground">Analiz Sonuçları</h2>
-            <Button onClick={handleReset} variant="outline" className="flex items-center gap-2">
+            <h2 className="text-2xl md:text-3xl font-bold text-foreground">Analiz Sonuçları</h2>
+            <Button onClick={handleReset} variant="outline" className="flex items-center gap-2 text-sm md:text-base">
               <Redo className="h-4 w-4" />
               Yeni Belge Analiz Et
             </Button>
@@ -554,7 +554,7 @@ const Dashboard = () => {
           
           {/* Document Type Badge */}
           <div className="flex justify-center">
-            <Badge variant="outline" className="text-lg px-4 py-2">
+            <Badge variant="outline" className="text-sm md:text-lg px-3 md:px-4 py-2 text-center">
               <FileText className="h-4 w-4 mr-2" />
               BELGE TÜRÜ: {analysisResult.documentType.toUpperCase()}
             </Badge>
@@ -845,14 +845,14 @@ const Dashboard = () => {
 
       {/* Document Draft Modal */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-5xl w-[95vw] h-[90vh] flex flex-col">
+        <DialogContent className="max-w-5xl w-[95vw] h-[90vh] md:h-[90vh] h-[95vh] flex flex-col p-4 md:p-6">
           <DialogHeader className="flex-shrink-0">
             <DialogTitle className="text-xl font-semibold">Belge Taslağınız Hazır</DialogTitle>
             <DialogDescription>
               Aşağıdaki metni inceleyebilir, düzenleyebilir, kopyalayabilir veya indirebilirsiniz.
             </DialogDescription>
           </DialogHeader>
-          <div className="flex-1 p-6 bg-white border rounded-lg shadow-sm overflow-hidden flex flex-col">
+          <div className="flex-1 p-3 md:p-6 bg-white border rounded-lg shadow-sm overflow-hidden flex flex-col">
             {editMode ? (
               <div className="flex-1 bg-white border border-gray-200 rounded-md shadow-sm overflow-hidden">
                 <div className="bg-gray-50 border-b border-gray-200 px-4 py-2 flex items-center justify-between">
@@ -866,11 +866,11 @@ const Dashboard = () => {
                 <Textarea 
                   value={draftedText}
                   onChange={(e) => setDraftedText(e.target.value)}
-                  className="flex-1 resize-none border-0 focus:ring-0 focus:outline-none p-6 bg-white"
+                  className="flex-1 resize-none border-0 focus:ring-0 focus:outline-none p-3 md:p-6 bg-white"
                   style={{ 
                     minHeight: 'calc(60vh - 40px)',
                     fontFamily: 'Times New Roman, serif',
-                    fontSize: '12pt',
+                    fontSize: 'clamp(10pt, 2.5vw, 12pt)',
                     lineHeight: '1.5',
                     color: '#1f2937'
                   }}
@@ -879,11 +879,11 @@ const Dashboard = () => {
               </div>
             ) : (
               <div 
-                className="flex-1 overflow-y-auto p-6 bg-white leading-relaxed text-gray-800 whitespace-pre-wrap border border-gray-200 rounded-md" 
+                className="flex-1 overflow-y-auto p-3 md:p-6 bg-white leading-relaxed text-gray-800 whitespace-pre-wrap border border-gray-200 rounded-md" 
                 style={{ 
                   maxHeight: 'calc(60vh - 40px)',
                   fontFamily: 'Times New Roman, serif', 
-                  fontSize: '12pt',
+                  fontSize: 'clamp(10pt, 2.5vw, 12pt)',
                   lineHeight: '1.5',
                   color: '#1f2937'
                 }}
@@ -898,25 +898,25 @@ const Dashboard = () => {
               *** Yasal Uyarı: Bu belge, Artiklo yazılımı tarafından kullanıcı tarafından sağlanan bilgilere göre oluşturulmuş bir taslaktır. Hukuki bir tavsiye niteliği taşımaz. Bu belgeyi kullanmadan önce mutlaka bir avukata danışmanız önerilir.
             </p>
             
-            <DialogFooter className="flex flex-row justify-between items-center pt-4 border-t">
+            <DialogFooter className="flex flex-col sm:flex-row justify-between items-start sm:items-center pt-4 border-t gap-3">
               <div>
                 {editMode ? (
-                  <Button onClick={() => setEditMode(false)} size="sm" className="bg-green-600 hover:bg-green-700">
+                  <Button onClick={() => setEditMode(false)} size="sm" className="bg-green-600 hover:bg-green-700 w-full sm:w-auto">
                     ✓ Görünümü Kaydet
                   </Button>
                 ) : (
-                  <Button onClick={() => setEditMode(true)} size="sm" variant="outline">
+                  <Button onClick={() => setEditMode(true)} size="sm" variant="outline" className="w-full sm:w-auto">
                     ✏️ Düzenle
                   </Button>
                 )}
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                 <Button variant="outline" size="sm" onClick={() => {
                     navigator.clipboard.writeText(draftedText);
                     toast({ title: "Başarılı!", description: "Metin panoya kopyalandı." });
-                }}>📋 Panoya Kopyala</Button>
-                <Button variant="secondary" size="sm" onClick={handleDownload}>📥 İndir (.docx)</Button>
-                <Button onClick={() => setIsModalOpen(false)} size="sm">Kapat</Button>
+                }} className="w-full sm:w-auto">📋 Panoya Kopyala</Button>
+                <Button variant="secondary" size="sm" onClick={handleDownload} className="w-full sm:w-auto">📥 İndir (.docx)</Button>
+                <Button onClick={() => setIsModalOpen(false)} size="sm" className="w-full sm:w-auto">Kapat</Button>
               </div>
             </DialogFooter>
           </div>
