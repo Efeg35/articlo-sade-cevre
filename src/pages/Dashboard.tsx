@@ -125,7 +125,7 @@ const Dashboard = () => {
     localStorage.setItem("artiklo_dashboard_tip_seen", "1");
     setShowTip(false);
   };
-
+  
   const handleReset = () => {
     setOriginalText("");
     setSelectedFiles([]);
@@ -178,10 +178,10 @@ const Dashboard = () => {
         setAnalysisResult(data as AnalysisResponse);
       } else {
         // Legacy response format - maintain backwards compatibility
-        setSummary(data.summary || "");
-        setSimplifiedText(data.simplifiedText || "");
-        setActionPlan(data.actionPlan || "");
-        setEntities(Array.isArray(data.entities) ? data.entities : []);
+      setSummary(data.summary || "");
+      setSimplifiedText(data.simplifiedText || "");
+      setActionPlan(data.actionPlan || "");
+      setEntities(Array.isArray(data.entities) ? data.entities : []);
       }
       
       if (user) {
@@ -608,112 +608,112 @@ const Dashboard = () => {
 
     // Legacy render for backwards compatibility
     return (
-      <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-          <h2 className="text-3xl font-bold text-foreground">Sadeleştirme Sonuçları</h2>
-          <Button onClick={handleReset} variant="outline" className="flex items-center gap-2">
-              <Redo className="h-4 w-4" />
-              Yeni Belge Sadeleştir
-          </Button>
-        </div>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="lg:col-span-2 space-y-6">
-            <Card className="border shadow-sm">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center gap-3 text-xl">
-                    <BrainCircuit className="h-6 w-6 text-foreground" />
-                    Belge Özeti
-                  </CardTitle>
-                  {summary && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="ml-2"
-                      onClick={handleCopySummary}
-                      aria-label="Kopyala Özeti"
-                    >
-                      <Copy className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
-              </CardHeader>
-              <CardContent className="whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: summary.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') }} />
-            </Card>
-          </div>
-
-          <Card className="border shadow-sm">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-3 text-xl">
-                  <ArrowRight className="h-6 w-6 text-foreground" />
-                  Anlaşılır Versiyon
-                </CardTitle>
-                {simplifiedText && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="ml-2"
-                    onClick={handleCopy}
-                    aria-label="Kopyala"
-                  >
-                    <Copy className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
-            </CardHeader>
-            <CardContent className="whitespace-pre-wrap">{simplifiedText}</CardContent>
-          </Card>
-
-          <Card className="border shadow-sm">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-3 text-xl">
-                  <ListChecks className="h-6 w-6 text-foreground" />
-                  Eylem Planı
-                </CardTitle>
-                {actionPlan && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="ml-2"
-                    onClick={handleCopyActionPlan}
-                    aria-label="Kopyala Eylem Planı"
-                  >
-                    <Copy className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
-            </CardHeader>
-            <CardContent className="whitespace-pre-wrap">{actionPlan}</CardContent>
-          </Card>
-        </div>
-        
-        {entities.length > 0 && (
-            <Card className="border shadow-sm">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-3 text-xl">
-                  <FileJson className="h-6 w-6 text-foreground" />
-                  Kilit Varlıklar
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {entities.map((entity, index) => (
-                    <li key={index} className="p-3 bg-muted/50 rounded-lg text-sm">
-                      <span className="font-semibold text-foreground">{entity.tip}: </span>
-                      <span>{entity.değer}</span>
-                      {entity.rol && <span className="text-xs text-muted-foreground ml-2">({entity.rol})</span>}
-                      {entity.açıklama && <p className="text-xs text-muted-foreground mt-1">{entity.açıklama}</p>}
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-        )}
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+        <h2 className="text-3xl font-bold text-foreground">Sadeleştirme Sonuçları</h2>
+        <Button onClick={handleReset} variant="outline" className="flex items-center gap-2">
+            <Redo className="h-4 w-4" />
+            Yeni Belge Sadeleştir
+        </Button>
       </div>
-    );
+      
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="lg:col-span-2 space-y-6">
+          <Card className="border shadow-sm">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-3 text-xl">
+                  <BrainCircuit className="h-6 w-6 text-foreground" />
+                  Belge Özeti
+                </CardTitle>
+                {summary && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="ml-2"
+                    onClick={handleCopySummary}
+                    aria-label="Kopyala Özeti"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent className="whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: summary.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') }} />
+          </Card>
+        </div>
+
+        <Card className="border shadow-sm">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-3 text-xl">
+                <ArrowRight className="h-6 w-6 text-foreground" />
+                Anlaşılır Versiyon
+              </CardTitle>
+              {simplifiedText && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="ml-2"
+                  onClick={handleCopy}
+                  aria-label="Kopyala"
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent className="whitespace-pre-wrap">{simplifiedText}</CardContent>
+        </Card>
+
+        <Card className="border shadow-sm">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-3 text-xl">
+                <ListChecks className="h-6 w-6 text-foreground" />
+                Eylem Planı
+              </CardTitle>
+              {actionPlan && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="ml-2"
+                  onClick={handleCopyActionPlan}
+                  aria-label="Kopyala Eylem Planı"
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent className="whitespace-pre-wrap">{actionPlan}</CardContent>
+        </Card>
+      </div>
+      
+      {entities.length > 0 && (
+          <Card className="border shadow-sm">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-3 text-xl">
+                <FileJson className="h-6 w-6 text-foreground" />
+                Kilit Varlıklar
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {entities.map((entity, index) => (
+                  <li key={index} className="p-3 bg-muted/50 rounded-lg text-sm">
+                    <span className="font-semibold text-foreground">{entity.tip}: </span>
+                    <span>{entity.değer}</span>
+                    {entity.rol && <span className="text-xs text-muted-foreground ml-2">({entity.rol})</span>}
+                    {entity.açıklama && <p className="text-xs text-muted-foreground mt-1">{entity.açıklama}</p>}
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
+      )}
+    </div>
+  );
   };
 
   return (
