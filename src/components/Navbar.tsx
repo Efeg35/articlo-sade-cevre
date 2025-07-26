@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger } from "@/components/ui/navigation-menu";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import { FileText, ChevronDown, LogIn, User as UserIcon, Archive, LogOut, Sparkles } from "lucide-react";
+import { Scale, ChevronDown, LogIn, User as UserIcon, Archive, LogOut, Sparkles } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 import { useCredits } from "../hooks/useCredits";
 import { Badge } from "@/components/ui/badge";
@@ -67,10 +67,14 @@ const Navbar = () => {
         {/* Logo */}
         <Link
           to={user ? "/dashboard" : "/"}
-          className="flex items-center gap-2 font-semibold text-lg hover:opacity-80 transition-opacity"
+          className="flex items-center gap-2 font-bold text-xl hover:opacity-80 transition-opacity"
         >
-          <FileText className="h-6 w-6" />
-          <span>Artiklo</span>
+          <div className="flex items-center justify-center w-8 h-8 bg-primary rounded-lg">
+            <Scale className="h-5 w-5 text-primary-foreground" />
+          </div>
+          <span className="bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
+            Artiklo
+          </span>
         </Link>
 
         {/* Navigation Links - sadece giriş yapmamış kullanıcılar için */}
