@@ -20,6 +20,7 @@ import {
 import { Capacitor } from "@capacitor/core";
 import OnboardingTour from "@/components/OnboardingTour";
 import ReactMarkdown from 'react-markdown';
+import { Document, Packer, Paragraph, TextRun } from 'docx';
 // import TabBar from "@/components/TabBar";
 
 type View = 'input' | 'result';
@@ -260,15 +261,55 @@ const Dashboard = () => {
     }
   };
 
-  const handleDownload = () => {
-    const element = document.createElement("a");
-    const file = new Blob([draftedText], { type: 'text/plain;charset=utf-8' });
-    element.href = URL.createObjectURL(file);
-    element.download = "artiklo-belge.txt";
-    document.body.appendChild(element);
-    element.click();
-    element.remove();
-    toast({ title: "Başarılı!", description: "Belge indiriliyor." });
+  const handleDownload = async () => {
+    try {
+      // Metni paragraflara böl
+      const paragraphs = draftedText.split('\n').filter(line => line.trim() !== '');
+      
+      // Word dokümanı oluştur
+      const doc = new Document({
+        sections: [{
+          properties: {},
+          children: paragraphs.map(paragraph => 
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: paragraph,
+                  size: 24, // 12pt
+                  font: 'Calibri',
+                }),
+              ],
+              spacing: {
+                after: 200, // Paragraf sonrası boşluk
+              },
+            })
+          ),
+        }],
+      });
+
+      // Dokümanı blob olarak oluştur
+      const blob = await Packer.toBlob(doc);
+      
+      // İndirme linki oluştur
+      const element = document.createElement("a");
+      element.href = URL.createObjectURL(blob);
+      element.download = "artiklo-belge.docx";
+      document.body.appendChild(element);
+      element.click();
+      element.remove();
+      
+      // URL'yi temizle
+      URL.revokeObjectURL(element.href);
+      
+      toast({ title: "Başarılı!", description: "Word belgesi indiriliyor." });
+    } catch (error) {
+      console.error('Word belgesi oluşturma hatası:', error);
+      toast({ 
+        title: "Hata", 
+        description: "Word belgesi oluşturulurken bir hata oluştu.", 
+        variant: "destructive" 
+      });
+    }
   };
 
   const handleCreateDraft = async (actionStep: ActionableStep) => {
@@ -816,7 +857,7 @@ const Dashboard = () => {
                     navigator.clipboard.writeText(draftedText);
                     toast({ title: "Başarılı!", description: "Metin panoya kopyalandı." });
                 }}>📋 Panoya Kopyala</Button>
-                <Button variant="secondary" size="sm" onClick={handleDownload}>📥 İndir (.txt)</Button>
+                <Button variant="secondary" size="sm" onClick={handleDownload}>📥 İndir (.docx)</Button>
                 <Button onClick={() => setIsModalOpen(false)} size="sm">Kapat</Button>
               </div>
             </DialogFooter>
