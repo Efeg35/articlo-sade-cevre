@@ -1,0 +1,10 @@
+{
+	"appId": "com.artiklo.app",
+	"appName": "Artiklo",
+	"webDir": "dist",
+	"ios": {
+		"path": "ios/src"
+	},
+	"plugins": {},
+	"packageClassList": []
+}
