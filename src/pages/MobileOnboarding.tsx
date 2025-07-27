@@ -23,7 +23,8 @@ const MobileOnboarding = () => {
   
   // Onboarding'i bitirip ana uygulamaya geçmek için fonksiyon
   const finishOnboarding = useCallback(() => {
-    navigate('/dashboard'); // Artık { replace: true } yok, geri dönülebilir.
+    // DÜZELTİLDİ: Yönlendirme hedefi artık doğrudan /auth ve geçmişi değiştir
+    navigate('/auth', { replace: true }); 
   }, [navigate]);
 
   return (
