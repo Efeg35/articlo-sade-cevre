@@ -24,7 +24,7 @@
 
 /* Begin PBXFileReference section */
 		25D3517E267A48E0002E5DC0 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "Artiklo/GoogleService-Info.plist"; sourceTree = "<group>"; };
-		4C1C2162A8048FDF52B2A9D0 /* Pods-Artiklo.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Artiklo.release.xcconfig"; path = "../App/Pods/Target Support Files/Pods-Artiklo/Pods-Artiklo.release.xcconfig"; sourceTree = "<group>"; };
+		4C1C2162A8048FDF52B2A9D0 /* Pods-Artiklo.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Artiklo.release.xcconfig"; path = "Target Support Files/Pods-Artiklo/Pods-Artiklo.release.xcconfig"; sourceTree = "<group>"; };
 		59333BAA25CFF706003392A4 /* Artiklo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Artiklo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		595F239A25CEFBFD0053416C /* Settings.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Settings.swift; path = Artiklo/Settings.swift; sourceTree = "<group>"; };
 		595F239B25CEFBFD0053416C /* Entitlements */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Entitlements; path = Artiklo/Entitlements; sourceTree = "<group>"; };
@@ -37,7 +37,7 @@
 		595F23A325CEFBFE0053416C /* Printer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Printer.swift; path = Artiklo/Printer.swift; sourceTree = "<group>"; };
 		595F23A425CEFBFE0053416C /* WebView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = WebView.swift; path = Artiklo/WebView.swift; sourceTree = "<group>"; };
 		BE9D7FFB2FBE6EEBCA807B6A /* Pods_Artiklo.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Artiklo.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		BEE8E5C625AE96C07F8AADED /* Pods-Artiklo.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Artiklo.debug.xcconfig"; path = "../App/Pods/Target Support Files/Pods-Artiklo/Pods-Artiklo.debug.xcconfig"; sourceTree = "<group>"; };
+		BEE8E5C625AE96C07F8AADED /* Pods-Artiklo.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Artiklo.debug.xcconfig"; path = "Target Support Files/Pods-Artiklo/Pods-Artiklo.debug.xcconfig"; sourceTree = "<group>"; };
 		CDC0FE262388222B002C8D56 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Artiklo/Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		CDC0FE282388222B002C8D56 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Artiklo/Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 /* End PBXFileReference section */
