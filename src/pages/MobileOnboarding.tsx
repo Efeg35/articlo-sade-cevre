@@ -3,26 +3,50 @@ import { useNavigate } from 'react-router-dom';
 import useEmblaCarousel from 'embla-carousel-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { FileCheck2, Sparkles, UploadCloud } from 'lucide-react';
+import { FileCheck2, Sparkles, UploadCloud, Scale, BookOpen, Shield } from 'lucide-react';
 
 const features = [
   {
-    icon: <UploadCloud className="w-20 h-20 text-primary-foreground" />,
+    icon: <UploadCloud className="w-16 h-16 text-white" />,
     title: 'Belgelerinizi Yükleyin',
-    description: 'PDF, DOCX veya resim formatındaki hukuki belgelerinizi güvenle sisteme yükleyin.',
-    bgColor: 'from-blue-500 to-blue-600',
+    description: 'Hukuki belgelerinizi güvenle sisteme yükleyin ve analiz için hazırlayın.',
+    bgColor: 'from-gray-600 to-gray-700',
+    illustration: (
+      <div className="relative w-48 h-48">
+        <div className="absolute inset-0 bg-white/10 rounded-full blur-xl"></div>
+        <div className="relative w-full h-full bg-white/20 rounded-full flex items-center justify-center">
+          <UploadCloud className="w-20 h-20 text-white drop-shadow-lg" />
+        </div>
+      </div>
+    )
   },
   {
-    icon: <Sparkles className="w-20 h-20 text-primary-foreground" />,
+    icon: <Sparkles className="w-16 h-16 text-white" />,
     title: 'Yapay Zeka ile Sadeleştirin',
-    description: 'Karmaşık hukuki metinleri sizin için anlaşılır ve basit bir dile çevirelim.',
-    bgColor: 'from-purple-500 to-purple-600',
+    description: 'Karmaşık hukuki metinleri anlaşılır ve basit bir dile çevirelim.',
+    bgColor: 'from-gray-500 to-gray-600',
+    illustration: (
+      <div className="relative w-48 h-48">
+        <div className="absolute inset-0 bg-white/10 rounded-full blur-xl"></div>
+        <div className="relative w-full h-full bg-white/20 rounded-full flex items-center justify-center">
+          <Sparkles className="w-20 h-20 text-white drop-shadow-lg" />
+        </div>
+      </div>
+    )
   },
   {
-    icon: <FileCheck2 className="w-20 h-20 text-primary-foreground" />,
+    icon: <FileCheck2 className="w-16 h-16 text-white" />,
     title: 'Anlayın ve Oluşturun',
     description: 'Özetler alın, eylem planları çıkarın ve yeni belgeler oluşturun.',
-    bgColor: 'from-green-500 to-green-600',
+    bgColor: 'from-gray-700 to-gray-800',
+    illustration: (
+      <div className="relative w-48 h-48">
+        <div className="absolute inset-0 bg-white/10 rounded-full blur-xl"></div>
+        <div className="relative w-full h-full bg-white/20 rounded-full flex items-center justify-center">
+          <FileCheck2 className="w-20 h-20 text-white drop-shadow-lg" />
+        </div>
+      </div>
+    )
   },
 ];
 
@@ -41,64 +65,63 @@ const MobileOnboarding = () => {
   }, [emblaApi, navigate]);
 
   return (
-    <div className="overflow-hidden h-screen bg-gradient-to-br from-background via-background to-muted flex flex-col relative">
-      {/* Arka plan deseni */}
-      <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
-      
-      {/* Progress bar */}
-      <div className="relative z-10 w-full h-1 bg-muted mt-4">
-        <div className="h-full bg-primary transition-all duration-500 ease-out" 
-             style={{ width: emblaApi ? `${((emblaApi.selectedScrollSnap() + 1) / features.length) * 100}%` : '33.33%' }}>
-        </div>
-      </div>
-
-      <div className="flex-grow relative z-10" ref={emblaRef}>
+    <div className="overflow-hidden h-screen flex flex-col">
+      <div className="flex-grow relative" ref={emblaRef}>
         <div className="flex h-full">
           {features.map((feature, index) => (
-            <div className="flex-[0_0_100%] min-w-0 h-full p-6" key={index}>
-              <Card className="h-full border-none shadow-none flex flex-col justify-center items-center text-center bg-transparent">
-                <CardContent className="flex flex-col items-center justify-center p-0 space-y-8">
-                  {/* İkon container */}
-                  <div className={`w-32 h-32 bg-gradient-to-br ${feature.bgColor} rounded-3xl flex items-center justify-center shadow-2xl shadow-primary/20 transform transition-all duration-300 hover:scale-105`}>
-                    {feature.icon}
-                  </div>
-                  
-                  {/* İçerik */}
-                  <div className="space-y-4 max-w-sm">
-                    <h2 className="text-3xl font-bold text-foreground">{feature.title}</h2>
-                    <p className="text-lg text-muted-foreground leading-relaxed">
-                      {feature.description}
-                    </p>
-                  </div>
-                  
-                  {/* Step indicator */}
-                  <div className="flex space-x-2">
-                    {features.map((_, i) => (
-                      <div
-                        key={i}
-                        className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                          i === index ? 'bg-primary scale-125' : 'bg-muted'
-                        }`}
-                      />
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+            <div className="flex-[0_0_100%] min-w-0 h-full" key={index}>
+              {/* Üst kısım - Pastel gri arka plan */}
+              <div className={`h-2/3 bg-gradient-to-br ${feature.bgColor} flex flex-col items-center justify-center relative overflow-hidden`}>
+                {/* Arka plan deseni */}
+                <div className="absolute inset-0 opacity-10">
+                  <div className="absolute top-10 left-10 w-20 h-20 bg-white/20 rounded-full"></div>
+                  <div className="absolute top-20 right-16 w-16 h-16 bg-white/20 rounded-full"></div>
+                  <div className="absolute bottom-20 left-20 w-12 h-12 bg-white/20 rounded-full"></div>
+                  <div className="absolute bottom-10 right-10 w-24 h-24 bg-white/20 rounded-full"></div>
+                </div>
+                
+                {/* İllüstrasyon */}
+                <div className="relative z-10 flex items-center justify-center mb-8">
+                  {feature.illustration}
+                </div>
+              </div>
+              
+              {/* Alt kısım - Beyaz arka plan */}
+              <div className="h-1/3 bg-white flex flex-col items-center justify-center px-8 text-center">
+                <h2 className="text-2xl font-bold text-gray-900 mb-3">
+                  {feature.title}
+                </h2>
+                <p className="text-gray-600 leading-relaxed max-w-sm">
+                  {feature.description}
+                </p>
+                
+                {/* Step indicator */}
+                <div className="flex space-x-2 mt-6">
+                  {features.map((_, i) => (
+                    <div
+                      key={i}
+                      className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                        i === index ? 'bg-gray-900 scale-125' : 'bg-gray-300'
+                      }`}
+                    />
+                  ))}
+                </div>
+              </div>
             </div>
           ))}
         </div>
       </div>
       
-      {/* Footer */}
-      <footer className="w-full p-6 relative z-10">
+      {/* Footer - Beyaz arka plan */}
+      <div className="bg-white p-6 border-t border-gray-100">
         <Button 
           size="lg" 
-          className="w-full text-lg h-14 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg shadow-primary/20 transition-all duration-300 hover:scale-105" 
+          className="w-full h-14 bg-gray-900 hover:bg-gray-800 text-white font-medium text-lg shadow-lg transition-all duration-300 hover:scale-105" 
           onClick={handleNext}
         >
           {emblaApi && emblaApi.canScrollNext() ? 'Devam Et' : 'Başlayalım'}
         </Button>
-      </footer>
+      </div>
     </div>
   );
 };
