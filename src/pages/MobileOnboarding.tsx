@@ -1,63 +1,64 @@
+import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import useEmblaCarousel from 'embla-carousel-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { FileCheck2, FileText, Sparkles, UploadCloud } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { FileCheck2, Sparkles, UploadCloud } from 'lucide-react';
+
+const features = [
+  {
+    icon: <UploadCloud className="w-24 h-24 text-primary" />,
+    title: 'Yükle',
+    description: 'PDF, DOCX veya resim formatındaki belgelerinizi güvenle uygulamaya yükleyin.',
+  },
+  {
+    icon: <Sparkles className="w-24 h-24 text-primary" />,
+    title: 'Sadeleştir',
+    description: 'Yapay zekamız, anlaşılması zor metinleri sizin için sade ve anlaşılır bir dile çevirsin.',
+  },
+  {
+    icon: <FileCheck2 className="w-24 h-24 text-primary" />,
+    title: 'Anla ve Oluştur',
+    description: 'Özetleri alın, eylem planları çıkarın ve hatta tek tıkla yeni belge taslakları oluşturun.',
+  },
+];
 
 const MobileOnboarding = () => {
   const navigate = useNavigate();
+  const [emblaRef, emblaApi] = useEmblaCarousel();
 
-  const features = [
-    {
-      icon: <UploadCloud className="w-10 h-10 text-primary" />,
-      title: 'Upload',
-      description: 'Securely upload your documents in PDF, DOCX, or image format.',
-    },
-    {
-      icon: <Sparkles className="w-10 h-10 text-primary" />,
-      title: 'Simplify',
-      description: 'Let our AI translate complex texts into simple and understandable language for you.',
-    },
-    {
-      icon: <FileCheck2 className="w-10 h-10 text-primary" />,
-      title: 'Understand & Create',
-      description: 'Get summaries, extract action plans, and even create new document drafts with a single click.',
-    },
-  ];
+  const handleNext = useCallback(() => {
+    if (!emblaApi) return;
+    if (emblaApi.canScrollNext()) {
+      emblaApi.scrollNext();
+    } else {
+      // Son karttaysa, dashboard'a yönlendir ve geçmişi değiştir
+      navigate('/dashboard', { replace: true });
+    }
+  }, [emblaApi, navigate]);
 
   return (
-    <div className="flex flex-col min-h-screen bg-background text-foreground p-6 pt-12">
-      <main className="flex-grow flex flex-col items-center justify-center text-center">
-        {/* Hero Section */}
-        <div className="mb-12">
-          <div className="flex justify-center mb-6">
-            <FileText className="w-20 h-20 text-primary" />
-          </div>
-          <h1 className="text-4xl font-bold mb-2">Welcome to Artiklo</h1>
-          <p className="text-lg text-muted-foreground max-w-md mx-auto">
-            Understand complex documents and create the new documents you need in seconds.
-          </p>
-        </div>
-
-        {/* Features Section */}
-        <div className="w-full max-w-md space-y-4 mb-12">
+    <div className="overflow-hidden h-screen bg-background flex flex-col">
+      <div className="flex-grow" ref={emblaRef}>
+        <div className="flex h-full">
           {features.map((feature, index) => (
-            <Card key={index} className="text-left">
-              <CardHeader className="flex flex-row items-center gap-4">
-                {feature.icon}
-                <div>
-                  <CardTitle>{feature.title}</CardTitle>
-                  <CardDescription>{feature.description}</CardDescription>
-                </div>
-              </CardHeader>
-            </Card>
+            <div className="flex-[0_0_100%] min-w-0 h-full p-6" key={index}>
+              <Card className="h-full border-none shadow-none flex flex-col justify-center items-center text-center bg-transparent">
+                <CardContent className="flex flex-col items-center justify-center p-0">
+                  <div className="mb-8">{feature.icon}</div>
+                  <h2 className="text-3xl font-bold mb-4">{feature.title}</h2>
+                  <p className="text-lg text-muted-foreground max-w-xs">
+                    {feature.description}
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
           ))}
         </div>
-      </main>
-
-      {/* Footer CTA Button */}
-      <footer className="w-full max-w-md mx-auto pb-4">
-        <Button size="lg" className="w-full text-lg" onClick={() => navigate('/dashboard')}>
-          Let's Get Started
+      </div>
+      <footer className="w-full p-6">
+        <Button size="lg" className="w-full text-lg" onClick={handleNext}>
+          İleri
         </Button>
       </footer>
     </div>
