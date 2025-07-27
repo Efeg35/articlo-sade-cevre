@@ -431,7 +431,7 @@ const Dashboard = () => {
   const renderInputView = () => (
     <div className="flex flex-col items-center pt-4 md:pt-0 pt-[env(safe-area-inset-top)] px-4 md:px-0">
       {showTip && (
-        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 bg-primary text-primary-foreground px-4 py-2 rounded shadow-lg flex items-center gap-2 animate-fade-in max-w-[90vw]">
+        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-[9999] bg-primary text-primary-foreground px-4 py-2 rounded shadow-lg flex items-center gap-2 animate-fade-in max-w-[90vw]">
           <span className="text-sm md:text-base">Belgelerinizi yükleyin veya yapıştırın, saniyeler içinde sadeleştirin!</span>
           <button onClick={handleCloseTip} className="ml-2 text-lg font-bold">×</button>
         </div>
@@ -797,7 +797,7 @@ const Dashboard = () => {
   return (
     <>
       <OnboardingTour open={showOnboarding} onFinish={handleOnboardingFinish} />
-      <div className="min-h-screen bg-background flex flex-col items-center pt-16 px-2">
+      <div className="min-h-screen bg-background flex flex-col items-center pt-20 md:pt-16 px-2 dashboard-container">
         <div className="w-full max-w-5xl flex flex-col items-center mt-4 mb-8">
           <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-2 text-center">Hukuki Belgeni Sadeleştir</h2>
           <p className="text-muted-foreground text-center max-w-xl mb-6">

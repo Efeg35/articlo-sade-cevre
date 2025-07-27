@@ -40,3 +40,26 @@
 .read-the-docs {
   color: #888;
 }
+
+/* Dashboard özel stilleri */
+.dashboard-container {
+  position: relative;
+  z-index: 1;
+}
+
+.dashboard-container * {
+  position: relative;
+  z-index: inherit;
+}
+
+.dashboard-container .card {
+  z-index: 2;
+}
+
+.dashboard-container button {
+  z-index: 3;
+}
+
+.dashboard-container .fixed {
+  z-index: 9999 !important;
+}
