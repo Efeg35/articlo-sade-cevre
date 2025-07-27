@@ -11,42 +11,28 @@ const features = [
     title: 'Belgelerinizi Yükleyin',
     description: 'Hukuki belgelerinizi güvenle sisteme yükleyin ve analiz için hazırlayın.',
     bgColor: 'from-gray-600 to-gray-700',
-    illustration: (
-      <div className="relative w-48 h-48">
-        <div className="absolute inset-0 bg-white/10 rounded-full blur-xl"></div>
-        <div className="relative w-full h-full bg-white/20 rounded-full flex items-center justify-center">
-          <UploadCloud className="w-20 h-20 text-white drop-shadow-lg" />
-        </div>
-      </div>
-    )
+    image: '/onboarding-1.png'
   },
   {
     icon: <Sparkles className="w-16 h-16 text-white" />,
     title: 'Yapay Zeka ile Sadeleştirin',
     description: 'Karmaşık hukuki metinleri anlaşılır ve basit bir dile çevirelim.',
     bgColor: 'from-gray-500 to-gray-600',
-    illustration: (
-      <div className="relative w-48 h-48">
-        <div className="absolute inset-0 bg-white/10 rounded-full blur-xl"></div>
-        <div className="relative w-full h-full bg-white/20 rounded-full flex items-center justify-center">
-          <Sparkles className="w-20 h-20 text-white drop-shadow-lg" />
-        </div>
-      </div>
-    )
+    image: '/onboarding-2.png'
   },
   {
     icon: <FileCheck2 className="w-16 h-16 text-white" />,
     title: 'Anlayın ve Oluşturun',
     description: 'Özetler alın, eylem planları çıkarın ve yeni belgeler oluşturun.',
     bgColor: 'from-gray-700 to-gray-800',
-    illustration: (
-      <div className="relative w-48 h-48">
-        <div className="absolute inset-0 bg-white/10 rounded-full blur-xl"></div>
-        <div className="relative w-full h-full bg-white/20 rounded-full flex items-center justify-center">
-          <FileCheck2 className="w-20 h-20 text-white drop-shadow-lg" />
-        </div>
-      </div>
-    )
+    image: '/onboarding-3.png'
+  },
+  {
+    icon: <Shield className="w-16 h-16 text-white" />,
+    title: 'Güvenle Kullanın',
+    description: 'KVKK uyumlu, güvenli ve gizli bir şekilde hukuki belgelerinizi işleyin.',
+    bgColor: 'from-gray-600 to-gray-700',
+    image: '/onboarding-4.png'
   },
 ];
 
@@ -70,7 +56,7 @@ const MobileOnboarding = () => {
         <div className="flex h-full">
           {features.map((feature, index) => (
             <div className="flex-[0_0_100%] min-w-0 h-full" key={index}>
-              {/* Üst kısım - Pastel gri arka plan */}
+              {/* Üst kısım - Görsel */}
               <div className={`h-2/3 bg-gradient-to-br ${feature.bgColor} flex flex-col items-center justify-center relative overflow-hidden`}>
                 {/* Arka plan deseni */}
                 <div className="absolute inset-0 opacity-10">
@@ -80,9 +66,13 @@ const MobileOnboarding = () => {
                   <div className="absolute bottom-10 right-10 w-24 h-24 bg-white/20 rounded-full"></div>
                 </div>
                 
-                {/* İllüstrasyon */}
+                {/* Onboarding görseli */}
                 <div className="relative z-10 flex items-center justify-center mb-8">
-                  {feature.illustration}
+                  <img 
+                    src={feature.image} 
+                    alt={feature.title}
+                    className="w-64 h-64 object-contain rounded-2xl shadow-2xl"
+                  />
                 </div>
               </div>
               

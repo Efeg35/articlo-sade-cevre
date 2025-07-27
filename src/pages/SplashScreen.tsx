@@ -23,7 +23,11 @@ const SplashScreen = () => {
         {/* Logo container */}
         <div className="relative">
           <div className="w-32 h-32 bg-gradient-to-br from-primary to-primary/80 rounded-3xl flex items-center justify-center shadow-2xl shadow-primary/20 animate-pulse">
-            <FileText className="w-16 h-16 text-primary-foreground" />
+            <img 
+              src="/icon.png" 
+              alt="Artiklo Logo" 
+              className="w-20 h-20 object-contain"
+            />
           </div>
           {/* Glow efekti */}
           <div className="absolute inset-0 w-32 h-32 bg-primary/20 rounded-3xl blur-xl animate-pulse"></div>
