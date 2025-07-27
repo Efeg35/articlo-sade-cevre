@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation, useNavigate, Outlet } from "react-router-dom";
 import { useEffect } from "react";
+import { Capacitor } from '@capacitor/core';
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import ArchivePage from "./pages/ArchivePage";
@@ -34,10 +35,8 @@ import ApplicationPage from "./pages/partner/ApplicationPage";
 
 const queryClient = new QueryClient();
 
-// Navbar'ı ve sayfa içeriğini render eden ana layout
 const MainLayout = () => {
   const location = useLocation();
-  // Bu sayfalarda Navbar'ı gizle
   const hideNavbarOnPages = ['/splash', '/onboarding-mobil', '/auth', '/login', '/signup'];
   const shouldHideNavbar = hideNavbarOnPages.includes(location.pathname);
 
@@ -45,7 +44,7 @@ const MainLayout = () => {
     <>
       {!shouldHideNavbar && <Navbar />}
       <main>
-        <Outlet /> {/* Sayfa içeriği burada render edilecek */}
+        <Outlet />
       </main>
     </>
   );
@@ -55,14 +54,21 @@ const AppContent = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Mobil uygulamadan gelen kullanıcıyı YALNIZCA Splash Screen'e yönlendirme mantığı
+  // --- YENİ VE GELİŞMİŞ YÖNLENDİRME MANTIĞI ---
   useEffect(() => {
-    const searchParams = new URLSearchParams(location.search);
-    const source = searchParams.get('kaynak');
-    if (source === 'mobiluygulama' && location.pathname === '/') {
-      navigate('/splash', { replace: true });
+    // Eğer uygulama native bir mobil platformda çalışıyorsa (iOS veya Android)
+    if (Capacitor.isNativePlatform()) {
+      // Ve bu, oturumdaki ilk açılışsa (kullanıcı uygulama içinde ana sayfaya dönerse tekrar yönlenmesin diye)
+      const isFirstLaunch = sessionStorage.getItem('firstLaunchDone') !== 'true';
+      
+      if (isFirstLaunch && location.pathname === '/') {
+        // İlk açılış olduğunu işaretle ve bir daha yönlendirme yapma
+        sessionStorage.setItem('firstLaunchDone', 'true');
+        // Splash ekranına yönlendir
+        navigate('/splash', { replace: true });
+      }
     }
-  }, [location, navigate]);
+  }, [navigate, location]);
 
   return (
     <Routes>

@@ -3,5 +3,7 @@
 	"appName": "Artiklo",
 	"webDir": "dist",
 	"plugins": {},
-	"packageClassList": []
+	"packageClassList": [
+		"AppPlugin"
+	]
 }

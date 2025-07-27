@@ -11,28 +11,28 @@ const features = [
     title: 'Belgelerinizi Yükleyin',
     description: 'Hukuki belgelerinizi güvenle sisteme yükleyin ve analiz için hazırlayın.',
     bgColor: 'from-gray-600 to-gray-700',
-    image: '/onboarding-1.png'
+    image: '/onboarding-1.jpg' // DÜZELTİLDİ
   },
   {
     icon: <Sparkles className="w-16 h-16 text-white" />,
     title: 'Yapay Zeka ile Sadeleştirin',
     description: 'Karmaşık hukuki metinleri anlaşılır ve basit bir dile çevirelim.',
     bgColor: 'from-gray-500 to-gray-600',
-    image: '/onboarding-2.png'
+    image: '/onboarding-2.jpg' // DÜZELTİLDİ
   },
   {
     icon: <FileCheck2 className="w-16 h-16 text-white" />,
     title: 'Anlayın ve Oluşturun',
     description: 'Özetler alın, eylem planları çıkarın ve yeni belgeler oluşturun.',
     bgColor: 'from-gray-700 to-gray-800',
-    image: '/onboarding-3.png'
+    image: '/onboarding-3.png' // BU ZATEN DOĞRUYDU
   },
   {
     icon: <Shield className="w-16 h-16 text-white" />,
     title: 'Güvenle Kullanın',
     description: 'KVKK uyumlu, güvenli ve gizli bir şekilde hukuki belgelerinizi işleyin.',
     bgColor: 'from-gray-600 to-gray-700',
-    image: '/onboarding-4.png'
+    image: '/onboarding-4.jpg' // DÜZELTİLDİ
   },
 ];
 
@@ -116,4 +116,4 @@ const MobileOnboarding = () => {
   );
 };
 
-export default MobileOnboarding; 
+export default MobileOnboarding;
