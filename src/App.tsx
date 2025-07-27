@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation, useNavigate, Outlet } from "react-router-dom";
 import { useEffect } from "react";
 import { Capacitor } from '@capacitor/core';
+import { App as CapacitorApp } from '@capacitor/app'; // App plugin'ini import ediyoruz
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import ArchivePage from "./pages/ArchivePage";
@@ -54,17 +55,36 @@ const AppContent = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // --- YENİ VE GELİŞMİŞ YÖNLENDİRME MANTIĞI ---
+  // --- NİHAİ VE DOĞRU GERİ TUŞU YÖNETİMİ ---
   useEffect(() => {
-    // Eğer uygulama native bir mobil platformda çalışıyorsa (iOS veya Android)
+    // Bu kod sadece native mobil platformlarda çalışacak
     if (Capacitor.isNativePlatform()) {
-      // Ve bu, oturumdaki ilk açılışsa (kullanıcı uygulama içinde ana sayfaya dönerse tekrar yönlenmesin diye)
+      CapacitorApp.addListener('backButton', ({ canGoBack }) => {
+        if (canGoBack) {
+          // Eğer web geçmişinde geri gidilebilecek bir sayfa varsa, git
+          window.history.back();
+        } else {
+          // Eğer gidilebilecek bir sayfa yoksa (uygulamanın ilk sayfası gibi),
+          // uygulamadan çıkmak yerine hiçbir şey yapma.
+          console.log('No more history to go back to.');
+        }
+      });
+    }
+
+    // Component kaldırıldığında listener'ı temizle
+    return () => {
+      if (Capacitor.isNativePlatform()) {
+        CapacitorApp.removeAllListeners();
+      }
+    };
+  }, []); // Boş dizi sayesinde bu kod sadece bir kez çalışır
+
+  // İlk açılışta splash ekranına yönlendirme mantığı (bu doğru ve kalmalı)
+  useEffect(() => {
+    if (Capacitor.isNativePlatform()) {
       const isFirstLaunch = sessionStorage.getItem('firstLaunchDone') !== 'true';
-      
       if (isFirstLaunch && location.pathname === '/') {
-        // İlk açılış olduğunu işaretle ve bir daha yönlendirme yapma
         sessionStorage.setItem('firstLaunchDone', 'true');
-        // Splash ekranına yönlendir
         navigate('/splash', { replace: true });
       }
     }

@@ -10,11 +10,12 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, ArrowLeft, FileText } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
+import { Capacitor } from '@capacitor/core'; // Capacitor'u import ediyoruz
 
 const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [fullName, setFullName] = useState(""); // Ad soyad state'i
+  const [fullName, setFullName] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -74,7 +75,6 @@ const Auth = () => {
         });
         setEmail("");
         setPassword("");
-        // Profil tablosuna ekle
         await supabase.from('profiles').insert({
           id: data.user.id,
           email: data.user.email,
@@ -101,14 +101,20 @@ const Auth = () => {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center pt-20 md:pt-16 pt-[env(safe-area-inset-top)] px-4">
       <div className="w-full max-w-sm relative">
-        <a 
-          href="/" 
-          className="absolute top-0 left-0 -translate-y-16 inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          <span className="hidden sm:inline">Ana Sayfaya Dön</span>
-          <span className="sm:hidden">Geri</span>
-        </a>
+        
+        {/* --- KOŞULLU GERİ BUTONU MANTIĞI --- */}
+        {/* Bu buton sadece native mobil platform DEĞİLSE (yani web ise) görünecek */}
+        {!Capacitor.isNativePlatform() && (
+          <a 
+            href="/" 
+            className="absolute top-0 left-0 -translate-y-16 inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            <span className="hidden sm:inline">Ana Sayfaya Dön</span>
+            <span className="sm:hidden">Geri</span>
+          </a>
+        )}
+
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <div className="text-center mb-6">
             <FileText className="h-8 w-8 md:h-10 md:w-10 text-foreground mx-auto mb-2" />
@@ -198,7 +204,6 @@ const Auth = () => {
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
               )}
-              {/* successMessage sadece toast ile gösterilecek, Alert kaldırıldı */}
             </CardContent>
           </Card>
         </Tabs>
