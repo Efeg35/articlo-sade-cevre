@@ -24,12 +24,16 @@ const Auth = () => {
   const location = useLocation();
   const initialTab = location.pathname === "/signup" ? "signup" : "signin";
   const [activeTab, setActiveTab] = useState(initialTab);
+  
+  // URL parametresini kontrol et
+  const searchParams = new URLSearchParams(location.search);
+  const isFromMobileApp = searchParams.get('kaynak') === 'mobiluygulama';
 
   useEffect(() => {
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        navigate("/dashboard");
+        navigate("/dashboard", { replace: true });
       }
     };
     checkUser();
@@ -89,7 +93,7 @@ const Auth = () => {
           title: "Başarılı!",
           description: "Giriş yapıldı, panele yönlendiriliyorsunuz.",
         });
-        navigate("/dashboard");
+        navigate("/dashboard", { replace: true });
       }
     } catch (err) {
       setError("Beklenmedik bir hata oluştu. Lütfen tekrar deneyin.");
@@ -101,14 +105,20 @@ const Auth = () => {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center pt-20 md:pt-16 pt-[env(safe-area-inset-top)] px-4">
       <div className="w-full max-w-sm relative">
-        <a 
-          href="/" 
+        <button 
+          onClick={() => {
+            if (isFromMobileApp) {
+              navigate('/onboarding-mobil', { replace: true });
+            } else {
+              navigate('/', { replace: true });
+            }
+          }}
           className="absolute top-0 left-0 -translate-y-16 inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
           <span className="hidden sm:inline">Ana Sayfaya Dön</span>
           <span className="sm:hidden">Geri</span>
-        </a>
+        </button>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <div className="text-center mb-6">
             <FileText className="h-8 w-8 md:h-10 md:w-10 text-foreground mx-auto mb-2" />
