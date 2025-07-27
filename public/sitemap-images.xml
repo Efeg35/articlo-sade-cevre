@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  <url>
+    <loc>https://artiklo.legal/</loc>
+    <image:image>
+      <image:loc>https://artiklo.legal/og-image.png</image:loc>
+      <image:title>Artiklo Legal - Hukuki Belge Sadeleştirme Platformu</image:title>
+      <image:caption>Yapay zeka ile hukuki belgeleri saniyeler içinde anlayın</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://artiklo.legal/icon.png</image:loc>
+      <image:title>Artiklo Logo</image:title>
+      <image:caption>Artiklo Legal Platform Logo</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://artiklo.legal/nasil-calisir</loc>
+    <image:image>
+      <image:loc>https://artiklo.legal/onboarding-1.png</image:loc>
+      <image:title>Artiklo Nasıl Çalışır - Adım 1</image:title>
+      <image:caption>Belgelerinizi yükleyin ve analiz edin</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://artiklo.legal/onboarding-2.png</image:loc>
+      <image:title>Artiklo Nasıl Çalışır - Adım 2</image:title>
+      <image:caption>Yapay zeka ile sadeleştirme</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://artiklo.legal/fiyatlandirma</loc>
+    <image:image>
+      <image:loc>https://artiklo.legal/onboarding-3.png</image:loc>
+      <image:title>Artiklo Fiyatlandırma</image:title>
+      <image:caption>Uygun fiyatlı hukuki belge analizi</image:caption>
+    </image:image>
+  </url>
+</urlset> 
