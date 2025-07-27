@@ -1,6 +1,9 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="app_name">Artiklo</string>
+    
+    <string name="launch_url">https://artiklo.legal?kaynak=mobiluygulama</string>
+    
     <string name="title_activity_main">Artiklo</string>
     <string name="package_name">com.artiklo.app</string>
     <string name="custom_url_scheme">com.artiklo.app</string>

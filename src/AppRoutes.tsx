@@ -17,6 +17,7 @@ import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import ArchivePage from "./pages/ArchivePage";
 import MobileWelcome from "./pages/MobileWelcome";
+import MobileOnboarding from "./pages/MobileOnboarding";
 import NasilCalisir from "./pages/NasilCalisir";
 import Fiyatlandirma from "./pages/Fiyatlandirma";
 import RehberPage from "./pages/RehberPage";
@@ -62,6 +63,7 @@ const AppRoutes = () => {
         <Route path="/login" element={<Auth />} />
         <Route path="/signup" element={<Auth />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/onboarding-mobil" element={<MobileOnboarding />} />
         <Route path="/kullanici-sozlesmesi" element={<KullaniciSozlesmesi />} />
         <Route path="/kvkk-aydinlatma" element={<KvkkAydinlatma />} />
         <Route path="/blog" element={<Blog />} />

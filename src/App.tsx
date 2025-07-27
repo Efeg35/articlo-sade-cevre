@@ -17,7 +17,7 @@ const AppContent = () => {
     const kaynak = searchParams.get('kaynak');
     
     if (location.pathname === '/' && kaynak === 'mobiluygulama') {
-      navigate('/dashboard', { replace: true });
+      navigate('/onboarding-mobil', { replace: true });
     }
   }, [location, navigate]);
 
