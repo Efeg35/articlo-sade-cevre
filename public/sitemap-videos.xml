@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
+  <url>
+    <loc>https://artiklo.legal/nasil-calisir</loc>
+    <video:video>
+      <video:thumbnail_loc>https://artiklo.legal/onboarding-1.png</video:thumbnail_loc>
+      <video:title>Artiklo Nasıl Çalışır - Hukuki Belge Sadeleştirme</video:title>
+      <video:description>Artiklo platformunun nasıl çalıştığını gösteren açıklayıcı video. Hukuki belgelerinizi nasıl yükleyeceğinizi ve yapay zeka ile nasıl sadeleştireceğinizi öğrenin.</video:description>
+      <video:content_loc>https://artiklo.legal/videos/nasil-calisir.mp4</video:content_loc>
+      <video:duration>120</video:duration>
+      <video:family_friendly>yes</video:family_friendly>
+      <video:tag>hukuki belge</video:tag>
+      <video:tag>yapay zeka</video:tag>
+      <video:tag>sadeleştirme</video:tag>
+      <video:category>Eğitim</video:category>
+    </video:video>
+  </url>
+  <url>
+    <loc>https://artiklo.legal/fiyatlandirma</loc>
+    <video:video>
+      <video:thumbnail_loc>https://artiklo.legal/onboarding-3.png</video:thumbnail_loc>
+      <video:title>Artiklo Fiyatlandırma ve Özellikler</video:title>
+      <video:description>Artiklo'nun fiyatlandırma planları ve özelliklerini detaylı olarak açıklayan video. Hangi paketin size uygun olduğunu öğrenin.</video:description>
+      <video:content_loc>https://artiklo.legal/videos/fiyatlandirma.mp4</video:content_loc>
+      <video:duration>90</video:duration>
+      <video:family_friendly>yes</video:family_friendly>
+      <video:tag>fiyatlandırma</video:tag>
+      <video:tag>özellikler</video:tag>
+      <video:tag>paketler</video:tag>
+      <video:category>Eğitim</video:category>
+    </video:video>
+  </url>
+</urlset> 

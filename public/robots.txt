@@ -32,3 +32,4 @@ Crawl-delay: 1
 # Sitemap
 Sitemap: https://artiklo.legal/sitemap.xml
 Sitemap: https://artiklo.legal/sitemap-images.xml
+Sitemap: https://artiklo.legal/sitemap-videos.xml
