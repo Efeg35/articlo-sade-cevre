@@ -42,28 +42,39 @@ const Auth = () => {
     setError("");
     setSuccessMessage("");
 
+    console.log('Auth attempt:', { action, email, password: password ? '***' : 'empty' });
+
     try {
       let response;
       if (action === 'signIn') {
+        console.log('Attempting sign in...');
         response = await supabase.auth.signInWithPassword({ email, password });
+        console.log('Sign in response:', response);
       } else {
+        console.log('Attempting sign up...');
         const redirectUrl = `${window.location.origin}/dashboard`;
         response = await supabase.auth.signUp({
           email,
           password,
           options: { emailRedirectTo: redirectUrl },
         });
+        console.log('Sign up response:', response);
       }
       
       const { data, error: authError } = response;
 
       if (authError) {
+        console.error('Auth error:', authError);
         if (authError.message.includes("Invalid login credentials")) {
-          setError("Geçersiz e-posta veya şifre.");
+          setError("Geçersiz e-posta veya şifre. Lütfen bilgilerinizi kontrol edin.");
         } else if (authError.message.includes("User already registered")) {
           setError("Bu e-posta adresi zaten kayıtlı.");
+        } else if (authError.message.includes("Email not confirmed")) {
+          setError("E-posta adresiniz henüz onaylanmamış. Lütfen e-posta kutunuzu kontrol edin.");
+        } else if (authError.message.includes("Too many requests")) {
+          setError("Çok fazla deneme yaptınız. Lütfen bir süre bekleyin.");
         } else {
-          setError("Bir hata oluştu. Lütfen bilgilerinizi kontrol edin.");
+          setError(`Giriş hatası: ${authError.message}`);
         }
         return;
       }
@@ -75,23 +86,31 @@ const Auth = () => {
         });
         setEmail("");
         setPassword("");
-        await supabase.from('profiles').insert({
-          id: data.user.id,
-          email: data.user.email,
-          full_name: fullName,
-          credits: 3,
-          has_completed_onboarding: false
-        });
+        try {
+          await supabase.from('profiles').insert({
+            id: data.user.id,
+            email: data.user.email,
+            full_name: fullName,
+            credits: 3,
+            has_completed_onboarding: false
+          });
+        } catch (profileError) {
+          console.error('Profile creation error:', profileError);
+        }
       }
 
       if (data.session) {
+        console.log('Session created successfully:', data.session);
         toast({
           title: "Başarılı!",
           description: "Giriş yapıldı, panele yönlendiriliyorsunuz.",
         });
         navigate("/dashboard");
+      } else {
+        console.log('No session created, data:', data);
       }
     } catch (err) {
+      console.error('Unexpected error:', err);
       setError("Beklenmedik bir hata oluştu. Lütfen tekrar deneyin.");
     } finally {
       setLoading(false);
