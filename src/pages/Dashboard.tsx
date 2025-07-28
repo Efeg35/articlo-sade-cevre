@@ -532,7 +532,7 @@ const Dashboard = () => {
                 className="w-full cursor-pointer text-sm md:text-base"
                 disabled={loading !== null}
               >
-                <span>📄 Dosya Seç (PDF, DOC, DOCX, TXT, Görüntü)</span>
+                <span>📄 Dosya Seç (PDF, DOC, DOCX, UDF, TXT, Görüntü)</span>
               </Button>
             </label>
             {selectedFiles.length > 0 && (
