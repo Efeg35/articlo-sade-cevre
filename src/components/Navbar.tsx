@@ -57,10 +57,13 @@ const Navbar = () => {
   return (
     <header
       className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-background/90 backdrop-blur-md border-b shadow-sm",
+        "fixed top-0 left-0 right-0 z-50 transition-all duration-300 pt-[env(safe-area-inset-top)] md:pt-0",
+        isScrolled
+          ? "bg-background/80 backdrop-blur-md border-b shadow-sm"
+          : "bg-transparent"
       )}
     >
-      <nav className="container mx-auto px-4 h-32 md:h-16 flex items-center justify-between pt-20 pb-4">
+      <nav className="container mx-auto px-4 h-16 flex items-center justify-between">
         {/* Logo */}
         <Link
           to={user ? "/dashboard" : "/"}
@@ -102,7 +105,7 @@ const Navbar = () => {
               {isDashboard || isArchive ? (
                 <>
                 <Link to={isDashboard ? "/archive" : "/dashboard"}>
-                  <Button variant="ghost" className="text-base font-medium">
+                  <Button variant="ghost" className="text-sm font-medium">
                     {isDashboard ? "Belgelerim" : "Dashboard"}
                   </Button>
                 </Link>
@@ -125,7 +128,7 @@ const Navbar = () => {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" className="rounded-full">
-                    <UserIcon className="h-6 w-6" />
+                    <UserIcon className="h-5 w-5" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-64">
