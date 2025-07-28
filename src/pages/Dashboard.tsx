@@ -27,6 +27,7 @@ import { Capacitor } from "@capacitor/core";
 import OnboardingTour from "@/components/OnboardingTour";
 import ReactMarkdown from 'react-markdown';
 import { Document, Packer, Paragraph, TextRun } from 'docx';
+import { useCredits } from "@/hooks/useCredits";
 // import TabBar from "@/components/TabBar";
 
 type View = 'input' | 'result';
@@ -95,6 +96,9 @@ const Dashboard = () => {
   const [draftedText, setDraftedText] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
+  
+  // Kredi yönetimi
+  const { credits, refetch: refetchCredits } = useCredits(user?.id);
 
   useEffect(() => {
     const checkAuthAndOnboarding = async () => {
@@ -167,23 +171,8 @@ const Dashboard = () => {
     }
 
     // Kredi kontrolü
-    if (user) {
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('credits')
-        .eq('id', user.id)
-        .single();
-
-      if (profileError) {
-        toast({
-          title: "Kredi Kontrol Hatası",
-          description: "Kredi bilgileriniz kontrol edilemedi.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      if (!profileData || profileData.credits <= 0) {
+    if (user && credits !== null) {
+      if (credits <= 0) {
         toast({
           title: "Kredi Yetersiz",
           description: "Krediniz kalmadı. Lütfen daha sonra tekrar deneyin.",
@@ -285,6 +274,8 @@ const Dashboard = () => {
                 variant: "destructive",
               });
             } else {
+              // Kredi bilgisini güncelle
+              await refetchCredits();
               toast({
                 title: "Başarılı!",
                 description: "Belgeniz başarıyla sadeleştirildi ve kaydedildi. 1 kredi düşüldü.",
