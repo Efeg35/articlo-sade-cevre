@@ -116,62 +116,53 @@ serve(async (req) => {
             const result = await mammoth.extractRawText({ arrayBuffer });
             textToAnalyze = result.value;
         } else if (fileName.endsWith('.udf')) {
-            // UDF dosyaları için farklı yaklaşımlar deneyelim
+            // UDF dosyaları için binary analiz yaklaşımı
             let textToAnalyze = "";
             
-            // 1. Düz metin okuma deneyelim
             try {
+                // 1. Önce düz metin olarak okumayı dene
                 textToAnalyze = await file.text();
-            } catch (error) {
-                // 2. Farklı mime type'larla OCR deneyelim
-                const arrayBuffer = await file.arrayBuffer();
-                const uint8Array = new Uint8Array(arrayBuffer);
-                const base64Image = base64Encode(uint8Array);
                 
-                const mimeTypes = [
-                    'application/pdf',
-                    'image/jpeg', 
-                    'image/png',
-                    'application/octet-stream'
-                ];
-                
-                for (const mimeType of mimeTypes) {
-                    try {
-                        const visionResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`, {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({
-                            contents: [{
-                              parts: [
-                                { text: "Bu dosyadaki tüm metni oku ve döndür. Sadece metni döndür, başka hiçbir şey ekleme." },
-                                {
-                                  inline_data: {
-                                    mime_type: mimeType,
-                                    data: base64Image
-                                  }
-                                }
-                              ]
-                            }]
-                          })
-                        });
-                        
-                        if (visionResponse.ok) {
-                            const visionData = await visionResponse.json();
-                            const extractedText = visionData.candidates?.[0]?.content?.parts?.[0]?.text || "";
-                            if (extractedText && extractedText.trim() !== "") {
-                                textToAnalyze = extractedText;
-                                break; // Başarılı olursa döngüden çık
-                            }
-                        }
-                    } catch (error) {
-                        // Bu mime type başarısız olursa bir sonrakini dene
-                        continue;
+                // Eğer düz metin boşsa veya anlamsızsa, binary analiz yap
+                if (!textToAnalyze || textToAnalyze.trim() === "" || textToAnalyze.length < 10) {
+                    const arrayBuffer = await file.arrayBuffer();
+                    const uint8Array = new Uint8Array(arrayBuffer);
+                    
+                    // Binary veriyi hex string'e çevir
+                    const hexString = Array.from(uint8Array).map(b => b.toString(16).padStart(2, '0')).join('');
+                    
+                    // UDF dosyasının başlangıç byte'larını kontrol et
+                    const header = hexString.substring(0, 32);
+                    
+                    // Eğer binary veri varsa, kullanıcıya özel mesaj ver
+                    if (header.length > 0) {
+                        textToAnalyze = `Bu UDF dosyası binary formatta ve doğrudan okunamıyor. Dosya boyutu: ${arrayBuffer.byteLength} byte. Bu tür dosyalar genellikle özel yazılımlarla açılır. Lütfen dosyayı PDF, DOCX veya TXT formatında yeniden yüklemeyi deneyin.`;
+                    } else {
+                        textToAnalyze = "Bu UDF dosyası boş veya bozuk görünüyor. Lütfen geçerli bir dosya yüklemeyi deneyin.";
                     }
                 }
-                
-                // Hiçbir yöntem başarılı olmazsa
-                if (!textToAnalyze || textToAnalyze.trim() === "") {
-                    textToAnalyze = "Bu UDF dosyası okunabilir metin içermiyor. Dosya binary formatında olabilir veya korumalı olabilir. Lütfen dosyayı PDF, DOCX veya TXT formatında yeniden yüklemeyi deneyin.";
+            } catch (error) {
+                // Hata durumunda binary analiz yap
+                try {
+                    const arrayBuffer = await file.arrayBuffer();
+                    const uint8Array = new Uint8Array(arrayBuffer);
+                    
+                    // ASCII karakterleri çıkarmaya çalış
+                    let asciiText = "";
+                    for (let i = 0; i < uint8Array.length; i++) {
+                        const byte = uint8Array[i];
+                        if (byte >= 32 && byte <= 126) { // Yazdırılabilir ASCII karakterler
+                            asciiText += String.fromCharCode(byte);
+                        }
+                    }
+                    
+                    if (asciiText.length > 50) {
+                        textToAnalyze = asciiText;
+                    } else {
+                        textToAnalyze = `Bu UDF dosyası binary formatta ve okunabilir metin içermiyor. Dosya boyutu: ${arrayBuffer.byteLength} byte. Bu tür dosyalar genellikle özel yazılımlarla açılır. Lütfen dosyayı PDF, DOCX veya TXT formatında yeniden yüklemeyi deneyin.`;
+                    }
+                } catch (binaryError) {
+                    textToAnalyze = "Bu UDF dosyası işlenemedi. Dosya bozuk olabilir veya desteklenmeyen bir formatta. Lütfen dosyayı PDF, DOCX veya TXT formatında yeniden yüklemeyi deneyin.";
                 }
             }
         } else if (fileName.endsWith('.txt')) {
