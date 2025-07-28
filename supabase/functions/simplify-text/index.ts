@@ -151,6 +151,11 @@ serve(async (req) => {
                 
                 const visionData = await visionResponse.json();
                 textToAnalyze = visionData.candidates?.[0]?.content?.parts?.[0]?.text || "";
+                
+                // Eğer OCR'dan da metin çıkarılamazsa, kullanıcıya bilgi ver
+                if (!textToAnalyze || textToAnalyze.trim() === "") {
+                    textToAnalyze = "Bu UDF dosyası okunabilir metin içermiyor. Dosya binary formatında olabilir veya korumalı olabilir. Lütfen dosyayı PDF, DOCX veya TXT formatında yeniden yüklemeyi deneyin.";
+                }
             }
         } else if (fileName.endsWith('.txt')) {
             // TXT dosyaları için düz metin okuma
