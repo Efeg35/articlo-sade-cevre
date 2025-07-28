@@ -120,28 +120,48 @@ serve(async (req) => {
             let textToAnalyze = "";
             
             try {
+                console.log("UDF dosyası işleniyor:", fileName);
+                
                 // 1. Önce düz metin olarak okumayı dene
                 textToAnalyze = await file.text();
+                console.log("Düz metin okuma sonucu:", textToAnalyze ? "Başarılı" : "Boş");
                 
                 // Eğer düz metin boşsa veya anlamsızsa, binary analiz yap
                 if (!textToAnalyze || textToAnalyze.trim() === "" || textToAnalyze.length < 10) {
+                    console.log("Binary analiz başlatılıyor...");
                     const arrayBuffer = await file.arrayBuffer();
                     const uint8Array = new Uint8Array(arrayBuffer);
+                    console.log("Dosya boyutu:", arrayBuffer.byteLength, "byte");
                     
-                    // Binary veriyi hex string'e çevir
-                    const hexString = Array.from(uint8Array).map(b => b.toString(16).padStart(2, '0')).join('');
-                    
-                    // UDF dosyasının başlangıç byte'larını kontrol et
-                    const header = hexString.substring(0, 32);
-                    
-                    // Eğer binary veri varsa, kullanıcıya özel mesaj ver
-                    if (header.length > 0) {
-                        textToAnalyze = `Bu UDF dosyası binary formatta ve doğrudan okunamıyor. Dosya boyutu: ${arrayBuffer.byteLength} byte. Bu tür dosyalar genellikle özel yazılımlarla açılır. Lütfen dosyayı PDF, DOCX veya TXT formatında yeniden yüklemeyi deneyin.`;
-                    } else {
-                        textToAnalyze = "Bu UDF dosyası boş veya bozuk görünüyor. Lütfen geçerli bir dosya yüklemeyi deneyin.";
+                    // ASCII karakterleri çıkarmaya çalış
+                    let asciiText = "";
+                    for (let i = 0; i < uint8Array.length; i++) {
+                        const byte = uint8Array[i];
+                        if (byte >= 32 && byte <= 126) { // Yazdırılabilir ASCII karakterler
+                            asciiText += String.fromCharCode(byte);
+                        }
                     }
+                    
+                    console.log("ASCII metin uzunluğu:", asciiText.length);
+                    
+                    if (asciiText.length > 50) {
+                        textToAnalyze = asciiText;
+                        console.log("ASCII metin başarıyla çıkarıldı");
+                    } else {
+                        // Binary veriyi hex string'e çevir
+                        const hexString = Array.from(uint8Array).map(b => b.toString(16).padStart(2, '0')).join('');
+                        
+                        // UDF dosyasının başlangıç byte'larını kontrol et
+                        const header = hexString.substring(0, 32);
+                        console.log("Hex header:", header);
+                        
+                        textToAnalyze = `Bu UDF dosyası binary formatta ve doğrudan okunamıyor. Dosya boyutu: ${arrayBuffer.byteLength} byte. Bu tür dosyalar genellikle özel yazılımlarla açılır. Lütfen dosyayı PDF, DOCX veya TXT formatında yeniden yüklemeyi deneyin.`;
+                    }
+                } else {
+                    console.log("Düz metin başarıyla okundu");
                 }
             } catch (error) {
+                console.log("UDF işleme hatası:", error.message);
                 // Hata durumunda binary analiz yap
                 try {
                     const arrayBuffer = await file.arrayBuffer();
@@ -162,9 +182,12 @@ serve(async (req) => {
                         textToAnalyze = `Bu UDF dosyası binary formatta ve okunabilir metin içermiyor. Dosya boyutu: ${arrayBuffer.byteLength} byte. Bu tür dosyalar genellikle özel yazılımlarla açılır. Lütfen dosyayı PDF, DOCX veya TXT formatında yeniden yüklemeyi deneyin.`;
                     }
                 } catch (binaryError) {
+                    console.log("Binary analiz hatası:", binaryError.message);
                     textToAnalyze = "Bu UDF dosyası işlenemedi. Dosya bozuk olabilir veya desteklenmeyen bir formatta. Lütfen dosyayı PDF, DOCX veya TXT formatında yeniden yüklemeyi deneyin.";
                 }
             }
+            
+            console.log("UDF işleme tamamlandı, metin uzunluğu:", textToAnalyze.length);
         } else if (fileName.endsWith('.txt')) {
             // TXT dosyaları için düz metin okuma
             const text = await file.text();
