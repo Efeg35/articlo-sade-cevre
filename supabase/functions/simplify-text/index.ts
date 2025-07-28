@@ -116,43 +116,60 @@ serve(async (req) => {
             const result = await mammoth.extractRawText({ arrayBuffer });
             textToAnalyze = result.value;
         } else if (fileName.endsWith('.udf')) {
-            // UDF dosyaları için düz metin okuma deneyelim
+            // UDF dosyaları için farklı yaklaşımlar deneyelim
+            let textToAnalyze = "";
+            
+            // 1. Düz metin okuma deneyelim
             try {
-                const text = await file.text();
-                textToAnalyze = text;
+                textToAnalyze = await file.text();
             } catch (error) {
-                // Eğer düz metin okuma başarısız olursa, OCR deneyelim
+                // 2. Farklı mime type'larla OCR deneyelim
                 const arrayBuffer = await file.arrayBuffer();
                 const uint8Array = new Uint8Array(arrayBuffer);
                 const base64Image = base64Encode(uint8Array);
                 
-                // Gemini Vision API ile OCR
-                const visionResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`, {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    contents: [{
-                      parts: [
-                        { text: "Bu dosyadaki tüm metni oku ve döndür. Sadece metni döndür, başka hiçbir şey ekleme." },
-                        {
-                          inline_data: {
-                            mime_type: 'application/octet-stream',
-                            data: base64Image
-                          }
-                        }
-                      ]
-                    }]
-                  })
-                });
+                const mimeTypes = [
+                    'application/pdf',
+                    'image/jpeg', 
+                    'image/png',
+                    'application/octet-stream'
+                ];
                 
-                if (!visionResponse.ok) {
-                  throw new Error(`Gemini Vision API hatası: ${visionResponse.status} ${await visionResponse.text()}`);
+                for (const mimeType of mimeTypes) {
+                    try {
+                        const visionResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`, {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
+                            contents: [{
+                              parts: [
+                                { text: "Bu dosyadaki tüm metni oku ve döndür. Sadece metni döndür, başka hiçbir şey ekleme." },
+                                {
+                                  inline_data: {
+                                    mime_type: mimeType,
+                                    data: base64Image
+                                  }
+                                }
+                              ]
+                            }]
+                          })
+                        });
+                        
+                        if (visionResponse.ok) {
+                            const visionData = await visionResponse.json();
+                            const extractedText = visionData.candidates?.[0]?.content?.parts?.[0]?.text || "";
+                            if (extractedText && extractedText.trim() !== "") {
+                                textToAnalyze = extractedText;
+                                break; // Başarılı olursa döngüden çık
+                            }
+                        }
+                    } catch (error) {
+                        // Bu mime type başarısız olursa bir sonrakini dene
+                        continue;
+                    }
                 }
                 
-                const visionData = await visionResponse.json();
-                textToAnalyze = visionData.candidates?.[0]?.content?.parts?.[0]?.text || "";
-                
-                // Eğer OCR'dan da metin çıkarılamazsa, kullanıcıya bilgi ver
+                // Hiçbir yöntem başarılı olmazsa
                 if (!textToAnalyze || textToAnalyze.trim() === "") {
                     textToAnalyze = "Bu UDF dosyası okunabilir metin içermiyor. Dosya binary formatında olabilir veya korumalı olabilir. Lütfen dosyayı PDF, DOCX veya TXT formatında yeniden yüklemeyi deneyin.";
                 }
