@@ -111,10 +111,41 @@ serve(async (req) => {
         const file = files[0];
         const fileName = file.name.toLowerCase();
         
-        if (fileName.endsWith('.docx') || fileName.endsWith('.doc') || fileName.endsWith('.udf')) {
+        if (fileName.endsWith('.docx') || fileName.endsWith('.doc')) {
             const arrayBuffer = await file.arrayBuffer();
             const result = await mammoth.extractRawText({ arrayBuffer });
             textToAnalyze = result.value;
+        } else if (fileName.endsWith('.udf')) {
+            // UDF dosyaları için OCR (UDF'ler resim olarak işlenir)
+            const arrayBuffer = await file.arrayBuffer();
+            const uint8Array = new Uint8Array(arrayBuffer);
+            const base64Image = base64Encode(uint8Array);
+            
+            // Gemini Vision API ile OCR
+            const visionResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                contents: [{
+                  parts: [
+                    { text: "Bu UDF dosyasındaki tüm metni oku ve döndür. Sadece metni döndür, başka hiçbir şey ekleme." },
+                    {
+                      inline_data: {
+                        mime_type: 'application/udf',
+                        data: base64Image
+                      }
+                    }
+                  ]
+                }]
+              })
+            });
+            
+            if (!visionResponse.ok) {
+              throw new Error(`Gemini Vision API hatası: ${visionResponse.status} ${await visionResponse.text()}`);
+            }
+            
+            const visionData = await visionResponse.json();
+            textToAnalyze = visionData.candidates?.[0]?.content?.parts?.[0]?.text || "";
         } else if (fileName.endsWith('.txt')) {
             // TXT dosyaları için düz metin okuma
             const text = await file.text();
