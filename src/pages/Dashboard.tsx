@@ -488,7 +488,7 @@ const Dashboard = () => {
               <input
                 id="file-upload"
                 type="file"
-                accept="image/*,application/pdf,.doc,.docx,.txt,.rtf"
+                accept="image/*,application/pdf,.doc,.docx,.udf,.txt,.rtf"
                 multiple
                 className="hidden"
                 disabled={loading !== null}
@@ -500,6 +500,7 @@ const Dashboard = () => {
                       'application/pdf',
                       'application/msword',
                       'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                      'application/udf',
                       'text/plain',
                       'application/rtf'
                     ];
@@ -508,6 +509,7 @@ const Dashboard = () => {
                       supportedTypes.includes(file.type) || 
                       file.name.toLowerCase().endsWith('.doc') ||
                       file.name.toLowerCase().endsWith('.docx') ||
+                      file.name.toLowerCase().endsWith('.udf') ||
                       file.name.toLowerCase().endsWith('.pdf') ||
                       file.name.toLowerCase().endsWith('.txt') ||
                       file.name.toLowerCase().endsWith('.rtf')
@@ -516,7 +518,7 @@ const Dashboard = () => {
                     if (validFiles.length !== files.length) {
                       toast({
                         title: "Desteklenmeyen Dosya Türü",
-                        description: "Sadece PDF, DOC, DOCX, TXT, RTF ve görüntü dosyaları desteklenmektedir.",
+                        description: "Sadece PDF, DOC, DOCX, UDF, TXT, RTF ve görüntü dosyaları desteklenmektedir.",
                         variant: "destructive",
                       });
                     }
