@@ -115,79 +115,6 @@ serve(async (req) => {
             const arrayBuffer = await file.arrayBuffer();
             const result = await mammoth.extractRawText({ arrayBuffer });
             textToAnalyze = result.value;
-        } else if (fileName.endsWith('.udf')) {
-            // UDF dosyaları için binary analiz yaklaşımı
-            let textToAnalyze = "";
-            
-            try {
-                console.log("UDF dosyası işleniyor:", fileName);
-                
-                // 1. Önce düz metin olarak okumayı dene
-                textToAnalyze = await file.text();
-                console.log("Düz metin okuma sonucu:", textToAnalyze ? "Başarılı" : "Boş");
-                
-                // Eğer düz metin boşsa veya anlamsızsa, binary analiz yap
-                if (!textToAnalyze || textToAnalyze.trim() === "" || textToAnalyze.length < 10) {
-                    console.log("Binary analiz başlatılıyor...");
-                    const arrayBuffer = await file.arrayBuffer();
-                    const uint8Array = new Uint8Array(arrayBuffer);
-                    console.log("Dosya boyutu:", arrayBuffer.byteLength, "byte");
-                    
-                    // ASCII karakterleri çıkarmaya çalış
-                    let asciiText = "";
-                    for (let i = 0; i < uint8Array.length; i++) {
-                        const byte = uint8Array[i];
-                        if (byte >= 32 && byte <= 126) { // Yazdırılabilir ASCII karakterler
-                            asciiText += String.fromCharCode(byte);
-                        }
-                    }
-                    
-                    console.log("ASCII metin uzunluğu:", asciiText.length);
-                    
-                    if (asciiText.length > 50) {
-                        textToAnalyze = asciiText;
-                        console.log("ASCII metin başarıyla çıkarıldı");
-                    } else {
-                        // Binary veriyi hex string'e çevir
-                        const hexString = Array.from(uint8Array).map(b => b.toString(16).padStart(2, '0')).join('');
-                        
-                        // UDF dosyasının başlangıç byte'larını kontrol et
-                        const header = hexString.substring(0, 32);
-                        console.log("Hex header:", header);
-                        
-                        textToAnalyze = `Bu UDF dosyası binary formatta ve doğrudan okunamıyor. Dosya boyutu: ${arrayBuffer.byteLength} byte. Bu tür dosyalar genellikle özel yazılımlarla açılır. Lütfen dosyayı PDF, DOCX veya TXT formatında yeniden yüklemeyi deneyin.`;
-                    }
-                } else {
-                    console.log("Düz metin başarıyla okundu");
-                }
-            } catch (error) {
-                console.log("UDF işleme hatası:", error.message);
-                // Hata durumunda binary analiz yap
-                try {
-                    const arrayBuffer = await file.arrayBuffer();
-                    const uint8Array = new Uint8Array(arrayBuffer);
-                    
-                    // ASCII karakterleri çıkarmaya çalış
-                    let asciiText = "";
-                    for (let i = 0; i < uint8Array.length; i++) {
-                        const byte = uint8Array[i];
-                        if (byte >= 32 && byte <= 126) { // Yazdırılabilir ASCII karakterler
-                            asciiText += String.fromCharCode(byte);
-                        }
-                    }
-                    
-                    if (asciiText.length > 50) {
-                        textToAnalyze = asciiText;
-                    } else {
-                        textToAnalyze = `Bu UDF dosyası binary formatta ve okunabilir metin içermiyor. Dosya boyutu: ${arrayBuffer.byteLength} byte. Bu tür dosyalar genellikle özel yazılımlarla açılır. Lütfen dosyayı PDF, DOCX veya TXT formatında yeniden yüklemeyi deneyin.`;
-                    }
-                } catch (binaryError) {
-                    console.log("Binary analiz hatası:", binaryError.message);
-                    textToAnalyze = "Bu UDF dosyası işlenemedi. Dosya bozuk olabilir veya desteklenmeyen bir formatta. Lütfen dosyayı PDF, DOCX veya TXT formatında yeniden yüklemeyi deneyin.";
-                }
-            }
-            
-            console.log("UDF işleme tamamlandı, metin uzunluğu:", textToAnalyze.length);
         } else if (fileName.endsWith('.txt')) {
             // TXT dosyaları için düz metin okuma
             const text = await file.text();
@@ -256,7 +183,7 @@ serve(async (req) => {
             const visionData = await visionResponse.json();
             textToAnalyze = visionData.candidates?.[0]?.content?.parts?.[0]?.text || "";
         } else {
-            throw new Error(`Desteklenmeyen dosya türü: ${file.name}. Desteklenen türler: .docx, .doc, .udf, .pdf, .txt, .jpg, .jpeg, .png, .gif, .bmp, .webp`);
+            throw new Error(`Desteklenmeyen dosya türü: ${file.name}. Desteklenen türler: .docx, .doc, .pdf, .txt, .jpg, .jpeg, .png, .gif, .bmp, .webp`);
         }
     } else { // JSON varsayımı
         const body = await req.json();
