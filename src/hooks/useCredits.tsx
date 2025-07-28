@@ -23,8 +23,34 @@ export function useCredits(userId?: string) {
   };
 
   useEffect(() => {
+    if (!userId) return;
+    
+    // İlk yükleme
     fetchCredits();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
+    // Real-time subscription
+    const channel = supabase
+      .channel(`credits-${userId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles',
+          filter: `id=eq.${userId}`
+        },
+        (payload) => {
+          console.log('Credits updated:', payload);
+          if (payload.new && typeof payload.new.credits === 'number') {
+            setCredits(payload.new.credits);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [userId]);
 
   return { credits, loading, error, refetch: fetchCredits, setCredits };

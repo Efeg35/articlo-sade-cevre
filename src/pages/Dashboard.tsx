@@ -98,7 +98,7 @@ const Dashboard = () => {
   const [editMode, setEditMode] = useState(false);
   
   // Kredi yönetimi
-  const { credits, refetch: refetchCredits } = useCredits(user?.id);
+  const { credits, refetch: refetchCredits, setCredits } = useCredits(user?.id);
 
   useEffect(() => {
     const checkAuthAndOnboarding = async () => {
@@ -274,8 +274,6 @@ const Dashboard = () => {
                 variant: "destructive",
               });
             } else {
-              // Kredi bilgisini güncelle
-              await refetchCredits();
               toast({
                 title: "Başarılı!",
                 description: "Belgeniz başarıyla sadeleştirildi ve kaydedildi. 1 kredi düşüldü.",
