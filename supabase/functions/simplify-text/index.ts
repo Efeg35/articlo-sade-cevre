@@ -2,6 +2,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 // @ts-expect-error Deno ortamı, tip bulunamıyor
 import mammoth from "https://esm.sh/mammoth@1.7.0";
+// @ts-expect-error Deno ortamı, tip bulunamıyor
+import { encode as base64Encode } from "https://deno.land/std@0.168.0/encoding/base64.ts";
 
 // --- Sizin Tasarladığınız JSON Yapısına Uygun TypeScript Tipleri ---
 interface ExtractedEntity { entity: string; value: string | number; }
@@ -107,11 +109,47 @@ serve(async (req) => {
         const files = formData.getAll('files') as File[];
         if (!files || files.length === 0) throw new Error('Formda "files" adında bir dosya bulunamadı.');
         const file = files[0];
-        if (file.name.toLowerCase().endsWith('.docx')) {
+        const fileName = file.name.toLowerCase();
+        
+        if (fileName.endsWith('.docx')) {
             const arrayBuffer = await file.arrayBuffer();
             const result = await mammoth.extractRawText({ arrayBuffer });
             textToAnalyze = result.value;
-        } // Diğer dosya türleri için mantık eklenebilir
+        } else if (fileName.endsWith('.jpg') || fileName.endsWith('.jpeg') || fileName.endsWith('.png') || fileName.endsWith('.gif') || fileName.endsWith('.bmp') || fileName.endsWith('.webp')) {
+            // Resim dosyaları için OCR
+            const arrayBuffer = await file.arrayBuffer();
+            const uint8Array = new Uint8Array(arrayBuffer);
+            // Deno ortamında base64 encoding
+            const base64Image = base64Encode(uint8Array);
+            
+            // Gemini Vision API ile OCR
+            const visionResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                contents: [{
+                  parts: [
+                    { text: "Bu resimdeki tüm metni oku ve döndür. Sadece metni döndür, başka hiçbir şey ekleme." },
+                    {
+                      inline_data: {
+                        mime_type: file.type,
+                        data: base64Image
+                      }
+                    }
+                  ]
+                }]
+              })
+            });
+            
+            if (!visionResponse.ok) {
+              throw new Error(`Gemini Vision API hatası: ${visionResponse.status} ${await visionResponse.text()}`);
+            }
+            
+            const visionData = await visionResponse.json();
+            textToAnalyze = visionData.candidates?.[0]?.content?.parts?.[0]?.text || "";
+        } else {
+            throw new Error(`Desteklenmeyen dosya türü: ${file.name}. Desteklenen türler: .docx, .jpg, .jpeg, .png, .gif, .bmp, .webp`);
+        }
     } else { // JSON varsayımı
         const body = await req.json();
         textToAnalyze = body.text;
