@@ -111,10 +111,14 @@ serve(async (req) => {
         const file = files[0];
         const fileName = file.name.toLowerCase();
         
-        if (fileName.endsWith('.docx')) {
+        if (fileName.endsWith('.docx') || fileName.endsWith('.doc')) {
             const arrayBuffer = await file.arrayBuffer();
             const result = await mammoth.extractRawText({ arrayBuffer });
             textToAnalyze = result.value;
+        } else if (fileName.endsWith('.txt')) {
+            // TXT dosyaları için düz metin okuma
+            const text = await file.text();
+            textToAnalyze = text;
         } else if (fileName.endsWith('.pdf')) {
             // PDF dosyaları için OCR (PDF'ler resim olarak işlenir)
             const arrayBuffer = await file.arrayBuffer();
@@ -179,7 +183,7 @@ serve(async (req) => {
             const visionData = await visionResponse.json();
             textToAnalyze = visionData.candidates?.[0]?.content?.parts?.[0]?.text || "";
         } else {
-            throw new Error(`Desteklenmeyen dosya türü: ${file.name}. Desteklenen türler: .docx, .pdf, .jpg, .jpeg, .png, .gif, .bmp, .webp`);
+            throw new Error(`Desteklenmeyen dosya türü: ${file.name}. Desteklenen türler: .docx, .doc, .pdf, .txt, .jpg, .jpeg, .png, .gif, .bmp, .webp`);
         }
     } else { // JSON varsayımı
         const body = await req.json();
