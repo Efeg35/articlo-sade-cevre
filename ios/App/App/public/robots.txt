@@ -13,5 +13,23 @@ Allow: /
 User-agent: *
 Allow: /
 
+# Disallow admin and private areas
+Disallow: /admin/
+Disallow: /private/
+Disallow: /api/
+Disallow: /_next/
+Disallow: /sw.js
+Disallow: /workbox-*.js
+
+# Allow important files
+Allow: /sitemap.xml
+Allow: /robots.txt
+Allow: /manifest.webmanifest
+
+# Crawl-delay for respectful crawling
+Crawl-delay: 1
+
 # Sitemap
 Sitemap: https://artiklo.legal/sitemap.xml
+Sitemap: https://artiklo.legal/sitemap-images.xml
+Sitemap: https://artiklo.legal/sitemap-videos.xml

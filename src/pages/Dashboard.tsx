@@ -429,7 +429,7 @@ const Dashboard = () => {
   }
 
   const renderInputView = () => (
-    <div className="flex flex-col items-center pt-4 md:pt-0 pt-[env(safe-area-inset-top)] px-4 md:px-0">
+    <div className="flex flex-col items-center px-4 md:px-0">
       {showTip && (
         <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-[9999] bg-primary text-primary-foreground px-4 py-2 rounded shadow-lg flex items-center gap-2 animate-fade-in max-w-[90vw]">
           <span className="text-sm md:text-base">Belgelerinizi yükleyin veya yapıştırın, saniyeler içinde sadeleştirin!</span>
@@ -437,15 +437,15 @@ const Dashboard = () => {
         </div>
       )}
       <Card className="w-full max-w-4xl border shadow-sm">
-        <CardContent className="p-4 md:p-6">
+        <CardContent className="p-3 md:p-6">
           <Textarea
             placeholder="Karmaşık hukuki belgenizi buraya yapıştırın..."
             value={originalText}
             onChange={(e) => setOriginalText(e.target.value)}
-            className="min-h-[200px] md:min-h-[300px] resize-none text-sm md:text-base"
+            className="min-h-[150px] md:min-h-[300px] resize-none text-sm md:text-base"
             disabled={loading !== null}
           />
-          <div className="my-4 text-center text-xs uppercase text-muted-foreground">Veya</div>
+          <div className="my-3 md:my-4 text-center text-xs uppercase text-muted-foreground">Veya</div>
             <label htmlFor="file-upload" className="block w-full">
               <input
                 id="file-upload"
@@ -498,7 +498,7 @@ const Dashboard = () => {
               </Button>
             </label>
             {selectedFiles.length > 0 && (
-              <ul className="mt-4 space-y-2">
+              <ul className="mt-3 md:mt-4 space-y-2">
                 {selectedFiles.map((file, idx) => (
                   <li key={`${file.name}-${idx}`} className="flex items-center justify-between bg-muted/50 p-2 rounded-md text-sm">
                     <span className="truncate font-medium">{file.name}</span>
@@ -521,7 +521,7 @@ const Dashboard = () => {
         onClick={() => handleSimplify('flash')}
         disabled={loading !== null}
         size="lg"
-        className="mt-6 w-full max-w-4xl text-sm md:text-base"
+        className="mt-4 md:mt-6 w-full max-w-4xl text-sm md:text-base"
       >
         {loading === 'flash' ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <Sparkles className="h-5 w-5 mr-2" />}
         {loading === 'flash' ? 'Sadeleştiriliyor...' : 'Sadeleştir'}
@@ -531,7 +531,7 @@ const Dashboard = () => {
         disabled={loading !== null}
         size="lg"
         variant="outline"
-        className="mt-3 w-full max-w-4xl"
+        className="mt-2 md:mt-3 w-full max-w-4xl"
       >
         <BrainCircuit className="h-5 w-5 mr-2" />
         PRO ile Detaylı İncele
@@ -797,10 +797,10 @@ const Dashboard = () => {
   return (
     <>
       <OnboardingTour open={showOnboarding} onFinish={handleOnboardingFinish} />
-      <div className="min-h-screen bg-background flex flex-col items-center pt-20 md:pt-16 px-2 dashboard-container">
-        <div className="w-full max-w-5xl flex flex-col items-center mt-4 mb-8">
-          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-2 text-center">Hukuki Belgeni Sadeleştir</h2>
-          <p className="text-muted-foreground text-center max-w-xl mb-6">
+      <div className="min-h-[calc(100vh-6rem)] bg-background flex flex-col items-center justify-center mt-8 px-2 dashboard-container">
+        <div className="w-full max-w-5xl flex flex-col items-center mb-8 md:mb-8">
+          <h2 className="text-2xl md:text-4xl font-bold text-foreground mb-2 md:mb-2 text-center">Hukuki Belgeni Sadeleştir</h2>
+          <p className="text-muted-foreground text-center max-w-xl mb-6 md:mb-6 text-sm md:text-base">
             Karmaşık hukuki metninizi aşağıdaki alana yapıştırın veya dosya olarak yükleyin.
           </p>
         </div>
