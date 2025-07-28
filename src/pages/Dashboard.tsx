@@ -13,7 +13,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, X, Sparkles, ArrowRight, BrainCircuit, ListChecks, FileJson, Redo, Copy, FileText, CheckCircle, Download, BookMarked } from "lucide-react";
+import { Loader2, X, Sparkles, ArrowRight, BrainCircuit, ListChecks, FileJson, Redo, Copy, FileText, CheckCircle, Download, BookMarked, Shield } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 import {
   Dialog,
@@ -44,12 +44,22 @@ interface ActionableStep {
   documentToCreate?: string; // If actionType is CREATE_DOCUMENT. e.g., 'EXECUTION_OBJECTION_PETITION'
 }
 
+interface RiskItem {
+  riskType: string; // e.g., "Yüksek Depozito", "Haksız Şart", "Yasal Sınır Aşımı"
+  description: string; // e.g., "Kontratın 3. maddesinde depozito bedeli 10 kira bedeli olarak belirlenmiştir..."
+  severity: 'high' | 'medium' | 'low';
+  article?: string; // e.g., "3. madde"
+  legalReference?: string; // e.g., "6098 sayılı TBK m. 114"
+  recommendation?: string; // e.g., "Bu maddeyi müzakere etmeyi kesinlikle tavsiye ederiz"
+}
+
 interface AnalysisResponse {
   simplifiedText: string;
   documentType: string; // e.g., "Payment Order", "Warning Notice", "Unknown"
   summary: string;
   extractedEntities: ExtractedEntity[];
   actionableSteps: ActionableStep[];
+  riskItems?: RiskItem[]; // Yeni risk analizi alanı
   generatedDocument?: {
     addressee: string;
     caseReference: string;
@@ -188,6 +198,8 @@ const Dashboard = () => {
     setActionPlan("");
     setEntities([]);
     setSimplifiedText("");
+
+
     
     try {
       let body: FormData | { text: string; model: string };
@@ -618,62 +630,112 @@ const Dashboard = () => {
             </Card>
           )}
 
-          {/* Grid for Side-by-Side Cards */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            {/* Simplified Version */}
-            <Card className="border shadow-sm">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center gap-3 text-xl">
-                    <ArrowRight className="h-6 w-6 text-foreground" />
-                    Anlaşılır Versiyon
-                  </CardTitle>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="ml-2"
-                    onClick={handleCopy}
-                    aria-label="Kopyala"
-                  >
-                    <Copy className="h-4 w-4" />
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="whitespace-pre-wrap text-base leading-relaxed">
-                {analysisResult.simplifiedText}
-              </CardContent>
-            </Card>
+          {/* Anlaşılır Versiyon - Full Width */}
+          <Card className="border shadow-sm mb-6">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-3 text-xl">
+                  <ArrowRight className="h-6 w-6 text-foreground" />
+                  Anlaşılır Versiyon
+                </CardTitle>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="ml-2"
+                  onClick={handleCopy}
+                  aria-label="Kopyala"
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="whitespace-pre-wrap text-base leading-relaxed">
+              {analysisResult.simplifiedText}
+            </CardContent>
+          </Card>
 
-            {/* Action Plan */}
-            <Card className="border shadow-sm">
+          {/* Risk Analysis Section */}
+          {analysisResult.riskItems && analysisResult.riskItems.length > 0 && (
+            <Card className="border shadow-sm mb-6">
               <CardHeader>
                 <CardTitle className="flex items-center gap-3 text-xl">
-                  <ListChecks className="h-6 w-6 text-foreground" />
-                  Ne Yapmalıyım?
+                  <Shield className="h-6 w-6 text-destructive" />
+                  Riskli Maddeler/Durumlar
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {analysisResult.actionableSteps.map((step, index) => (
-                    <div key={index} className="flex items-start gap-3 p-4 bg-muted/30 rounded-lg">
-                      <CheckCircle className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                      <div className="flex-1">
-                        <p className="text-base leading-relaxed">{step.description}</p>
-                        {step.actionType === 'CREATE_DOCUMENT' && (
-                          <Button 
-                            onClick={handleShowDraft} 
-                            className="mt-2"
-                          >
-                            Gerekli Belgeyi Oluştur
-                          </Button>
-                        )}
+                  {analysisResult.riskItems.map((risk, index) => (
+                    <div key={index} className={`p-4 rounded-lg border-l-4 ${
+                      risk.severity === 'high' ? 'bg-destructive/10 border-destructive' :
+                      risk.severity === 'medium' ? 'bg-yellow-500/10 border-yellow-500' :
+                      'bg-orange-500/10 border-orange-500'
+                    }`}>
+                      <div className="flex items-start gap-3">
+                        <div className={`w-3 h-3 rounded-full mt-2 flex-shrink-0 ${
+                          risk.severity === 'high' ? 'bg-destructive' :
+                          risk.severity === 'medium' ? 'bg-yellow-500' :
+                          'bg-orange-500'
+                        }`} />
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <h4 className="font-semibold text-base">{risk.riskType}</h4>
+                            {risk.article && (
+                              <Badge variant="outline" className="text-xs">
+                                {risk.article}
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-base leading-relaxed mb-3">{risk.description}</p>
+                          {risk.legalReference && (
+                            <p className="text-sm text-muted-foreground mb-2">
+                              <strong>Yasal Referans:</strong> {risk.legalReference}
+                            </p>
+                          )}
+                          {risk.recommendation && (
+                            <div className="bg-muted/30 p-3 rounded-lg">
+                              <p className="text-sm font-medium mb-1">Önerimiz:</p>
+                              <p className="text-sm">{risk.recommendation}</p>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   ))}
                 </div>
               </CardContent>
             </Card>
-          </div>
+          )}
+
+          {/* Ne Yapmalıyım? - Full Width */}
+          <Card className="border shadow-sm mb-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-3 text-xl">
+                <ListChecks className="h-6 w-6 text-foreground" />
+                Ne Yapmalıyım?
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {analysisResult.actionableSteps.map((step, index) => (
+                  <div key={index} className="flex items-start gap-3 p-4 bg-muted/30 rounded-lg">
+                    <CheckCircle className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                    <div className="flex-1">
+                      <p className="text-base leading-relaxed">{step.description}</p>
+                      {step.actionType === 'CREATE_DOCUMENT' && (
+                        <Button 
+                          onClick={handleShowDraft} 
+                          className="mt-2"
+                        >
+                          Gerekli Belgeyi Oluştur
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
 
           {/* 'Belgedeki Kilit Bilgiler' Tablosu (Akordiyon İçinde) */}
           {analysisResult && (

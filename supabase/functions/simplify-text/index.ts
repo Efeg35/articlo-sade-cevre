@@ -8,6 +8,14 @@ import { encode as base64Encode } from "https://deno.land/std@0.168.0/encoding/b
 // --- Sizin Tasarladığınız JSON Yapısına Uygun TypeScript Tipleri ---
 interface ExtractedEntity { entity: string; value: string | number; }
 interface ActionableStep { step: number; description: string; deadline?: string; actionType: 'CREATE_DOCUMENT' | 'INFO_ONLY'; priority: 'high' | 'medium' | 'low'; }
+interface RiskItem {
+  riskType: string; // e.g., "Yüksek Depozito", "Haksız Şart", "Yasal Sınır Aşımı"
+  description: string; // e.g., "Kontratın 3. maddesinde depozito bedeli 10 kira bedeli olarak belirlenmiştir..."
+  severity: 'high' | 'medium' | 'low';
+  article?: string; // e.g., "3. madde"
+  legalReference?: string; // e.g., "6098 sayılı TBK m. 114"
+  recommendation?: string; // e.g., "Bu maddeyi müzakere etmeyi kesinlikle tavsiye ederiz"
+}
 interface GeneratedDocumentParty { role: string; details: string; }
 interface GeneratedDocument {
   documentTitle: string;
@@ -27,6 +35,7 @@ interface AnalysisResponse {
   documentType: string;
   extractedEntities: ExtractedEntity[];
   actionableSteps: ActionableStep[];
+  riskItems?: RiskItem[]; // Yeni risk analizi alanı
   generatedDocument: GeneratedDocument | null;
 }
 
@@ -42,7 +51,7 @@ const createMasterPrompt = (textToAnalyze: string): string => {
   const smartPrompt = `
   SENARYO: Sen, Türkiye Cumhuriyeti hukuk sisteminin tüm inceliklerine hakim, özellikle usul hukuku ve dilekçe yazım teknikleri konusunda uzmanlaşmış, kıdemli bir avukat ve hukukçu yapay zekasın. Amacın, hukuki terminolojiye yabancı olan vatandaşların haklarını korumalarına yardımcı olmak. Sana sunulan resmi belgeyi sadece analiz etmekle kalmayacak, aynı zamanda bu analize dayanarak atılması gereken adımları belirleyecek ve gerekirse profesyonel bir dilekçe taslağı hazırlayacaksın. Vatandaşın avukatı gibi düşünmeli, onun lehine olan tüm detayları yakalamalısın.
 
-  GÖREV: Sana aşağıda "V-E-R-İ" başlığı altında sunulan hukuki metni derinlemesine analiz et ve aşağıdaki iki ana aşamayı tamamlayarak ÇIKTI olarak SADECE geçerli bir JSON nesnesi döndür:
+  GÖREV: Sana aşağıda "V-E-R-İ" başlığı altında sunulan hukuki metni derinlemesine analiz et ve aşağıdaki üç ana aşamayı tamamlayarak ÇIKTI olarak SADECE geçerli bir JSON nesnesi döndür:
 
   // --- AŞAMA 1: HUKUKİ ANALİZ VE RAPORLAMA ---
 
@@ -54,13 +63,172 @@ const createMasterPrompt = (textToAnalyze: string): string => {
     * **Örnek Çıktı Formatı:** [ { "entity": "Kararı Veren Mahkeme", "value": "İzmir 30. Asliye Ceza Mahkemesi" }, { "entity": "Sanık", "value": "Adnan Kaymaz" } ]
     * **Kullanılacak Roller:** "Davacı", "Davalı", "Alacaklı", "Borçlu", "Müşteki", "Sanık", "Tanık", "Bilirkişi", "Vekil (Avukat)", "Kararı Veren Mahkeme", "Takibi Yapan İcra Dairesi", "Başvurulan Kurum", "Resmi Kurum", "Dosya Esas No", "Karar No", "İcra Takip No", "Talep Edilen Tutar", "Ceza Miktarı", "Tazminat Miktarı", "Faiz Oranı", "Tebliğ Tarihi", "Son İtiraz Tarihi", "Suç Tarihi", "İsnat Edilen Suç", "Adres", "T.C. Kimlik No", "Kanun/Madde".
 
-  // --- AŞAMA 2: EYLEM PLANI VE DİLEKÇE OLUŞTURMA ---
+  // --- AŞAMA 2: RİSK ANALİZİ ---
 
-  5.  **Atılacak Adımlar (actionableSteps):** Belgenin türüne ve içeriğine göre kullanıcı için mantıklı ve stratejik bir eylem planı oluştur. Her adımda ne yapılması gerektiğini, neden önemli olduğunu ve varsa süre kısıtlamalarını belirt.
+  5.  **Riskli Maddeler/Durumlar (riskItems):** Belgede kullanıcı aleyhine olabilecek veya yasal mevzuata aykırı olan maddeleri tespit et. Eğer riskli bir durum yoksa bu alanı boş dizi olarak bırak.
+      * **Genel Risk Türleri:** Belge türüne bakmaksızın, aşağıdaki tüm kategorilerdeki riskleri tespit et:
+
+        **A) Temel Riskler:**
+        - Yasal Sınır Aşımı
+        - Haksız Şart
+        - Tek Taraflı Yetki
+        - Aşırı Cezai Şart
+        - Haksız Sorumluluk
+        - Yasal Hak Kısıtlaması
+        - Eksik Bilgilendirme
+        - Haksız İndirim/Kesinti
+        - Yasal Süre Aşımı
+        - Dengesiz Fesih
+        - Aşırı Taahhüt
+        - Haksız Vazgeçme
+        - Yasal Usul İhlali
+        - Belirsiz Şart
+        - Haksız Tazminat
+        - Zamanaşımı / Hak Düşürücü Süre İhlali
+        - İmza Sirküsü / Yetki İhlali
+        - Kanunlara Aykırılık
+        - Açık ve Anlaşılırlık Eksikliği
+        - Referans Belge Uyuşmazlığı
+
+        **B) Finansal Riskler:**
+        - Aşırı Faiz
+        - Gizli Maliyet
+        - Haksız Komisyon
+        - Erken Ödeme Cezası
+        - Gecikme Faizi
+        - Teminat Şartı
+        - Kur Farkı Riski
+        - Kefalet Riskleri
+        - Temlik (Alacak Devri) Riskleri
+        - Ödeme Planı Düzensizliği
+
+        **C) İş Hukuku Riskleri:**
+        - Ücretsiz Çalıştırma
+        - İş Güvencesi İhlali
+        - Sendika Hakkı Kısıtlaması
+        - İş Sağlığı İhlali
+        - Ücret Kesintisi
+        - İş Tanımı Belirsizliği
+        - Haksız Fesih Riskleri
+        - Mobbing/Psikolojik Taciz Maddeleri
+        - Sendikal Hakların Kısıtlanması (Detaylı)
+        - İş Sağlığı ve Güvenliği Mevzuatı İhlalleri
+
+        **D) Aile Hukuku Riskleri:**
+        - Mal Rejimi İhlali
+        - Velayet Hakkı Kısıtlaması
+        - Nafaka Hakkı İhlali
+        - Evlilik Öncesi Sözleşme
+        - Boşanma Şartları
+        - Miras Hakkı İhlali
+        - Soybağı Riskleri
+        - Evlat Edinme Riskleri
+
+        **E) Ticaret Hukuku Riskleri:**
+        - Rekabet Yasağı
+        - Gizlilik Yükümlülüğü
+        - Fikri Mülkiyet İhlali
+        - Ticari Sır İhlali
+        - Marka Hakkı İhlali
+        - Patent Hakkı İhlali
+        - Ortaklık Payı Riskleri
+        - Şirket Birleşme/Devralma Riskleri
+        - Marka Tescil İhlalleri (Detaylı)
+        - Tüketici Hukuku İhlalleri
+
+        **F) Sözleşme Hukuku Riskleri:**
+        - Mücbir Sebep İhlali
+        - Haksız Fesih
+        - Sözleşme Değişikliği
+        - Yanlış Bilgi
+        - Eksik Bilgi
+        - Yanıltıcı Reklam
+        - Ayıplı Mal/Hizmet Sorumluluğu
+        - Gizli Şartlar
+        - Yetkili Mahkeme/Tahkim Belirsizliği
+        - Sözleşmenin İnfaz Edilemezliği
+
+        **G) Özel Durum Riskleri:**
+        - Süre Kısıtlaması
+        - Yer Kısıtlaması
+        - Meslek Kısıtlaması
+        - İlişki Kısıtlaması
+        - İletişim Kısıtlaması
+        - Sosyal Medya Kısıtlaması
+        - Seyahat Kısıtlaması
+        - İtibar Yönetimi Riskleri
+
+        **H) Teknoloji ve Veri Riskleri:**
+        - Veri Koruma İhlali
+        - Kişisel Veri İşleme
+        - Dijital Haklar
+        - Yazılım Lisansı
+        - Bulut Hizmeti
+        - E-ticaret Riskleri
+        - Açık Kaynak Lisans İhlali
+        - Siber Güvenlik Sorumluluğu
+        - Yapay Zeka Etiği ve Hukuku
+        - Kripto Para ve Blokzincir Hukuku Riskleri
+
+        **I) İdari Hukuk Riskleri:**
+        - İdari Para Cezası Riskleri
+        - Ruhsat/İzin Riskleri
+        - İdari Süreç İhlalleri
+        - Kamulaştırma Riskleri
+
+        **J) Uluslararası Ticaret ve Sözleşme Riskleri:**
+        - Yabancı Hukuk Uygulanabilirliği Riski
+        - Çifte Vergilendirme Anlaşmaları Riskleri
+        - Uluslararası Yaptırım ve Ambargo Riskleri
+
+        **K) Fikri ve Sınai Haklar Riskleri (Detaylı):**
+        - Faydalı Model / Endüstriyel Tasarım İhlali
+        - Alan Adı Uyuşmazlıkları
+        - Telif Hakkı Devri/Lisans Riskleri
+
+        **L) Rekabet Hukuku Riskleri (Detaylı):**
+        - Kartel ve Tekel Oluşumu İşaretleri
+        - Hâkim Durumun Kötüye Kullanımı
+
+        **M) Sermaye Piyasası Hukuku Riskleri:**
+        - Halka Arz Belgeleri Riskleri
+        - İçerden Öğrenenler Ticareti (Insider Trading) Belirtileri
+
+        **N) Çevre Hukuku Riskleri:**
+        - Çevre İzinleri ve Lisansları Eksikliği
+        - Çevresel Sorumluluk Maddeleri
+
+        **O) Sağlık Hukuku Riskleri (Daha Derin):**
+        - Malpraktis (Hekim Hatası) Sigorta Poliçeleri Analizi
+        - Tıbbi Cihaz ve İlaç Hukuku Riskleri
+
+      * **Desteklenen Belge Türleri:**
+        - İş Sözleşmesi, Kira Sözleşmesi, Evlilik Sözleşmesi, Boşanma Sözleşmesi, Uzlaşma Kağıdı, Ticari Sözleşme, Hizmet Sözleşmesi, Freelance Sözleşmesi, Kredi Sözleşmesi, Sigorta Sözleşmesi, Franchise Sözleşmesi, Ortaklık Sözleşmesi, Lisans Sözleşmesi, Gizlilik Sözleşmesi, E-ticaret Sözleşmesi, Yazılım Lisans Sözleşmesi, Bulut Hizmet Sözleşmesi, Reklam Sözleşmesi, Danışmanlık Sözleşmesi, Eğitim Sözleşmesi,
+        - İpotek Sözleşmesi, Rehin Sözleşmesi, Faktoring Sözleşmesi, Leasing (Finansal Kiralama) Sözleşmesi, Çek/Senet Belgeleri, Bankacılık İşlemleri Belgeleri,
+        - Kat Karşılığı İnşaat Sözleşmesi, Eser Sözleşmesi (İnşaat), Taşınmaz Satış Vaadi Sözleşmesi, Tapu Kayıt Örnekleri / Şerhler, İmar Durumu Belgeleri, Ortak Alan Yönetim Planları,
+        - Vergi Tebligatları, İdari Para Cezası Kararları, Ruhsatlar/İzinler, Trafik İdari Para Cezası Tebligatları,
+        - Dava Dilekçeleri, Cevap Dilekçeleri, İcra Takip Belgeleri, Tebligatlar (Genel), Vekaletnameler, Mahkeme Kararları/İlamlar,
+        - Vasiyetnameler, Mirasçılık Belgesi (Veraset İlamı), Miras Taksim Sözleşmesi,
+        - İthalat/İhracat Sözleşmeleri, Incoterms Belirlemeleri,
+        - Aydınlatılmış Onam Formları, Hasta Hakları Beyanları
+
+  // --- AŞAMA 3: EYLEM PLANI VE DİLEKÇE OLUŞTURMA ---
+
+  6.  **Atılacak Adımlar (actionableSteps):** Belgenin türüne ve içeriğine göre kullanıcı için mantıklı ve stratejik bir eylem planı oluştur. Her adımda ne yapılması gerektiğini, neden önemli olduğunu ve varsa süre kısıtlamalarını belirt.
       * **ÖNCELİKLİ KURAL:** Eğer belgeye cevap verilmesi, itiraz edilmesi, beyanda bulunulması gibi yasal bir zorunluluk veya hak varsa, atılacak adımların en başına \`"actionType": "CREATE_DOCUMENT"\` ve \`"priority": "high"\` ekle. Diğer adımlar (avukata danışma, delil toplama vb.) daha düşük öncelikli olabilir.
+      * **RİSK BAĞLAMLI EYLEM:** Eğer riskItems tespit edildiyse, actionableSteps'e bu risklere yönelik somut aksiyon önerileri de ekle. Her risk için:
+        - Yüksek riskler için: "Bu maddeyi müzakere etmeyi veya değiştirmeyi kesinlikle tavsiye ederiz"
+        - Orta riskler için: "Bu maddeyi gözden geçirmeyi ve gerekirse değiştirmeyi öneririz"
+        - Düşük riskler için: "Bu maddeyi kontrol etmeyi öneririz"
+      * **BELGE TÜRÜNE ÖZEL EYLEMLER:**
+        - İş Sözleşmesi: İş hukuku uzmanına danışma, sendika desteği alma
+        - Kira Sözleşmesi: Kiracı derneklerine danışma, yasal hakları öğrenme
+        - Evlilik/Boşanma: Aile hukuku uzmanına danışma, noter onayı alma
+        - Ticari Sözleşme: Ticaret hukuku uzmanına danışma, şirket avukatına gösterme
+        - Uzlaşma Kağıdı: Avukata danışmadan imzalamama, süre kontrolü yapma
       * Örnek Adım: \`{"step": 1, "description": "7 gün içinde icra dairesine itiraz etmelisiniz. Bu süre hak düşürücüdür, kaçırırsanız borç kesinleşir.", "deadline": "Tebliğ tarihinden itibaren 7 gün", "actionType": "CREATE_DOCUMENT", "priority": "high"}\`
 
-  6.  **Oluşturulan Belge Taslağı (generatedDocument):** Eğer \`actionType: 'CREATE_DOCUMENT'\` olarak belirlendiyse, aşağıdaki yapıya birebir uyarak, hukuki usule uygun, eksiksiz ve profesyonel bir dilekçe taslağı oluştur. Eğer belge oluşturmak gerekmiyorsa bu alanı \`null\` olarak bırak.
+  7.  **Oluşturulan Belge Taslağı (generatedDocument):** Eğer \`actionType: 'CREATE_DOCUMENT'\` olarak belirlendiyse, aşağıdaki yapıya birebir uyarak, hukuki usule uygun, eksiksiz ve profesyonel bir dilekçe taslağı oluştur. Eğer belge oluşturmak gerekmiyorsa bu alanı \`null\` olarak bırak.
 
       * **Dilekçe Başlığı (documentTitle):** Belgenin amacını netleştiren büyük harfli başlık. (Örn: "İCRA TAKİBİNE İTİRAZ DİLEKÇESİ", "CEVAP DİLEKÇEMİZİN SUNULMASINDAN İBARETTİR").
       * **Muhatap Makam (addressee):** Dilekçenin sunulacağı resmi makamın tam ve doğru adı. (Örn: "İSTANBUL ANADOLU 15. İCRA DAİRESİ MÜDÜRLÜĞÜ'NE", "İZMİR 3. ASLİYE HUKUK MAHKEMESİ SAYIN HAKİMLİĞİ'NE").
