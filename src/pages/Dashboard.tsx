@@ -665,37 +665,43 @@ const Dashboard = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {analysisResult.riskItems.map((risk, index) => (
-                    <div key={index} className={`p-4 rounded-lg border-l-4 ${
+                  {analysisResult.riskItems
+                    .sort((a, b) => {
+                      // High severity first, then medium, then low
+                      const severityOrder = { high: 0, medium: 1, low: 2 };
+                      return severityOrder[a.severity as keyof typeof severityOrder] - severityOrder[b.severity as keyof typeof severityOrder];
+                    })
+                    .map((risk, index) => (
+                    <div key={index} className={`p-3 rounded-lg border-l-4 ${
                       risk.severity === 'high' ? 'bg-destructive/10 border-destructive' :
                       risk.severity === 'medium' ? 'bg-yellow-500/10 border-yellow-500' :
                       'bg-orange-500/10 border-orange-500'
                     }`}>
-                      <div className="flex items-start gap-3">
-                        <div className={`w-3 h-3 rounded-full mt-2 flex-shrink-0 ${
+                      <div className="flex items-start gap-2">
+                        <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${
                           risk.severity === 'high' ? 'bg-destructive' :
                           risk.severity === 'medium' ? 'bg-yellow-500' :
                           'bg-orange-500'
                         }`} />
                         <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <h4 className="font-semibold text-base">{risk.riskType}</h4>
+                          <div className="flex items-center gap-2 mb-1.5">
+                            <h4 className="font-semibold text-sm">{risk.riskType}</h4>
                             {risk.article && (
                               <Badge variant="outline" className="text-xs">
                                 {risk.article}
                               </Badge>
                             )}
                           </div>
-                          <p className="text-base leading-relaxed mb-3">{risk.description}</p>
+                          <p className="text-sm leading-relaxed mb-2">{risk.description}</p>
                           {risk.legalReference && (
-                            <p className="text-sm text-muted-foreground mb-2">
+                            <p className="text-xs text-muted-foreground mb-1.5">
                               <strong>Yasal Referans:</strong> {risk.legalReference}
                             </p>
                           )}
                           {risk.recommendation && (
-                            <div className="bg-muted/30 p-3 rounded-lg">
-                              <p className="text-sm font-medium mb-1">Önerimiz:</p>
-                              <p className="text-sm">{risk.recommendation}</p>
+                            <div className="bg-muted/30 p-2 rounded-lg">
+                              <p className="text-xs font-medium mb-1">Önerimiz:</p>
+                              <p className="text-xs">{risk.recommendation}</p>
                             </div>
                           )}
                         </div>
