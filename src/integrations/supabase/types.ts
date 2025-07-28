@@ -127,7 +127,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      decrement_credit: {
+        Args: {
+          user_id_param: string
+        }
+        Returns: void
+      }
     }
     Enums: {
       [_ in never]: never

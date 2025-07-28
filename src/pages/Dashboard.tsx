@@ -165,6 +165,34 @@ const Dashboard = () => {
       });
       return;
     }
+
+    // Kredi kontrolü
+    if (user) {
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('credits')
+        .eq('id', user.id)
+        .single();
+
+      if (profileError) {
+        toast({
+          title: "Kredi Kontrol Hatası",
+          description: "Kredi bilgileriniz kontrol edilemedi.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (!profileData || profileData.credits <= 0) {
+        toast({
+          title: "Kredi Yetersiz",
+          description: "Krediniz kalmadı. Lütfen daha sonra tekrar deneyin.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     setLoading(model);
     setAnalysisResult(null);
     setSummary("");
@@ -243,10 +271,31 @@ const Dashboard = () => {
             variant: "destructive",
           });
         } else {
-          toast({
-            title: "Başarılı!",
-            description: "Belgeniz başarıyla sadeleştirildi ve kaydedildi.",
-          });
+          // Kredi azaltma işlemi
+          if (user) {
+            const { error: creditError } = await supabase.rpc('decrement_credit', {
+              user_id_param: user.id
+            });
+
+            if (creditError) {
+              console.error('Kredi azaltma hatası:', creditError);
+              toast({
+                title: "Kredi Azaltma Hatası",
+                description: "Krediniz azaltılamadı ama işlem tamamlandı.",
+                variant: "destructive",
+              });
+            } else {
+              toast({
+                title: "Başarılı!",
+                description: "Belgeniz başarıyla sadeleştirildi ve kaydedildi. 1 kredi düşüldü.",
+              });
+            }
+          } else {
+            toast({
+              title: "Başarılı!",
+              description: "Belgeniz başarıyla sadeleştirildi ve kaydedildi.",
+            });
+          }
         }
       }
     } catch (error: unknown) {
