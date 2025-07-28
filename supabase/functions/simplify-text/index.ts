@@ -131,7 +131,7 @@ serve(async (req) => {
                     { text: "Bu UDF dosyasındaki tüm metni oku ve döndür. Sadece metni döndür, başka hiçbir şey ekleme." },
                     {
                       inline_data: {
-                        mime_type: 'application/pdf',
+                        mime_type: 'image/jpeg',
                         data: base64Image
                       }
                     }
