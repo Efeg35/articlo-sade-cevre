@@ -5,6 +5,9 @@ import path from "path";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
+  // YENİ EKLENEN SATIR
+  base: './',
+  //--------------------
   server: {
     host: "::",
     port: 8080,

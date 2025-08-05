@@ -1,6 +1,6 @@
 import { useState, useEffect, FormEvent } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { useSupabaseClient } from '@supabase/auth-helpers-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,6 +23,7 @@ const Auth = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const location = useLocation();
+  const supabase = useSupabaseClient();
   const initialTab = location.pathname === "/signup" ? "signup" : "signin";
   const [activeTab, setActiveTab] = useState(initialTab);
 
@@ -34,7 +35,7 @@ const Auth = () => {
       }
     };
     checkUser();
-  }, [navigate]);
+  }, [navigate, supabase.auth]);
 
   const handleAuthAction = async (action: 'signIn' | 'signUp', e: FormEvent) => {
     e.preventDefault();
@@ -60,7 +61,7 @@ const Auth = () => {
         });
         console.log('Sign up response:', response);
       }
-      
+
       const { data, error: authError } = response;
 
       if (authError) {
@@ -120,12 +121,12 @@ const Auth = () => {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center pt-20 md:pt-16 pt-[env(safe-area-inset-top)] px-4">
       <div className="w-full max-w-sm relative">
-        
+
         {/* --- KOŞULLU GERİ BUTONU MANTIĞI --- */}
         {/* Bu buton sadece native mobil platform DEĞİLSE (yani web ise) görünecek */}
         {!Capacitor.isNativePlatform() && (
-          <a 
-            href="/" 
+          <a
+            href="/"
             className="absolute top-0 left-0 -translate-y-16 inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />

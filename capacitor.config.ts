@@ -4,8 +4,10 @@ const config: CapacitorConfig = {
   appId: 'com.artiklo.app',
   appName: 'Artiklo',
   webDir: 'dist',
-  plugins: {
-    // Mevcut eklenti ayarların varsa burası korunabilir.
+  server: {
+    hostname: 'app',
+    // allowNavigation DİKKAT: Bu satır 'ios' içinden buraya taşındı.
+    allowNavigation: ["app"]
   }
 };
 

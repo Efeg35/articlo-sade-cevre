@@ -2,8 +2,14 @@
 	"appId": "com.artiklo.app",
 	"appName": "Artiklo",
 	"webDir": "dist",
-	"plugins": {},
+	"server": {
+		"hostname": "app",
+		"allowNavigation": [
+			"app"
+		]
+	},
 	"packageClassList": [
-		"AppPlugin"
+		"AppPlugin",
+		"PreferencesPlugin"
 	]
 }

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "../integrations/supabase/client";
 import { Tables } from "../integrations/supabase/types";
 
@@ -7,7 +7,7 @@ export function useCredits(userId?: string) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchCredits = async () => {
+  const fetchCredits = useCallback(async () => {
     if (!userId) return;
     setLoading(true);
     const { data, error } = await supabase
@@ -20,11 +20,11 @@ export function useCredits(userId?: string) {
     if (error) setError(error.message);
     else setCredits(data?.credits ?? null);
     setLoading(false);
-  };
+  }, [userId]);
 
   useEffect(() => {
     if (!userId) return;
-    
+
     // İlk yükleme
     fetchCredits();
 
@@ -51,7 +51,7 @@ export function useCredits(userId?: string) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [userId]);
+  }, [userId, fetchCredits]);
 
   return { credits, loading, error, refetch: fetchCredits, setCredits };
 } 

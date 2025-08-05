@@ -3,9 +3,11 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation, useNavigate, Outlet } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Capacitor } from '@capacitor/core';
 import { App as CapacitorApp } from '@capacitor/app'; // App plugin'ini import ediyoruz
+import { createClient } from '@supabase/supabase-js';
+import { SessionContextProvider } from '@supabase/auth-helpers-react';
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import ArchivePage from "./pages/ArchivePage";
@@ -35,6 +37,12 @@ import DashboardPage from "./pages/partner/DashboardPage";
 import ApplicationPage from "./pages/partner/ApplicationPage";
 
 const queryClient = new QueryClient();
+
+// App bileşeninin içindeki her şeyden ÖNCE bu satırları ekle
+const supabaseClient = createClient(
+  import.meta.env.VITE_SUPABASE_URL!,
+  import.meta.env.VITE_SUPABASE_ANON_KEY!
+);
 
 const MainLayout = () => {
   const location = useLocation();
@@ -116,7 +124,7 @@ const AppContent = () => {
         {/* <Route path="/partner/profil" element={<ProfilePage />} /> */}
         {/* <Route path="/partner/dashboard" element={<DashboardPage />} /> */}
       </Route>
-      
+
       {/* Navbar'ın görünmeyeceği, tam ekran sayfalar */}
       <Route path="/splash" element={<SplashScreen />} />
       <Route path="/onboarding-mobil" element={<MobileOnboarding />} />
@@ -128,16 +136,23 @@ const AppContent = () => {
   );
 };
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AppContent />
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  // useState hook'unu kullanarak supabaseClient'ı state'e alıyoruz.
+  const [supabase] = useState(() => supabaseClient);
+
+  return (
+    <SessionContextProvider supabaseClient={supabase}>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <AppContent />
+          </BrowserRouter>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </SessionContextProvider>
+  );
+};
 
 export default App;

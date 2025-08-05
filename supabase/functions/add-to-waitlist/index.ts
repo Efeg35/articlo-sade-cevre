@@ -1,5 +1,6 @@
 // deno-lint-ignore-file
 // @ts-nocheck
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
