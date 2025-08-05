@@ -6,8 +6,10 @@ const config: CapacitorConfig = {
   webDir: 'dist',
   server: {
     hostname: 'app',
-    // allowNavigation DİKKAT: Bu satır 'ios' içinden buraya taşındı.
-    allowNavigation: ["app"]
+    allowNavigation: ["app", "127.0.0.1", "localhost"]
+  },
+  ios: {
+    contentInset: 'automatic'
   }
 };
 

@@ -13,6 +13,13 @@ import type { User } from "@supabase/supabase-js";
 import { Capacitor } from '@capacitor/core'; // Capacitor'u import ediyoruz
 
 const Auth = () => {
+  // Debug environment variables
+  console.log('Environment check:', {
+    SUPABASE_URL: import.meta.env.VITE_SUPABASE_URL,
+    SUPABASE_ANON_KEY: import.meta.env.VITE_SUPABASE_ANON_KEY ? 'SET' : 'NOT SET',
+    SUPABASE_ANON_KEY_LENGTH: import.meta.env.VITE_SUPABASE_ANON_KEY?.length
+  });
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");

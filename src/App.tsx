@@ -5,9 +5,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation, useNavigate, Outlet } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Capacitor } from '@capacitor/core';
-import { App as CapacitorApp } from '@capacitor/app'; // App plugin'ini import ediyoruz
+import { App as CapacitorApp } from '@capacitor/app';
 import { createClient } from '@supabase/supabase-js';
-import { SessionContextProvider } from '@supabase/auth-helpers-react';
+import { SessionContextProvider, useSession } from '@supabase/auth-helpers-react';
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import ArchivePage from "./pages/ArchivePage";
@@ -38,7 +38,6 @@ import ApplicationPage from "./pages/partner/ApplicationPage";
 
 const queryClient = new QueryClient();
 
-// App bileşeninin içindeki her şeyden ÖNCE bu satırları ekle
 const supabaseClient = createClient(
   import.meta.env.VITE_SUPABASE_URL!,
   import.meta.env.VITE_SUPABASE_ANON_KEY!
@@ -59,35 +58,54 @@ const MainLayout = () => {
   );
 };
 
+// Yeni: Protected Route wrapper
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const session = useSession();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    console.log('ProtectedRoute session check:', session);
+    if (!session) {
+      console.log('No session, redirecting to auth');
+      navigate('/auth', { replace: true });
+    }
+  }, [session, navigate]);
+
+  if (!session) {
+    return <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="text-center">Loading...</div>
+    </div>;
+  }
+
+  return <>{children}</>;
+};
+
 const AppContent = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const session = useSession();
 
-  // --- NİHAİ VE DOĞRU GERİ TUŞU YÖNETİMİ ---
+  // Geri tuş yönetimi
   useEffect(() => {
-    // Bu kod sadece native mobil platformlarda çalışacak
     if (Capacitor.isNativePlatform()) {
       CapacitorApp.addListener('backButton', ({ canGoBack }) => {
         if (canGoBack) {
-          // Eğer web geçmişinde geri gidilebilecek bir sayfa varsa, git
           window.history.back();
         } else {
-          // Eğer gidilebilecek bir sayfa yoksa (uygulamanın ilk sayfası gibi),
-          // uygulamadan çıkmak yerine hiçbir şey yapma.
           console.log('No more history to go back to.');
         }
       });
     }
 
-    // Component kaldırıldığında listener'ı temizle
     return () => {
       if (Capacitor.isNativePlatform()) {
         CapacitorApp.removeAllListeners();
       }
     };
-  }, []); // Boş dizi sayesinde bu kod sadece bir kez çalışır
+  }, []);
 
-  // İlk açılışta splash ekranına yönlendirme mantığı (bu doğru ve kalmalı)
+  // İlk açılışta splash ekranına yönlendirme mantığı
   useEffect(() => {
     if (Capacitor.isNativePlatform()) {
       const isFirstLaunch = sessionStorage.getItem('firstLaunchDone') !== 'true';
@@ -98,13 +116,20 @@ const AppContent = () => {
     }
   }, [navigate, location]);
 
+  // Auth durumuna göre route yönetimi
+  useEffect(() => {
+    console.log('Session state:', session);
+    if (session && location.pathname === '/auth') {
+      console.log('User authenticated, redirecting to dashboard');
+      navigate('/dashboard', { replace: true });
+    }
+  }, [session, location, navigate]);
+
   return (
     <Routes>
-      {/* Navbar'ın görüneceği sayfalar MainLayout içinde */}
+      {/* Navbar'ın görüneceği public sayfalar */}
       <Route element={<MainLayout />}>
         <Route path="/" element={<Index />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/archive" element={<ArchivePage />} />
         <Route path="/nasil-calisir" element={<NasilCalisir />} />
         <Route path="/fiyatlandirma" element={<Fiyatlandirma />} />
         <Route path="/neden-artiklo" element={<NedenArtiklo />} />
@@ -116,13 +141,18 @@ const AppContent = () => {
         <Route path="/kvkk-aydinlatma" element={<KvkkAydinlatma />} />
         <Route path="/blog" element={<Blog />} />
         <Route path="/blog/:id" element={<BlogPost />} />
-        {/* <Route path="/rehber" element={<RehberPage />} /> */}
-        {/* <Route path="/rehber/:slug" element={<RehberDetayPage />} /> */}
-        {/* <Route path="/partner/basvuru" element={<ApplicationPage />} /> */}
-        {/* <Route path="/partner/kayit-ol" element={<PartnerSignUpPage />} /> */}
-        {/* <Route path="/partner/giris-yap" element={<PartnerLoginPage />} /> */}
-        {/* <Route path="/partner/profil" element={<ProfilePage />} /> */}
-        {/* <Route path="/partner/dashboard" element={<DashboardPage />} /> */}
+
+        {/* Protected Routes */}
+        <Route path="/dashboard" element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        } />
+        <Route path="/archive" element={
+          <ProtectedRoute>
+            <ArchivePage />
+          </ProtectedRoute>
+        } />
       </Route>
 
       {/* Navbar'ın görünmeyeceği, tam ekran sayfalar */}
@@ -137,7 +167,6 @@ const AppContent = () => {
 };
 
 const App = () => {
-  // useState hook'unu kullanarak supabaseClient'ı state'e alıyoruz.
   const [supabase] = useState(() => supabaseClient);
 
   return (

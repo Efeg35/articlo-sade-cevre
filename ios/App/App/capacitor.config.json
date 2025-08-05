@@ -5,8 +5,13 @@
 	"server": {
 		"hostname": "app",
 		"allowNavigation": [
-			"app"
+			"app",
+			"127.0.0.1",
+			"localhost"
 		]
+	},
+	"ios": {
+		"contentInset": "automatic"
 	},
 	"packageClassList": [
 		"AppPlugin",
