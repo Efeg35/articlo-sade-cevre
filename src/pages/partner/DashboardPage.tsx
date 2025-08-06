@@ -1,22 +1,26 @@
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useState, useEffect } from "react";
+import { useSupabaseClient, useSession } from '@supabase/auth-helpers-react';
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useNavigate } from "react-router-dom";
 
 const DashboardPage = () => {
+  const session = useSession();
+  const supabase = useSupabaseClient();
+  const user = session?.user;
+
   const [profile, setProfile] = useState<{ name: string; status: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchProfile = async () => {
-      setLoading(true);
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         navigate("/partner/giris-yap");
         return;
       }
+
+      setLoading(true);
       const { data } = await supabase
         .from("law_firm_profiles")
         .select("name, status")
@@ -26,7 +30,7 @@ const DashboardPage = () => {
       setLoading(false);
     };
     fetchProfile();
-  }, [navigate]);
+  }, [user, navigate, supabase]);
 
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center">Yükleniyor...</div>;

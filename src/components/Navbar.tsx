@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { useSupabaseClient, useSession } from '@supabase/auth-helpers-react';
 import { Button } from "@/components/ui/button";
 import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger } from "@/components/ui/navigation-menu";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
@@ -11,27 +11,26 @@ import { useCredits } from "../hooks/useCredits";
 import { Badge } from "@/components/ui/badge";
 
 const Navbar = () => {
-  const [user, setUser] = useState<User | null>(null);
+  const session = useSession();
+  const supabase = useSupabaseClient();
+  const user = session?.user || null;
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { credits, loading: creditsLoading, error: creditsError } = useCredits(user?.id);
 
-  useEffect(() => {
-    const checkUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
-    };
-    checkUser();
+  // Debug log'ları
+  console.log('Navbar render:', {
+    session: !!session,
+    user: !!user,
+    userEmail: user?.email,
+    pathname: location.pathname
+  });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setUser(session?.user ?? null);
-      }
-    );
-
-    return () => subscription.unsubscribe();
-  }, []);
+  // Geçici olarak useCredits'i disable ediyoruz
+  // const { credits, loading: creditsLoading, error: creditsError } = useCredits(user?.id);
+  const credits = null;
+  const creditsLoading = false;
+  const creditsError = null;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -104,12 +103,12 @@ const Navbar = () => {
             <>
               {isDashboard || isArchive ? (
                 <>
-                <Link to={isDashboard ? "/archive" : "/dashboard"}>
-                  <Button variant="ghost" className="text-sm font-medium">
-                    {isDashboard ? "Belgelerim" : "Dashboard"}
-                  </Button>
-                </Link>
-                {/* <Link to="/rehber">
+                  <Link to={isDashboard ? "/archive" : "/dashboard"}>
+                    <Button variant="ghost" className="text-sm font-medium">
+                      {isDashboard ? "Belgelerim" : "Dashboard"}
+                    </Button>
+                  </Link>
+                  {/* <Link to="/rehber">
                   <Button variant="outline" className="text-sm font-medium ml-1">
                     Avukat Rehberi
                   </Button>
@@ -124,7 +123,7 @@ const Navbar = () => {
                   Dashboard
                 </Button>
               )}
-              
+
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" className="rounded-full">

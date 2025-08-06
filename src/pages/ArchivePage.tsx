@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useSupabaseClient, useSession } from '@supabase/auth-helpers-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Loader2, Trash2, FileText, Clock, Sparkles, Zap, Search, SlidersHorizontal, CalendarRange, ArrowUpDown } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -45,6 +45,10 @@ interface FilterState {
 }
 
 const ArchivePage = () => {
+  const session = useSession();
+  const supabase = useSupabaseClient();
+  const user = session?.user;
+
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
@@ -116,16 +120,21 @@ const ArchivePage = () => {
 
   useEffect(() => {
     const fetchDocuments = async () => {
-      const { data: userData, error: userError } = await supabase.auth.getUser();
-      if (userError || !userData?.user) {
+      if (!user) {
         setLoading(false);
         return;
       }
+
+      console.log('Fetching documents for user:', user.id);
+
       const { data, error } = await supabase
         .from("documents")
         .select("*")
-        .eq("user_id", userData.user.id)
+        .eq("user_id", user.id)
         .order("created_at", { ascending: false });
+
+      console.log('Documents fetch result:', { data, error, count: data?.length });
+
       if (!error && Array.isArray(data)) {
         // entities alanını güvenli şekilde Entity[]'ye dönüştür
         const parsedDocs = data.map((doc) => ({
@@ -137,7 +146,7 @@ const ArchivePage = () => {
         // İstatistikleri hesapla
         const now = new Date();
         const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-        const thisMonthDocs = parsedDocs.filter(doc => 
+        const thisMonthDocs = parsedDocs.filter(doc =>
           new Date(doc.created_at) >= firstDayOfMonth
         ).length;
 
@@ -150,11 +159,18 @@ const ArchivePage = () => {
           creditsUsed: parsedDocs.length,
           totalDocs: parsedDocs.length
         });
+      } else if (error) {
+        console.error('Error fetching documents:', error);
+        toast({
+          title: "Hata",
+          description: "Belgeler yüklenirken bir hata oluştu.",
+          variant: "destructive",
+        });
       }
       setLoading(false);
     };
     fetchDocuments();
-  }, []);
+  }, [user, supabase]);
 
   // Belgeleri filtrele
   const filteredDocuments = documents.filter(doc => {
@@ -166,7 +182,7 @@ const ArchivePage = () => {
     // Tarih filtresi
     const docDate = new Date(doc.created_at);
     const matchesDateRange = (!filters.dateRange.from || docDate >= filters.dateRange.from) &&
-                           (!filters.dateRange.to || docDate <= filters.dateRange.to);
+      (!filters.dateRange.to || docDate <= filters.dateRange.to);
 
     // Özellik filtreleri
     const matchesSummary = !filters.hasSummary || !!doc.summary;
@@ -376,7 +392,7 @@ const ArchivePage = () => {
                         <Checkbox
                           id="hasSummary"
                           checked={filters.hasSummary}
-                          onCheckedChange={(checked) => 
+                          onCheckedChange={(checked) =>
                             setFilters(prev => ({ ...prev, hasSummary: checked as boolean }))
                           }
                         />
@@ -391,7 +407,7 @@ const ArchivePage = () => {
                         <Checkbox
                           id="hasActionPlan"
                           checked={filters.hasActionPlan}
-                          onCheckedChange={(checked) => 
+                          onCheckedChange={(checked) =>
                             setFilters(prev => ({ ...prev, hasActionPlan: checked as boolean }))
                           }
                         />
@@ -409,7 +425,7 @@ const ArchivePage = () => {
                     <h4 className="font-medium">Sıralama</h4>
                     <Select
                       value={filters.sortBy}
-                      onValueChange={(value: "date-desc" | "date-asc") => 
+                      onValueChange={(value: "date-desc" | "date-asc") =>
                         setFilters(prev => ({ ...prev, sortBy: value }))
                       }
                     >
@@ -447,7 +463,7 @@ const ArchivePage = () => {
             </Popover>
             <Select
               value={filters.sortBy}
-              onValueChange={(value: "date-desc" | "date-asc") => 
+              onValueChange={(value: "date-desc" | "date-asc") =>
                 setFilters(prev => ({ ...prev, sortBy: value }))
               }
             >
@@ -552,8 +568,8 @@ const ArchivePage = () => {
                   {searchTerm ? "Arama kriterlerine uygun belge bulunamadı." : "Henüz sadeleştirilmiş bir belgeniz bulunmuyor."}
                 </div>
                 {searchTerm && (
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     className="mt-4"
                     onClick={() => setSearchTerm("")}
                   >
@@ -590,9 +606,9 @@ const ArchivePage = () => {
                         {getDocumentTitle(doc)}
                       </div>
                       <div className="text-sm text-muted-foreground">
-                        {doc.created_at && new Date(doc.created_at).toLocaleDateString("tr-TR", { 
-                          year: 'numeric', 
-                          month: 'long', 
+                        {doc.created_at && new Date(doc.created_at).toLocaleDateString("tr-TR", {
+                          year: 'numeric',
+                          month: 'long',
                           day: 'numeric',
                           hour: '2-digit',
                           minute: '2-digit'

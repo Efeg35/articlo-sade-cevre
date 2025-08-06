@@ -1,17 +1,17 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { useSupabaseClient, useSession } from '@supabase/auth-helpers-react';
 import { Button } from "@/components/ui/button";
-import { 
-  FileText, 
-  ArrowRight, 
-  Shield, 
-  Sparkles, 
-  Scale, 
-  Users, 
-  CheckCircle2, 
-  Clock, 
-  LucideIcon, 
+import {
+  FileText,
+  ArrowRight,
+  Shield,
+  Sparkles,
+  Scale,
+  Users,
+  CheckCircle2,
+  Clock,
+  LucideIcon,
   ChevronDown,
   Lock
 } from "lucide-react";
@@ -41,7 +41,7 @@ const FeatureCard = ({ icon: Icon, title, description, delay = 0 }: FeatureCardP
   }, [delay]);
 
   return (
-    <Card 
+    <Card
       ref={cardRef}
       className={cn(
         "relative overflow-hidden group hover:shadow-lg transition-all duration-500 border-2 transform",
@@ -59,10 +59,13 @@ const FeatureCard = ({ icon: Icon, title, description, delay = 0 }: FeatureCardP
 };
 
 const Index = () => {
-  const [user, setUser] = useState<User | null>(null);
-  const navigate = useNavigate();
-  const featuresRef = useRef<HTMLDivElement>(null);
+  const session = useSession();
+  const supabase = useSupabaseClient();
+  const user = session?.user;
+
   const [scrollProgress, setScrollProgress] = useState(0);
+  const featuresRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -73,24 +76,6 @@ const Index = () => {
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  useEffect(() => {
-    const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        setUser(session.user);
-      }
-    };
-    checkUser();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setUser(session?.user ?? null);
-      }
-    );
-
-    return () => subscription.unsubscribe();
   }, []);
 
   const handleNavigate = () => {
@@ -108,7 +93,7 @@ const Index = () => {
   return (
     <div className="flex flex-col min-h-screen bg-background pt-20 md:pt-16 pt-[env(safe-area-inset-top)]">
       {/* Progress Bar */}
-      <div 
+      <div
         className="fixed top-0 left-0 h-1 bg-primary z-50 transition-all duration-300"
         style={{ width: `${scrollProgress}%` }}
       />
@@ -137,18 +122,18 @@ const Index = () => {
                 </p>
               </div>
               <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-x-6 animate-fade-in-up" style={{ animationDelay: "200ms" }}>
-                <Button 
-                  size="lg" 
-                  variant="hero" 
+                <Button
+                  size="lg"
+                  variant="hero"
                   onClick={handleNavigate}
                   className="group w-full sm:w-auto"
                 >
                   Hemen Başlayın
                   <ArrowRight className="group-hover:translate-x-1 transition-transform" />
                 </Button>
-                <Button 
+                <Button
                   variant="outline"
-                  size="lg" 
+                  size="lg"
                   onClick={handleScrollToFeatures}
                   className="group w-full sm:w-auto"
                 >
