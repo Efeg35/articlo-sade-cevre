@@ -8,18 +8,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, ArrowLeft, FileText } from "lucide-react";
+import { Loader2, ArrowLeft, FileText, Eye, EyeOff } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
-import { Capacitor } from '@capacitor/core'; // Capacitor'u import ediyoruz
+import { Capacitor } from '@capacitor/core';
+import { authFormSchema, rateLimiter, validateAndSanitizeInput } from "@/lib/validation";
+import { Shield, AlertTriangle } from "lucide-react";
 
 const Auth = () => {
-  // Debug environment variables
-  console.log('Environment check:', {
-    SUPABASE_URL: import.meta.env.VITE_SUPABASE_URL,
-    SUPABASE_ANON_KEY: import.meta.env.VITE_SUPABASE_ANON_KEY ? 'SET' : 'NOT SET',
-    SUPABASE_ANON_KEY_LENGTH: import.meta.env.VITE_SUPABASE_ANON_KEY?.length
-  });
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
@@ -27,12 +22,22 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const navigate = useNavigate();
   const { toast } = useToast();
   const location = useLocation();
   const supabase = useSupabaseClient();
   const initialTab = location.pathname === "/signup" ? "signup" : "signin";
   const [activeTab, setActiveTab] = useState(initialTab);
+
+  // Check for session timeout
+  useEffect(() => {
+    const urlParams = new URLSearchParams(location.search);
+    if (urlParams.get('timeout') === 'true') {
+      setError("Oturum süreniz doldu. Lütfen tekrar giriş yapın.");
+    }
+  }, [location]);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -49,24 +54,56 @@ const Auth = () => {
     setLoading(true);
     setError("");
     setSuccessMessage("");
+    setValidationErrors({});
 
-    console.log('Auth attempt:', { action, email, password: password ? '***' : 'empty' });
+    // Rate limiting check
+    const userIdentifier = email || 'anonymous';
+    if (!rateLimiter.isAllowed(userIdentifier)) {
+      setError("Çok fazla deneme yaptınız. Lütfen 15 dakika bekleyin.");
+      setLoading(false);
+      return;
+    }
+
+    // Input validation and sanitization
+    const sanitizedEmail = validateAndSanitizeInput(email);
+    const sanitizedPassword = validateAndSanitizeInput(password);
+    const sanitizedFullName = fullName ? validateAndSanitizeInput(fullName) : "";
 
     try {
+      // Validate form data
+      const formData = {
+        email: sanitizedEmail,
+        password: sanitizedPassword,
+        ...(action === 'signUp' && { fullName: sanitizedFullName })
+      };
+
+      const validationResult = authFormSchema.safeParse(formData);
+
+      if (!validationResult.success) {
+        const errors: Record<string, string> = {};
+        validationResult.error.errors.forEach((err) => {
+          if (err.path) {
+            errors[err.path[0]] = err.message;
+          }
+        });
+        setValidationErrors(errors);
+        setLoading(false);
+        return;
+      }
+
       let response;
       if (action === 'signIn') {
-        console.log('Attempting sign in...');
-        response = await supabase.auth.signInWithPassword({ email, password });
-        console.log('Sign in response:', response);
+        response = await supabase.auth.signInWithPassword({
+          email: sanitizedEmail,
+          password: sanitizedPassword
+        });
       } else {
-        console.log('Attempting sign up...');
         const redirectUrl = `${window.location.origin}/dashboard`;
         response = await supabase.auth.signUp({
-          email,
-          password,
+          email: sanitizedEmail,
+          password: sanitizedPassword,
           options: { emailRedirectTo: redirectUrl },
         });
-        console.log('Sign up response:', response);
       }
 
       const { data, error: authError } = response;
@@ -148,6 +185,17 @@ const Auth = () => {
             <h1 className="text-2xl md:text-3xl font-bold text-foreground">Artiklo</h1>
             <p className="text-muted-foreground text-sm md:text-base">Hesabınıza erişin veya yeni hesap oluşturun.</p>
           </div>
+
+          {/* Security Notice */}
+          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-center gap-2 text-blue-800">
+              <Shield className="h-4 w-4" />
+              <span className="text-sm font-medium">Güvenlik</span>
+            </div>
+            <p className="text-xs text-blue-700 mt-1">
+              Verileriniz SSL ile şifrelenir ve güvenli sunucularda saklanır.
+            </p>
+          </div>
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="signin">Giriş Yap</TabsTrigger>
             <TabsTrigger value="signup">Kayıt Ol</TabsTrigger>
@@ -158,11 +206,47 @@ const Auth = () => {
                 <form onSubmit={(e) => handleAuthAction('signIn', e)} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="signin-email">E-posta</Label>
-                    <Input id="signin-email" type="email" placeholder="ornek@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                    <Input
+                      id="signin-email"
+                      type="email"
+                      placeholder="ornek@email.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                      className={validationErrors.email ? "border-red-500" : ""}
+                    />
+                    {validationErrors.email && (
+                      <p className="text-sm text-red-500 flex items-center gap-1">
+                        <AlertTriangle className="h-3 w-3" />
+                        {validationErrors.email}
+                      </p>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="signin-password">Şifre</Label>
-                    <Input id="signin-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+                    <div className="relative">
+                      <Input
+                        id="signin-password"
+                        type={showPassword ? "text" : "password"}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                        className={validationErrors.password ? "border-red-500 pr-10" : "pr-10"}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      >
+                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                    {validationErrors.password && (
+                      <p className="text-sm text-red-500 flex items-center gap-1">
+                        <AlertTriangle className="h-3 w-3" />
+                        {validationErrors.password}
+                      </p>
+                    )}
                   </div>
                   <Button type="submit" className="w-full" disabled={loading}>
                     {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -177,12 +261,49 @@ const Auth = () => {
                 <form onSubmit={(e) => handleAuthAction('signUp', e)} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="signup-email">E-posta</Label>
-                    <Input id="signup-email" type="email" placeholder="ornek@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                    <Input
+                      id="signup-email"
+                      type="email"
+                      placeholder="ornek@email.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                      className={validationErrors.email ? "border-red-500" : ""}
+                    />
+                    {validationErrors.email && (
+                      <p className="text-sm text-red-500 flex items-center gap-1">
+                        <AlertTriangle className="h-3 w-3" />
+                        {validationErrors.email}
+                      </p>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="signup-password">Şifre</Label>
-                    <Input id="signup-password" type="password" placeholder="En az 6 karakter, harf ve rakam içermeli" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
-                    <span className="text-xs text-muted-foreground">Şifreniz en az 6 karakter olmalı, harf ve rakam içermelidir.</span>
+                    <div className="relative">
+                      <Input
+                        id="signup-password"
+                        type={showPassword ? "text" : "password"}
+                        placeholder="En az 8 karakter, büyük/küçük harf ve rakam içermeli"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                        className={validationErrors.password ? "border-red-500 pr-10" : "pr-10"}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      >
+                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                    {validationErrors.password && (
+                      <p className="text-sm text-red-500 flex items-center gap-1">
+                        <AlertTriangle className="h-3 w-3" />
+                        {validationErrors.password}
+                      </p>
+                    )}
+                    <span className="text-xs text-muted-foreground">Şifreniz en az 8 karakter olmalı, büyük/küçük harf ve rakam içermelidir.</span>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="signup-fullname">Ad Soyad</Label>
@@ -193,7 +314,14 @@ const Auth = () => {
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
                       required
+                      className={validationErrors.fullName ? "border-red-500" : ""}
                     />
+                    {validationErrors.fullName && (
+                      <p className="text-sm text-red-500 flex items-center gap-1">
+                        <AlertTriangle className="h-3 w-3" />
+                        {validationErrors.fullName}
+                      </p>
+                    )}
                   </div>
                   <div className="text-xs text-muted-foreground flex items-start gap-2">
                     <input type="checkbox" required className="mt-1" />

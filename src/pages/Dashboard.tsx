@@ -28,6 +28,8 @@ import OnboardingTour from "@/components/OnboardingTour";
 import ReactMarkdown from 'react-markdown';
 import { Document, Packer, Paragraph, TextRun } from 'docx';
 import { useCredits } from "@/hooks/useCredits";
+import { documentAnalysisSchema, validateAndSanitizeInput, rateLimiter, validateFileSecurity } from "@/lib/validation";
+import { useSessionSecurity } from "@/lib/sessionSecurity";
 // import TabBar from "@/components/TabBar";
 
 type View = 'input' | 'result';
@@ -86,6 +88,9 @@ const Dashboard = () => {
   const supabase = useSupabaseClient();
   const user = session?.user || null;
 
+  // Session security hook
+  useSessionSecurity();
+
   const [originalText, setOriginalText] = useState("");
   const [analysisResult, setAnalysisResult] = useState<AnalysisResponse | null>(null);
   const [loading, setLoading] = useState<null | 'flash' | 'pro'>(null);
@@ -98,6 +103,7 @@ const Dashboard = () => {
   const [entities, setEntities] = useState<Entity[]>([]);
 
   const [view, setView] = useState<View>('input');
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isProModalOpen, setIsProModalOpen] = useState(false);
@@ -190,10 +196,49 @@ const Dashboard = () => {
   };
 
   const handleSimplify = async (model: 'flash' | 'pro') => {
-    if (!originalText.trim() && selectedFiles.length === 0) {
+    // Clear previous validation errors
+    setValidationErrors({});
+
+    // Rate limiting check
+    const userIdentifier = user?.id || 'anonymous';
+    if (!rateLimiter.isAllowed(userIdentifier)) {
+      toast({
+        title: "Çok Fazla İstek",
+        description: "Çok fazla istek gönderdiniz. Lütfen 15 dakika bekleyin.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Input validation
+    const sanitizedText = validateAndSanitizeInput(originalText);
+
+    if (!sanitizedText.trim() && selectedFiles.length === 0) {
       toast({
         title: "Giriş Eksik",
         description: "Lütfen sadeleştirmek için bir metin girin veya dosya yükleyin.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate input with schema
+    const validationResult = documentAnalysisSchema.safeParse({
+      text: sanitizedText,
+      files: selectedFiles
+    });
+
+    if (!validationResult.success) {
+      const errors: Record<string, string> = {};
+      validationResult.error.errors.forEach((err) => {
+        if (err.path) {
+          errors[err.path[0]] = err.message;
+        }
+      });
+      setValidationErrors(errors);
+      toast({
+        title: "Giriş Hatası",
+        description: "Lütfen giriş bilgilerinizi kontrol edin.",
         variant: "destructive",
       });
       return;
@@ -222,16 +267,16 @@ const Dashboard = () => {
 
     try {
       let body: FormData | { text: string; model: string };
-      let originalTextForDb = originalText;
+      let originalTextForDb = sanitizedText;
       if (selectedFiles.length > 0) {
         const formData = new FormData();
         selectedFiles.forEach((file) => formData.append('files', file));
         formData.append('model', model);
-        if (originalText.trim()) formData.append('text', originalText);
+        if (sanitizedText.trim()) formData.append('text', sanitizedText);
         body = formData;
-        originalTextForDb = `[Files: ${selectedFiles.map(f => f.name).join(", ")}] ${originalText}`;
+        originalTextForDb = `[Files: ${selectedFiles.map(f => f.name).join(", ")}] ${sanitizedText}`;
       } else {
-        body = { text: originalText, model };
+        body = { text: sanitizedText, model };
       }
 
       const { data, error } = await supabase.functions.invoke('simplify-text', { body });
@@ -526,28 +571,25 @@ const Dashboard = () => {
               onChange={(e) => {
                 if (e.target.files) {
                   const files = Array.from(e.target.files);
-                  const supportedTypes = [
-                    'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp',
-                    'application/pdf',
-                    'application/msword',
-                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                    'text/plain',
-                    'application/rtf'
-                  ];
 
-                  const validFiles = files.filter(file =>
-                    supportedTypes.includes(file.type) ||
-                    file.name.toLowerCase().endsWith('.doc') ||
-                    file.name.toLowerCase().endsWith('.docx') ||
-                    file.name.toLowerCase().endsWith('.pdf') ||
-                    file.name.toLowerCase().endsWith('.txt') ||
-                    file.name.toLowerCase().endsWith('.rtf')
-                  );
+                  // Enhanced security validation for each file
+                  const validFiles = files.filter(file => {
+                    const securityCheck = validateFileSecurity(file);
+                    if (!securityCheck.isValid) {
+                      toast({
+                        title: "Güvenlik Uyarısı",
+                        description: securityCheck.error || "Dosya güvenlik kontrolünden geçemedi.",
+                        variant: "destructive",
+                      });
+                      return false;
+                    }
+                    return true;
+                  });
 
                   if (validFiles.length !== files.length) {
                     toast({
-                      title: "Desteklenmeyen Dosya Türü",
-                      description: "Sadece PDF, DOC, DOCX, TXT, RTF ve görüntü dosyaları desteklenmektedir.",
+                      title: "Güvenlik Kontrolü",
+                      description: "Bazı dosyalar güvenlik nedeniyle reddedildi.",
                       variant: "destructive",
                     });
                   }

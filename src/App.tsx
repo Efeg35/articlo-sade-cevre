@@ -35,6 +35,7 @@ import PartnerLoginPage from "./pages/partner/PartnerLoginPage";
 import ProfilePage from "./pages/partner/ProfilePage";
 import DashboardPage from "./pages/partner/DashboardPage";
 import ApplicationPage from "./pages/partner/ApplicationPage";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 const queryClient = new QueryClient();
 
@@ -173,10 +174,12 @@ const App = () => {
     <SessionContextProvider supabaseClient={supabase}>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
-          <Toaster />
-          <Sonner />
           <BrowserRouter>
-            <AppContent />
+            <ErrorBoundary>
+              <AppContent />
+            </ErrorBoundary>
+            <Toaster />
+            <Sonner />
           </BrowserRouter>
         </TooltipProvider>
       </QueryClientProvider>
