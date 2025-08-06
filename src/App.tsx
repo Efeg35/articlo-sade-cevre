@@ -86,10 +86,11 @@ const AppContent = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const session = useSession();
+  const isMobile = Capacitor.isNativePlatform();
 
   // Geri tuş yönetimi
   useEffect(() => {
-    if (Capacitor.isNativePlatform()) {
+    if (isMobile) {
       CapacitorApp.addListener('backButton', ({ canGoBack }) => {
         if (canGoBack) {
           window.history.back();
@@ -100,22 +101,22 @@ const AppContent = () => {
     }
 
     return () => {
-      if (Capacitor.isNativePlatform()) {
+      if (isMobile) {
         CapacitorApp.removeAllListeners();
       }
     };
-  }, []);
+  }, [isMobile]);
 
-  // İlk açılışta splash ekranına yönlendirme mantığı
+  // Mobil platformlarda direkt splash screen'e yönlendirme
   useEffect(() => {
-    if (Capacitor.isNativePlatform()) {
+    if (isMobile && location.pathname === '/') {
       const isFirstLaunch = sessionStorage.getItem('firstLaunchDone') !== 'true';
-      if (isFirstLaunch && location.pathname === '/') {
+      if (isFirstLaunch) {
         sessionStorage.setItem('firstLaunchDone', 'true');
         navigate('/splash', { replace: true });
       }
     }
-  }, [navigate, location]);
+  }, [navigate, location, isMobile]);
 
   // Auth durumuna göre route yönetimi
   useEffect(() => {
@@ -125,6 +126,11 @@ const AppContent = () => {
       navigate('/dashboard', { replace: true });
     }
   }, [session, location, navigate]);
+
+  // Mobil platformlarda hiç Index sayfasını render etme
+  if (isMobile && location.pathname === '/') {
+    return <SplashScreen />;
+  }
 
   return (
     <Routes>

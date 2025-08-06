@@ -163,8 +163,8 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center pt-20 md:pt-16 pt-[env(safe-area-inset-top)] px-4">
-      <div className="w-full max-w-sm relative">
+    <div className="min-h-screen bg-background flex items-start justify-center pt-8 md:pt-12 pt-[env(safe-area-inset-top)] px-4">
+      <div className="w-full max-w-sm relative mt-8 md:mt-12">
 
         {/* --- KOŞULLU GERİ BUTONU MANTIĞI --- */}
         {/* Bu buton sadece native mobil platform DEĞİLSE (yani web ise) görünecek */}
