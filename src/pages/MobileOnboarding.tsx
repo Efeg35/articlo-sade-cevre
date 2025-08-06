@@ -32,18 +32,27 @@ const MobileOnboarding = () => {
       <div className="flex h-full">
         {onboardingImages.map((imgSrc, index) => (
           <div
-            className="flex-[0_0_100%] min-w-0 h-full relative bg-cover bg-center"
+            className="flex-[0_0_100%] min-w-0 h-full relative overflow-hidden"
             key={index}
-            style={{ backgroundImage: `url(${imgSrc})` }}
           >
+            <img
+              src={imgSrc}
+              alt={`Onboarding ${index + 1}`}
+              className="w-full h-full object-cover"
+              style={{
+                objectPosition: 'center top',
+                transform: 'translateY(-5%)'
+              }}
+            />
+
             {/* Bu kısım interaktif katman (görünmez butonlar) */}
-            <div className="absolute inset-0 w-full h-full">
+            <div className="absolute inset-0 w-full h-full z-10">
 
               {/* İlk 3 slayt için sağ alttaki görünmez "İleri" butonu */}
               {index < 3 && (
                 <button
                   onClick={scrollNext}
-                  className="absolute bottom-[5%] right-[5%] w-[80px] h-[80px] rounded-full bg-transparent focus:outline-none"
+                  className="absolute bottom-[5%] right-[5%] w-[80px] h-[80px] rounded-full bg-transparent focus:outline-none cursor-pointer"
                   aria-label="Sonraki Adım"
                 />
               )}
@@ -52,7 +61,7 @@ const MobileOnboarding = () => {
               {index === 3 && (
                 <button
                   onClick={finishOnboarding}
-                  className="absolute bottom-[8%] left-0 right-0 mx-auto w-[60%] h-[50px] rounded-lg bg-transparent focus:outline-none"
+                  className="absolute bottom-[8%] left-0 right-0 mx-auto w-[60%] h-[50px] rounded-lg bg-transparent focus:outline-none cursor-pointer"
                   aria-label="Başlayalım"
                 />
               )}
