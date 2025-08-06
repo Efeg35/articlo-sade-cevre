@@ -120,6 +120,11 @@ const Dashboard = () => {
   // const { credits, refetch: refetchCredits, setCredits } = useCredits(user?.id);
   const [credits, setCredits] = useState<number | null>(999); // Geçici olarak yüksek kredi
 
+  // Sayfa yüklendiğinde scroll pozisyonunu sıfırla
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   useEffect(() => {
     const checkAuthAndOnboarding = async () => {
       if (!session || !user) {
@@ -313,7 +318,7 @@ const Dashboard = () => {
         // Legacy response'u AnalysisResponse formatına dönüştür
         setAnalysisResult({
           simplifiedText: data.simplifiedText || "",
-          documentType: data.documentType || "Bilinmeyen",
+          documentType: data.documentType || "Bilinmeen",
           summary: data.summary || "",
           extractedEntities: convertedEntities,
           actionableSteps: []
@@ -962,8 +967,8 @@ const Dashboard = () => {
   return (
     <>
       <OnboardingTour open={showOnboarding} onFinish={handleOnboardingFinish} />
-      <div className="min-h-screen bg-background flex flex-col items-center pt-20 md:pt-16 px-2 dashboard-container">
-        <div className="w-full max-w-5xl flex flex-col items-center mt-4 mb-8">
+      <div className="h-screen bg-background flex flex-col items-center pt-20 md:pt-28 px-2 dashboard-container overflow-hidden">
+        <div className="w-full max-w-5xl flex flex-col items-center mt-8 mb-8">
           <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-2 text-center">Hukuki Belgeni Sadeleştir</h2>
           <p className="text-muted-foreground text-center max-w-xl mb-6">
             Karmaşık hukuki metninizi aşağıdaki alana yapıştırın veya dosya olarak yükleyin.
