@@ -164,6 +164,16 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen bg-background flex items-start justify-center pt-8 md:pt-12 pt-[env(safe-area-inset-top)] px-4">
+
+      {/* Logo ekranın en sol üstünde */}
+      <div className="fixed -top-4 left-4 z-50">
+        <img
+          src="/Arka-plan-aynı-logo.png"
+          alt="Artiklo Logo"
+          className="h-24 w-24 md:h-32 md:w-32 object-contain"
+        />
+      </div>
+
       <div className="w-full max-w-sm relative mt-8 md:mt-12">
 
         {/* --- KOŞULLU GERİ BUTONU MANTIĞI --- */}
@@ -181,7 +191,6 @@ const Auth = () => {
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <div className="text-center mb-6">
-            <FileText className="h-8 w-8 md:h-10 md:w-10 text-foreground mx-auto mb-2" />
             <h1 className="text-2xl md:text-3xl font-bold text-foreground">Artiklo</h1>
             <p className="text-muted-foreground text-sm md:text-base">Hesabınıza erişin veya yeni hesap oluşturun.</p>
           </div>

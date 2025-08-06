@@ -69,22 +69,25 @@ const Navbar = () => {
       )}
     >
       <nav className="container mx-auto px-4 h-16 flex items-center justify-between">
-        {/* Logo */}
+        {/* Logo - Sol */}
         <Link
           to={user ? "/dashboard" : "/"}
-          className="flex items-center gap-2 font-bold text-xl hover:opacity-80 transition-opacity"
+          className="flex items-center gap-0 font-bold text-xl hover:opacity-80 transition-opacity"
         >
-          <div className="flex items-center justify-center w-8 h-8 bg-primary rounded-lg">
-            <Scale className="h-5 w-5 text-primary-foreground" />
-          </div>
-          <span className="bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
-            Artiklo
+          <img
+            src="/Arka-plan-aynı-logo.png"
+            alt="Artiklo Logo"
+            className="w-32 h-32 object-contain"
+            style={{ mixBlendMode: 'multiply' }}
+          />
+          <span className="text-black font-bold text-2xl -ml-6">
+            ARTIKLO
           </span>
         </Link>
 
-        {/* Navigation Links - sadece giriş yapmamış kullanıcılar için */}
+        {/* Navigation Links - Orta */}
         {!user && (
-          <div className="hidden md:flex items-center gap-6">
+          <div className="hidden md:flex items-center gap-6 absolute left-1/2 transform -translate-x-1/2">
             <Link to="/nasil-calisir" className="text-sm font-medium hover:text-primary transition-colors">
               Nasıl Çalışır?
             </Link>
@@ -103,7 +106,7 @@ const Navbar = () => {
           </div>
         )}
 
-        {/* Auth Buttons */}
+        {/* Auth Buttons - Sağ */}
         <div className="flex items-center gap-2">
           {user ? (
             <>
