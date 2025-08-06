@@ -118,7 +118,7 @@ const Dashboard = () => {
 
   // Kredi yönetimi - Geçici olarak disable edildi
   // const { credits, refetch: refetchCredits, setCredits } = useCredits(user?.id);
-  const [credits, setCredits] = useState<number | null>(null);
+  const [credits, setCredits] = useState<number | null>(999); // Geçici olarak yüksek kredi
 
   useEffect(() => {
     const checkAuthAndOnboarding = async () => {
@@ -224,7 +224,7 @@ const Dashboard = () => {
 
     // Validate input with schema
     const validationResult = documentAnalysisSchema.safeParse({
-      text: sanitizedText,
+      text: sanitizedText || undefined, // Boş string yerine undefined gönder
       files: selectedFiles
     });
 
@@ -244,17 +244,17 @@ const Dashboard = () => {
       return;
     }
 
-    // Kredi kontrolü
-    if (user && credits !== null) {
-      if (credits <= 0) {
-        toast({
-          title: "Kredi Yetersiz",
-          description: "Krediniz kalmadı. Lütfen daha sonra tekrar deneyin.",
-          variant: "destructive",
-        });
-        return;
-      }
-    }
+    // Kredi kontrolü - Geçici olarak devre dışı
+    // if (user && credits !== null) {
+    //   if (credits <= 0) {
+    //     toast({
+    //       title: "Kredi Yetersiz",
+    //       description: "Krediniz kalmadı. Lütfen daha sonra tekrar deneyin.",
+    //       variant: "destructive",
+    //     });
+    //     return;
+    //   }
+    // }
 
     setLoading(model);
     setAnalysisResult(null);

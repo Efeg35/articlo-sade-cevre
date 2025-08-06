@@ -101,8 +101,13 @@ export const authFormSchema = z.object({
 
 // Document analysis input schema
 export const documentAnalysisSchema = z.object({
-    text: textInputSchema,
+    text: textInputSchema.optional(), // Metin opsiyonel olsun
     files: z.array(fileSchema).optional()
+}).refine((data) => {
+    // En az bir tanesi (metin veya dosya) olmalı
+    return (data.text && data.text.trim().length > 0) || (data.files && data.files.length > 0);
+}, {
+    message: "En az bir metin girin veya dosya yükleyin"
 });
 
 // Sanitize HTML content

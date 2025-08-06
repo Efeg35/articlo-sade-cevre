@@ -20,11 +20,11 @@ const MobileOnboarding = () => {
       emblaApi.scrollNext();
     }
   }, [emblaApi]);
-  
+
   // Onboarding'i bitirip ana uygulamaya geçmek için fonksiyon
   const finishOnboarding = useCallback(() => {
     // DÜZELTİLDİ: Yönlendirme hedefi artık doğrudan /auth ve geçmişi değiştir
-    navigate('/auth', { replace: true }); 
+    navigate('/auth', { replace: true });
   }, [navigate]);
 
   return (
@@ -38,7 +38,7 @@ const MobileOnboarding = () => {
           >
             {/* Bu kısım interaktif katman (görünmez butonlar) */}
             <div className="absolute inset-0 w-full h-full">
-              
+
               {/* İlk 3 slayt için sağ alttaki görünmez "İleri" butonu */}
               {index < 3 && (
                 <button

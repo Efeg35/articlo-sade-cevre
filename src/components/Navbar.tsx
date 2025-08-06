@@ -43,8 +43,14 @@ const Navbar = () => {
 
   const handleSignOut = async () => {
     try {
-      await supabase.auth.signOut();
-      navigate("/");
+      console.log('Signing out...');
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error("Error signing out:", error);
+        return;
+      }
+      console.log('Sign out successful, navigating to home');
+      navigate("/", { replace: true });
     } catch (error) {
       console.error("Error signing out:", error);
     }
