@@ -40,8 +40,8 @@ const MobileOnboarding = () => {
               alt={`Onboarding ${index + 1}`}
               className="w-full h-full object-cover"
               style={{
-                objectPosition: 'center top',
-                transform: 'translateY(-5%)'
+                objectPosition: 'center 30%',
+                backgroundColor: '#000'
               }}
             />
 
@@ -52,7 +52,7 @@ const MobileOnboarding = () => {
               {index < 3 && (
                 <button
                   onClick={scrollNext}
-                  className="absolute bottom-[5%] right-[5%] w-[80px] h-[80px] rounded-full bg-transparent focus:outline-none cursor-pointer"
+                  className="absolute bottom-[1%] right-[8%] w-[60px] h-[60px] rounded-full bg-transparent focus:outline-none cursor-pointer"
                   aria-label="Sonraki Adım"
                 />
               )}
@@ -61,7 +61,7 @@ const MobileOnboarding = () => {
               {index === 3 && (
                 <button
                   onClick={finishOnboarding}
-                  className="absolute bottom-[8%] left-0 right-0 mx-auto w-[60%] h-[50px] rounded-lg bg-transparent focus:outline-none cursor-pointer"
+                  className="absolute bottom-[2%] left-0 right-0 mx-auto w-[65%] h-[60px] rounded-lg bg-transparent focus:outline-none cursor-pointer"
                   aria-label="Başlayalım"
                 />
               )}
