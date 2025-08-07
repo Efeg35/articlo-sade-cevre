@@ -30,9 +30,9 @@ const config: CapacitorConfig = {
       overlaysWebView: false
     },
     Keyboard: {
-      resize: "native",
+      resize: "none",
       style: "default",
-      resizeOnFullScreen: true
+      resizeOnFullScreen: false
     },
     Camera: {
       quality: 90,
@@ -55,7 +55,7 @@ const config: CapacitorConfig = {
   ios: {
     contentInset: 'automatic',
     allowsLinkPreview: false,
-    scrollEnabled: true,
+    scrollEnabled: false,
     backgroundColor: '#ffffff',
     // 🔧 YAZIM HATASI DÜZELTİLDİ - SecurityError çözümü için kritik:
     limitsNavigationsToAppBoundDomains: false,  // ✅ DÜZELTME: "App" kelimesi eklendi

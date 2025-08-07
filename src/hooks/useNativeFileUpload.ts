@@ -253,6 +253,36 @@ export const useNativeFileUpload = (): UseNativeFileUploadReturn => {
             });
         } finally {
             setIsUploading(false);
+            // Galeri kapandıktan sonra kapsamlı UI reset
+            setTimeout(() => {
+                // Viewport reset
+                window.scrollTo(0, 0);
+
+                // Document body style reset
+                document.body.style.position = 'fixed';
+                document.body.style.overflow = 'hidden';
+                document.body.style.height = '100vh';
+                document.body.style.width = '100vw';
+                document.body.style.top = '0';
+                document.body.style.left = '0';
+
+                // Force reflow trick
+                void document.body.offsetHeight;
+
+                // HTML element reset
+                document.documentElement.style.position = 'fixed';
+                document.documentElement.style.overflow = 'hidden';
+                document.documentElement.style.height = '100vh';
+                document.documentElement.style.width = '100vw';
+
+                // GPU acceleration için transform reset
+                document.body.style.transform = 'translateZ(0)';
+                document.body.style.willChange = 'transform';
+                document.documentElement.style.transform = 'translateZ(0)';
+                document.documentElement.style.willChange = 'transform';
+
+                console.log('[useNativeFileUpload] Kapsamlı UI reset tamamlandı');
+            }, 100);
         }
     }, [isNativePlatform, validateAndAddFile, toast, calculateBase64Size]);
 

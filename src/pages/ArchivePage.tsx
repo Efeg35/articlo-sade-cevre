@@ -170,7 +170,7 @@ const ArchivePage = () => {
       setLoading(false);
     };
     fetchDocuments();
-  }, [user, supabase]);
+  }, [user, supabase, toast]);
 
   // Belgeleri filtrele
   const filteredDocuments = documents.filter(doc => {

@@ -1,4 +1,5 @@
 import * as React from "react"
+import { Capacitor } from '@capacitor/core'
 
 import type {
   ToastActionElement,
@@ -6,7 +7,7 @@ import type {
 } from "@/components/ui/toast"
 
 const TOAST_LIMIT = 1
-const TOAST_REMOVE_DELAY = 1000000
+const TOAST_REMOVE_DELAY = Capacitor.isNativePlatform() ? 2000 : 3000
 
 type ToasterToast = ToastProps & {
   id: string
@@ -33,21 +34,21 @@ type ActionType = typeof actionTypes
 
 type Action =
   | {
-      type: ActionType["ADD_TOAST"]
-      toast: ToasterToast
-    }
+    type: ActionType["ADD_TOAST"]
+    toast: ToasterToast
+  }
   | {
-      type: ActionType["UPDATE_TOAST"]
-      toast: Partial<ToasterToast>
-    }
+    type: ActionType["UPDATE_TOAST"]
+    toast: Partial<ToasterToast>
+  }
   | {
-      type: ActionType["DISMISS_TOAST"]
-      toastId?: ToasterToast["id"]
-    }
+    type: ActionType["DISMISS_TOAST"]
+    toastId?: ToasterToast["id"]
+  }
   | {
-      type: ActionType["REMOVE_TOAST"]
-      toastId?: ToasterToast["id"]
-    }
+    type: ActionType["REMOVE_TOAST"]
+    toastId?: ToasterToast["id"]
+  }
 
 interface State {
   toasts: ToasterToast[]
@@ -105,9 +106,9 @@ export const reducer = (state: State, action: Action): State => {
         toasts: state.toasts.map((t) =>
           t.id === toastId || toastId === undefined
             ? {
-                ...t,
-                open: false,
-              }
+              ...t,
+              open: false,
+            }
             : t
         ),
       }
@@ -168,6 +169,26 @@ function toast({ ...props }: Toast) {
   }
 }
 
+// Başarılı toast için yardımcı fonksiyon
+function successToast({ title, description, ...props }: Omit<Toast, "variant">) {
+  return toast({
+    title,
+    description,
+    variant: "success",
+    ...props,
+  })
+}
+
+// Hata toast için yardımcı fonksiyon
+function errorToast({ title, description, ...props }: Omit<Toast, "variant">) {
+  return toast({
+    title,
+    description,
+    variant: "error",
+    ...props,
+  })
+}
+
 function useToast() {
   const [state, setState] = React.useState<State>(memoryState)
 
@@ -184,8 +205,10 @@ function useToast() {
   return {
     ...state,
     toast,
+    successToast,
+    errorToast,
     dismiss: (toastId?: string) => dispatch({ type: "DISMISS_TOAST", toastId }),
   }
 }
 
-export { useToast, toast }
+export { useToast, toast, successToast, errorToast }

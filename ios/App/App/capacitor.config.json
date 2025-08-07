@@ -20,9 +20,9 @@
 			"overlaysWebView": false
 		},
 		"Keyboard": {
-			"resize": "native",
+			"resize": "none",
 			"style": "default",
-			"resizeOnFullScreen": true
+			"resizeOnFullScreen": false
 		},
 		"Camera": {
 			"quality": 90,
@@ -47,7 +47,7 @@
 	"ios": {
 		"contentInset": "automatic",
 		"allowsLinkPreview": false,
-		"scrollEnabled": true,
+		"scrollEnabled": false,
 		"backgroundColor": "#ffffff",
 		"limitsNavigationsToAppBoundDomains": false,
 		"scheme": "https"

@@ -67,11 +67,21 @@ const Navbar = () => {
   return (
     <header
       className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-300 pt-[env(safe-area-inset-top)] md:pt-0",
+        "fixed top-0 left-0 right-0 z-[9999] transition-all duration-300 pt-[env(safe-area-inset-top)] md:pt-0",
         isScrolled
           ? "bg-background/80 backdrop-blur-md border-b shadow-sm"
           : "bg-transparent"
       )}
+      style={{
+        position: 'fixed' as const,
+        top: '0',
+        left: '0',
+        right: '0',
+        zIndex: '9999',
+        transform: 'translateZ(0)',
+        willChange: 'transform',
+        WebkitTransform: 'translateZ(0)'
+      } as React.CSSProperties}
     >
       <nav className="container mx-auto px-4 h-16 flex items-center justify-between">
         {/* Logo - Sol (Web'de logo, mobilde sadece yazı) */}

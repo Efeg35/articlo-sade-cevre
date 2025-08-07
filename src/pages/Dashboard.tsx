@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { Keyboard } from '@capacitor/keyboard';
 import { useNavigate, Link } from "react-router-dom";
 import { useSupabaseClient, useSession } from '@supabase/auth-helpers-react';
 import { Button } from "@/components/ui/button";
@@ -104,6 +105,54 @@ const Dashboard = () => {
     };
   }, [session, user?.email]);
 
+  // iOS Keyboard Event Listener - UI Reset için
+  useEffect(() => {
+    if (Capacitor.isNativePlatform()) {
+      const handleKeyboardDidHide = () => {
+        console.log('[Dashboard] Keyboard hidden, resetting UI...');
+
+        // Kapsamlı UI reset
+        setTimeout(() => {
+          // Viewport reset
+          window.scrollTo(0, 0);
+
+          // Document body style reset
+          document.body.style.position = 'fixed';
+          document.body.style.overflow = 'hidden';
+          document.body.style.height = '100vh';
+          document.body.style.width = '100vw';
+          document.body.style.top = '0';
+          document.body.style.left = '0';
+
+          // Force reflow trick
+          void document.body.offsetHeight;
+
+          // HTML element reset
+          document.documentElement.style.position = 'fixed';
+          document.documentElement.style.overflow = 'hidden';
+          document.documentElement.style.height = '100vh';
+          document.documentElement.style.width = '100vw';
+
+          // GPU acceleration için transform reset
+          document.body.style.transform = 'translateZ(0)';
+          document.body.style.willChange = 'transform';
+          document.documentElement.style.transform = 'translateZ(0)';
+          document.documentElement.style.willChange = 'transform';
+
+          console.log('[Dashboard] Keyboard UI reset tamamlandı');
+        }, 100);
+      };
+
+      // Keyboard event listener ekle
+      Keyboard.addListener('keyboardDidHide', handleKeyboardDidHide);
+
+      // Cleanup
+      return () => {
+        Keyboard.removeAllListeners();
+      };
+    }
+  }, []);
+
   // Session security hook
   useSessionSecurity();
 
@@ -134,7 +183,7 @@ const Dashboard = () => {
   const [view, setView] = useState<View>('input');
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const { toast, successToast, errorToast } = useToast();
   const [isProModalOpen, setIsProModalOpen] = useState(false);
   const [showTip, setShowTip] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -167,16 +216,15 @@ const Dashboard = () => {
       console.log('[Dashboard] takePhoto çağrılıyor...');
       await takePhoto();
       console.log('[Dashboard] ✅ Fotoğraf çekildi başarılı');
-      toast({
+      successToast({
         title: 'Başarılı!',
         description: 'Fotoğraf çekme işlemi tamamlandı.'
       });
     } catch (err) {
       console.error('[Dashboard] ❌ Fotoğraf çekme hatası:', err);
-      toast({
+      errorToast({
         title: 'Fotoğraf Hatası',
-        description: `Fotoğraf çekilirken hata: ${err instanceof Error ? err.message : 'Bilinmeyen hata'}`,
-        variant: 'destructive'
+        description: `Fotoğraf çekilirken hata: ${err instanceof Error ? err.message : 'Bilinmeyen hata'}`
       });
     }
   };
@@ -193,16 +241,15 @@ const Dashboard = () => {
       console.log('[Dashboard] selectFromGallery çağrılıyor...');
       await selectFromGallery();
       console.log('[Dashboard] ✅ Galeriden seçim başarılı');
-      toast({
+      successToast({
         title: 'Başarılı!',
         description: 'Galeriden dosya seçimi tamamlandı.'
       });
     } catch (err) {
       console.error('[Dashboard] ❌ Galeri seçme hatası:', err);
-      toast({
+      errorToast({
         title: 'Galeri Hatası',
-        description: `Galeriden dosya seçilirken hata: ${err instanceof Error ? err.message : 'Bilinmeyen hata'}`,
-        variant: 'destructive'
+        description: `Galeriden dosya seçilirken hata: ${err instanceof Error ? err.message : 'Bilinmeyen hata'}`
       });
     }
   };
@@ -219,16 +266,15 @@ const Dashboard = () => {
       console.log('[Dashboard] selectDocument çağrılıyor...');
       await selectDocument();
       console.log('[Dashboard] ✅ Doküman seçimi başarılı');
-      toast({
+      successToast({
         title: 'Başarılı!',
         description: 'Doküman seçimi tamamlandı.'
       });
     } catch (err) {
       console.error('[Dashboard] ❌ Doküman seçme hatası:', err);
-      toast({
+      errorToast({
         title: 'Doküman Hatası',
-        description: `Doküman seçilirken hata: ${err instanceof Error ? err.message : 'Bilinmeyen hata'}`,
-        variant: 'destructive'
+        description: `Doküman seçilirken hata: ${err instanceof Error ? err.message : 'Bilinmeyen hata'}`
       });
     }
   };
@@ -284,29 +330,28 @@ const Dashboard = () => {
       setSummary(summary);
       setView('result');
 
-      toast({
+      successToast({
         title: "Fallback Modu",
         description: "Gelişmiş analiz kullanılamıyor, basit sadeleştirme yapıldı.",
       });
     } catch (error) {
       console.error('[Dashboard] API fallback error:', error);
-      toast({
+      errorToast({
         title: "Fallback Hatası",
         description: "Basit sadeleştirme de başarısız oldu.",
-        variant: "destructive",
       });
     }
-  }, [toast]);
+  }, [errorToast, successToast]);
 
   // Native feature fallback
   const handleNativeFeatureFallback = useCallback(() => {
     console.log('[Dashboard] Using native feature fallback');
     setNativeFeatureFallback(true);
-    toast({
+    successToast({
       title: "Web Modu",
       description: "Native özellikler kullanılamıyor, web fallback kullanılıyor.",
     });
-  }, [toast]);
+  }, [successToast]);
 
   // Sayfa yüklendiğinde scroll pozisyonunu sıfırla
   useEffect(() => {
@@ -646,9 +691,9 @@ const Dashboard = () => {
   const handleCopySummary = async () => {
     try {
       await navigator.clipboard.writeText(summary);
-      toast({ title: "Kopyalandı!", description: "Özet panoya başarıyla kopyalandı." });
+      successToast({ title: "Kopyalandı!", description: "Özet panoya başarıyla kopyalandı." });
     } catch (err) {
-      toast({ title: "Kopyalama Hatası", description: "Özet kopyalanırken bir hata oluştu.", variant: "destructive" });
+      errorToast({ title: "Kopyalama Hatası", description: "Özet kopyalanırken bir hata oluştu." });
     }
   };
 
@@ -656,18 +701,18 @@ const Dashboard = () => {
     try {
       const textToCopy = analysisResult?.simplifiedText || simplifiedText;
       await navigator.clipboard.writeText(textToCopy);
-      toast({ title: "Kopyalandı!", description: "Metin panoya başarıyla kopyalandı." });
+      successToast({ title: "Kopyalandı!", description: "Metin panoya başarıyla kopyalandı." });
     } catch (err) {
-      toast({ title: "Kopyalama Hatası", description: "Metin kopyalanırken bir hata oluştu.", variant: "destructive" });
+      errorToast({ title: "Kopyalama Hatası", description: "Metin kopyalanırken bir hata oluştu." });
     }
   };
 
   const handleCopyActionPlan = async () => {
     try {
       await navigator.clipboard.writeText(actionPlan);
-      toast({ title: "Kopyalandı!", description: "Eylem planı panoya başarıyla kopyalandı." });
+      successToast({ title: "Kopyalandı!", description: "Eylem planı panoya başarıyla kopyalandı." });
     } catch (err) {
-      toast({ title: "Kopyalama Hatası", description: "Eylem planı kopyalanırken bir hata oluştu.", variant: "destructive" });
+      errorToast({ title: "Kopyalama Hatası", description: "Eylem planı kopyalanırken bir hata oluştu." });
     }
   };
 
@@ -720,7 +765,7 @@ const Dashboard = () => {
 
       URL.revokeObjectURL(element.href);
 
-      toast({ title: "Başarılı!", description: "Word belgesi indiriliyor." });
+      successToast({ title: "Başarılı!", description: "Word belgesi indiriliyor." });
     } catch (error) {
       console.error('Word belgesi oluşturma hatası:', error);
       toast({
@@ -754,7 +799,7 @@ const Dashboard = () => {
       setIsModalOpen(true);
       setEditMode(false);
     } else {
-      toast({ variant: "destructive", title: "Hata", description: "Gösterilecek bir belge taslağı bulunamadı." });
+      errorToast({ title: "Hata", description: "Gösterilecek bir belge taslağı bulunamadı." });
     }
   };
 
@@ -1384,15 +1429,15 @@ const Dashboard = () => {
                   const { data, error } = await supabase.functions.invoke('add-to-waitlist');
                   setIsProModalOpen(false);
                   if (error) {
-                    toast({ title: "Bir hata oluştu", description: error.message || "Bekleme listesine eklenirken hata oluştu.", variant: "destructive" });
+                    errorToast({ title: "Bir hata oluştu", description: error.message || "Bekleme listesine eklenirken hata oluştu." });
                   } else if (data?.message) {
-                    toast({ title: data.message });
+                    successToast({ title: data.message });
                   } else {
-                    toast({ title: "Harika! Listeye eklendiniz." });
+                    successToast({ title: "Harika! Listeye eklendiniz." });
                   }
                 } catch (err) {
                   setIsProModalOpen(false);
-                  toast({ title: "Bir hata oluştu", description: err instanceof Error ? err.message : String(err), variant: "destructive" });
+                  errorToast({ title: "Bir hata oluştu", description: err instanceof Error ? err.message : String(err) });
                 }
               }}
             >
@@ -1472,7 +1517,7 @@ const Dashboard = () => {
               <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                 <Button variant="outline" size="sm" onClick={() => {
                   navigator.clipboard.writeText(draftedText);
-                  toast({ title: "Başarılı!", description: "Metin panoya kopyalandı." });
+                  successToast({ title: "Başarılı!", description: "Metin panoya kopyalandı." });
                 }} className="w-full sm:w-auto">📋 Panoya Kopyala</Button>
                 <Button variant="secondary" size="sm" onClick={handleDownload} className="w-full sm:w-auto">📥 İndir (.docx)</Button>
                 <Button onClick={() => setIsModalOpen(false)} size="sm" className="w-full sm:w-auto">Kapat</Button>

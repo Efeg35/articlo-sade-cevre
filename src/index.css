@@ -10,8 +10,10 @@
 @layer base {
   :root {
     /* Core Palette */
-    --background: 220 14% 99%; /* Almost white, very light gray */
-    --foreground: 224 71% 4%; /* Near black for text */
+    --background: 220 14% 99%;
+    /* Almost white, very light gray */
+    --foreground: 224 71% 4%;
+    /* Near black for text */
 
     --card: 0 0% 100%;
     --card-foreground: 224 71% 4%;
@@ -28,7 +30,8 @@
     --secondary-foreground: 224 71% 4%;
 
     --muted: 220 14% 96%;
-    --muted-foreground: 220 9% 46%; /* Softer gray for muted text */
+    --muted-foreground: 220 9% 46%;
+    /* Softer gray for muted text */
 
     /* Subtle gray accent */
     --accent: 220 14% 96%;
@@ -36,7 +39,7 @@
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-    
+
     --success: 142 76% 36%;
     --success-foreground: 0 0% 100%;
 
@@ -56,12 +59,20 @@
     --sidebar-accent-foreground: 224 71% 4%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 224 71% 4%;
+
+    /* iOS Safe Area Variables */
+    --safe-area-inset-top: env(safe-area-inset-top);
+    --safe-area-inset-bottom: env(safe-area-inset-bottom);
+    --safe-area-inset-left: env(safe-area-inset-left);
+    --safe-area-inset-right: env(safe-area-inset-right);
   }
 
   .dark {
     /* Dark Theme - High Contrast Grayscale */
-    --background: 224 71% 4%; /* Near black */
-    --foreground: 220 14% 99%; /* Almost white text */
+    --background: 224 71% 4%;
+    /* Near black */
+    --foreground: 220 14% 99%;
+    /* Almost white text */
 
     --card: 224 71% 4%;
     --card-foreground: 220 14% 99%;
@@ -84,7 +95,7 @@
 
     --destructive: 0 63% 31%;
     --destructive-foreground: 220 14% 99%;
-    
+
     --success: 142 71% 45%;
     --success-foreground: 224 71% 4%;
 
@@ -101,6 +112,12 @@
     --sidebar-accent-foreground: 220 14% 99%;
     --sidebar-border: 220 13% 18%;
     --sidebar-ring: 220 14% 99%;
+
+    /* iOS Safe Area Variables (Dark Mode) */
+    --safe-area-inset-top: env(safe-area-inset-top);
+    --safe-area-inset-bottom: env(safe-area-inset-bottom);
+    --safe-area-inset-left: env(safe-area-inset-left);
+    --safe-area-inset-right: env(safe-area-inset-right);
   }
 }
 
@@ -109,8 +126,80 @@
     @apply border-border;
   }
 
+  /* iOS Viewport Sorunları için Kapsamlı Düzeltmeler */
+  html {
+    position: fixed !important;
+    overflow: hidden !important;
+    height: 100vh !important;
+    width: 100vw !important;
+    -webkit-overflow-scrolling: touch;
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+  }
+
   body {
     @apply bg-background text-foreground;
+    /* iOS Safe Area Support */
+    padding-top: var(--safe-area-inset-top);
+    padding-bottom: var(--safe-area-inset-bottom);
+    padding-left: var(--safe-area-inset-left);
+    padding-right: var(--safe-area-inset-right);
+
+    /* iOS Viewport Düzeltmeleri */
+    position: fixed !important;
+    overflow: hidden !important;
+    height: 100vh !important;
+    width: 100vw !important;
+    -webkit-overflow-scrolling: touch;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Fixed positioned elementler için GPU acceleration */
+  [class*="fixed"] {
+    position: fixed !important;
+    transform: translateZ(0) !important;
+    will-change: transform !important;
+    -webkit-transform: translateZ(0) !important;
+    -webkit-will-change: transform !important;
+  }
+
+  /* iOS için özel scroll container */
+  .ios-scroll-container {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    transform: translateZ(0) !important;
+    will-change: transform !important;
+  }
+
+  /* Toast'lar için mobil optimizasyonları */
+  [data-radix-toast-viewport] {
+    position: fixed !important;
+    top: 4rem !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 9998 !important;
+    padding: 1rem !important;
+    pointer-events: none !important;
+  }
+
+  /* Mobilde toast'ların navbar'ın altında görünmesi */
+  @media (max-width: 640px) {
+    [data-radix-toast-viewport] {
+      top: calc(4rem + env(safe-area-inset-top)) !important;
+      padding: 1rem !important;
+    }
+  }
+
+  /* Toast içeriği için pointer events */
+  [data-radix-toast-viewport]>* {
+    pointer-events: auto !important;
   }
 }
 
@@ -120,6 +209,7 @@
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -131,10 +221,12 @@
     transform: translateY(0);
     opacity: 0;
   }
+
   50% {
     transform: translateY(6px);
     opacity: 1;
   }
+
   100% {
     transform: translateY(0);
     opacity: 0;
@@ -160,9 +252,11 @@
 .embla {
   overflow: hidden;
 }
+
 .embla__container {
   display: flex;
 }
+
 .embla__slide {
   flex: 0 0 100%;
   min-width: 0;
