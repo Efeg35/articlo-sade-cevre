@@ -1,4 +1,6 @@
 import { useSession } from '@supabase/auth-helpers-react';
+import type { Session } from '@supabase/supabase-js';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { useEffect } from 'react';
 
 // Session timeout configuration (30 minutes)
@@ -45,7 +47,7 @@ export const useSessionSecurity = () => {
 };
 
 // Check if session is valid
-export const isSessionValid = (session: any): boolean => {
+export const isSessionValid = (session: Session | null): boolean => {
     if (!session) return false;
 
     // Check if session has expired
@@ -56,7 +58,7 @@ export const isSessionValid = (session: any): boolean => {
 };
 
 // Secure logout function
-export const secureLogout = async (supabase: any) => {
+export const secureLogout = async (supabase: SupabaseClient) => {
     try {
         // Clear all local storage
         localStorage.clear();

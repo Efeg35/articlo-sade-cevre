@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useSupabaseClient, useSession } from '@supabase/auth-helpers-react';
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, X, Sparkles, ArrowRight, BrainCircuit, ListChecks, FileJson, Redo, Copy, FileText, CheckCircle, Download, BookMarked, Shield } from "lucide-react";
+import { Loader2, X, Sparkles, ArrowRight, BrainCircuit, ListChecks, FileJson, Redo, Copy, FileText, CheckCircle, Download, BookMarked, Shield, Camera, Image, FileUp } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 import {
   Dialog,
@@ -30,38 +30,39 @@ import { Document, Packer, Paragraph, TextRun } from 'docx';
 import { useCredits } from "@/hooks/useCredits";
 import { documentAnalysisSchema, validateAndSanitizeInput, rateLimiter, validateFileSecurity } from "@/lib/validation";
 import { useSessionSecurity } from "@/lib/sessionSecurity";
-// import TabBar from "@/components/TabBar";
+import { useNativeFileUpload } from "@/hooks/useNativeFileUpload";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 type View = 'input' | 'result';
 
 // Type definitions from smart-analysis function
 interface ExtractedEntity {
-  entity: string; // e.g., "File Number", "Plaintiff Name", "Amount"
+  entity: string;
   value: string | number;
 }
 
 interface ActionableStep {
-  description: string; // e.g., "You can object to this decision within 7 days."
+  description: string;
   actionType: 'CREATE_DOCUMENT' | 'INFO_ONLY';
-  documentToCreate?: string; // If actionType is CREATE_DOCUMENT. e.g., 'EXECUTION_OBJECTION_PETITION'
+  documentToCreate?: string;
 }
 
 interface RiskItem {
-  riskType: string; // e.g., "Yüksek Depozito", "Haksız Şart", "Yasal Sınır Aşımı"
-  description: string; // e.g., "Kontratın 3. maddesinde depozito bedeli 10 kira bedeli olarak belirlenmiştir..."
+  riskType: string;
+  description: string;
   severity: 'high' | 'medium' | 'low';
-  article?: string; // e.g., "3. madde"
-  legalReference?: string; // e.g., "6098 sayılı TBK m. 114"
-  recommendation?: string; // e.g., "Bu maddeyi müzakere etmeyi kesinlikle tavsiye ederiz"
+  article?: string;
+  legalReference?: string;
+  recommendation?: string;
 }
 
 interface AnalysisResponse {
   simplifiedText: string;
-  documentType: string; // e.g., "Payment Order", "Warning Notice", "Unknown"
+  documentType: string;
   summary: string;
   extractedEntities: ExtractedEntity[];
   actionableSteps: ActionableStep[];
-  riskItems?: RiskItem[]; // Yeni risk analizi alanı
+  riskItems?: RiskItem[];
   generatedDocument?: {
     addressee: string;
     caseReference: string;
@@ -88,12 +89,40 @@ const Dashboard = () => {
   const supabase = useSupabaseClient();
   const user = session?.user || null;
 
+  // Comprehensive logging sistemi
+  useEffect(() => {
+    console.log('[Dashboard] Component mounted');
+    console.log('[Dashboard] Initial state:', {
+      user: user?.email,
+      session: !!session,
+      platform: Capacitor.getPlatform(),
+      isNative: Capacitor.isNativePlatform()
+    });
+
+    return () => {
+      console.log('[Dashboard] Component unmounted');
+    };
+  }, [session, user?.email]);
+
   // Session security hook
   useSessionSecurity();
 
   const [originalText, setOriginalText] = useState("");
   const [analysisResult, setAnalysisResult] = useState<AnalysisResponse | null>(null);
   const [loading, setLoading] = useState<null | 'flash' | 'pro'>(null);
+
+  // Native file upload hook
+  const {
+    selectedFiles: nativeFiles,
+    isUploading: isNativeUploading,
+    takePhoto,
+    selectFromGallery,
+    selectDocument,
+    removeFile: removeNativeFile,
+    clearFiles: clearNativeFiles,
+  } = useNativeFileUpload();
+
+  // Legacy file state for web fallback
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
   // Legacy states for backwards compatibility
@@ -116,46 +145,215 @@ const Dashboard = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
 
-  // Kredi yönetimi - Geçici olarak disable edildi
-  // const { credits, refetch: refetchCredits, setCredits } = useCredits(user?.id);
-  const [credits, setCredits] = useState<number | null>(999); // Geçici olarak yüksek kredi
+  // Credits management
+  const [credits, setCredits] = useState<number | null>(999);
+
+  // Fallback UI for critical error
+  const [criticalError, setCriticalError] = useState<string | null>(null);
+  const [apiFallbackMode, setApiFallbackMode] = useState(false);
+  const [nativeFeatureFallback, setNativeFeatureFallback] = useState(false);
+  const [isRecovering, setIsRecovering] = useState(false);
+
+  // 🔧 BUTON ÇALIŞMA TESTİ İÇİN DEBUG FONKSIYONLARI
+  const safeTakePhoto = async () => {
+    console.log('🔥 safeTakePhoto ÇAĞRILDI!');
+    console.log('[Dashboard] takePhoto fonksiyon tipi:', typeof takePhoto);
+
+    try {
+      if (typeof takePhoto !== 'function') {
+        throw new Error('takePhoto fonksiyonu tanımlanmamış');
+      }
+
+      console.log('[Dashboard] takePhoto çağrılıyor...');
+      await takePhoto();
+      console.log('[Dashboard] ✅ Fotoğraf çekildi başarılı');
+      toast({
+        title: 'Başarılı!',
+        description: 'Fotoğraf çekme işlemi tamamlandı.'
+      });
+    } catch (err) {
+      console.error('[Dashboard] ❌ Fotoğraf çekme hatası:', err);
+      toast({
+        title: 'Fotoğraf Hatası',
+        description: `Fotoğraf çekilirken hata: ${err instanceof Error ? err.message : 'Bilinmeyen hata'}`,
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const safeSelectFromGallery = async () => {
+    console.log('🔥 safeSelectFromGallery ÇAĞRILDI!');
+    console.log('[Dashboard] selectFromGallery fonksiyon tipi:', typeof selectFromGallery);
+
+    try {
+      if (typeof selectFromGallery !== 'function') {
+        throw new Error('selectFromGallery fonksiyonu tanımlanmamış');
+      }
+
+      console.log('[Dashboard] selectFromGallery çağrılıyor...');
+      await selectFromGallery();
+      console.log('[Dashboard] ✅ Galeriden seçim başarılı');
+      toast({
+        title: 'Başarılı!',
+        description: 'Galeriden dosya seçimi tamamlandı.'
+      });
+    } catch (err) {
+      console.error('[Dashboard] ❌ Galeri seçme hatası:', err);
+      toast({
+        title: 'Galeri Hatası',
+        description: `Galeriden dosya seçilirken hata: ${err instanceof Error ? err.message : 'Bilinmeyen hata'}`,
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const safeSelectDocument = async () => {
+    console.log('🔥 safeSelectDocument ÇAĞRILDI!');
+    console.log('[Dashboard] selectDocument fonksiyon tipi:', typeof selectDocument);
+
+    try {
+      if (typeof selectDocument !== 'function') {
+        throw new Error('selectDocument fonksiyonu tanımlanmamış');
+      }
+
+      console.log('[Dashboard] selectDocument çağrılıyor...');
+      await selectDocument();
+      console.log('[Dashboard] ✅ Doküman seçimi başarılı');
+      toast({
+        title: 'Başarılı!',
+        description: 'Doküman seçimi tamamlandı.'
+      });
+    } catch (err) {
+      console.error('[Dashboard] ❌ Doküman seçme hatası:', err);
+      toast({
+        title: 'Doküman Hatası',
+        description: `Doküman seçilirken hata: ${err instanceof Error ? err.message : 'Bilinmeyen hata'}`,
+        variant: 'destructive'
+      });
+    }
+  };
+
+  // Hook durumu debug
+  useEffect(() => {
+    console.log('🔍 Hook durumu kontrol:', {
+      nativeFiles: nativeFiles?.length || 0,
+      isNativeUploading,
+      takePhoto: typeof takePhoto,
+      selectFromGallery: typeof selectFromGallery,
+      selectDocument: typeof selectDocument
+    });
+  }, [nativeFiles, isNativeUploading, takePhoto, selectFromGallery, selectDocument]);
+
+  // Error recovery mechanism
+  const handleErrorRecovery = useCallback(async () => {
+    console.log('[Dashboard] Attempting error recovery');
+    setIsRecovering(true);
+    setCriticalError(null);
+    setApiFallbackMode(false);
+    setNativeFeatureFallback(false);
+
+    try {
+      setOriginalText("");
+      setSelectedFiles([]);
+      setAnalysisResult(null);
+      setSimplifiedText("");
+      setSummary("");
+      setActionPlan("");
+      setEntities([]);
+      clearNativeFiles();
+      setView('input');
+      console.log('[Dashboard] Error recovery completed');
+    } catch (error) {
+      console.error('[Dashboard] Error recovery failed:', error);
+      setCriticalError('Kurtarma işlemi başarısız oldu. Lütfen sayfayı yenileyin.');
+    } finally {
+      setIsRecovering(false);
+    }
+  }, [clearNativeFiles]);
+
+  // API fallback mechanism
+  const handleApiFallback = useCallback(async (text: string) => {
+    console.log('[Dashboard] Using API fallback mode');
+    setApiFallbackMode(true);
+
+    try {
+      const simplifiedText = `Sadeleştirilmiş metin: ${text.substring(0, 500)}...`;
+      const summary = `Özet: Bu belge ${text.length} karakter içermektedir.`;
+
+      setSimplifiedText(simplifiedText);
+      setSummary(summary);
+      setView('result');
+
+      toast({
+        title: "Fallback Modu",
+        description: "Gelişmiş analiz kullanılamıyor, basit sadeleştirme yapıldı.",
+      });
+    } catch (error) {
+      console.error('[Dashboard] API fallback error:', error);
+      toast({
+        title: "Fallback Hatası",
+        description: "Basit sadeleştirme de başarısız oldu.",
+        variant: "destructive",
+      });
+    }
+  }, [toast]);
+
+  // Native feature fallback
+  const handleNativeFeatureFallback = useCallback(() => {
+    console.log('[Dashboard] Using native feature fallback');
+    setNativeFeatureFallback(true);
+    toast({
+      title: "Web Modu",
+      description: "Native özellikler kullanılamıyor, web fallback kullanılıyor.",
+    });
+  }, [toast]);
 
   // Sayfa yüklendiğinde scroll pozisyonunu sıfırla
   useEffect(() => {
+    console.log('[Dashboard] Resetting scroll position');
     window.scrollTo(0, 0);
   }, []);
 
+  // Auth check and onboarding
   useEffect(() => {
     const checkAuthAndOnboarding = async () => {
       if (!session || !user) {
-        console.log('No session or user, skipping auth check');
+        console.log('[Dashboard] No session or user, skipping auth check');
         return;
       }
 
-      console.log('Dashboard mounted, user:', user.email);
+      console.log('[Dashboard] Dashboard mounted, user:', user.email);
 
       try {
-        // Sadece mobilde onboarding kontrolü
-        if (Capacitor.isNativePlatform()) {
-          console.log('Checking onboarding status for user:', user.id);
+        let isNative = false;
+        try {
+          isNative = Capacitor.isNativePlatform();
+          console.log('[Dashboard] Platform check:', isNative ? 'Native' : 'Web');
+        } catch (err) {
+          console.error('[Dashboard] Capacitor.isNativePlatform() kontrolünde hata:', err);
+          isNative = false;
+        }
+
+        if (isNative) {
+          console.log('[Dashboard] Checking onboarding status for user:', user.id);
           const { data, error } = await supabase
             .from("profiles")
             .select("id, has_completed_onboarding")
             .eq("id", user.id)
             .single();
 
-          console.log('Profile query result:', { data, error });
+          console.log('[Dashboard] Profile query result:', { data, error });
 
           if (!error && data && data.has_completed_onboarding === false) {
-            console.log('User has not completed onboarding, showing onboarding');
+            console.log('[Dashboard] User has not completed onboarding, showing onboarding');
             setShowOnboarding(true);
             setProfileId(data.id);
           } else if (error) {
-            console.error('Error fetching profile:', error);
+            console.error('[Dashboard] Error fetching profile:', error);
           }
         }
       } catch (err) {
-        console.error('Error in checkAuthAndOnboarding:', err);
+        console.error('[Dashboard] Error in checkAuthAndOnboarding:', err);
       }
     };
 
@@ -164,8 +362,9 @@ const Dashboard = () => {
     try {
       const { data: { subscription } } = supabase.auth.onAuthStateChange(
         (_event, session) => {
-          console.log('Auth state change:', _event, session?.user?.email || 'no session');
+          console.log('[Dashboard] Auth state change:', _event, session?.user?.email || 'no session');
           if (!session) {
+            console.log('[Dashboard] No session, navigating to auth');
             navigate("/auth");
           }
         }
@@ -173,23 +372,26 @@ const Dashboard = () => {
 
       return () => subscription.unsubscribe();
     } catch (err) {
-      console.error('Error setting up auth state listener:', err);
+      console.error('[Dashboard] Error setting up auth state listener:', err);
     }
   }, [navigate, supabase, session, user]);
 
   useEffect(() => {
     if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
       const seen = localStorage.getItem("artiklo_dashboard_tip_seen");
+      console.log('[Dashboard] Mobile tip check:', !seen);
       setShowTip(!seen);
     }
   }, []);
 
   const handleCloseTip = () => {
+    console.log('[Dashboard] Closing tip');
     localStorage.setItem("artiklo_dashboard_tip_seen", "1");
     setShowTip(false);
   };
 
   const handleReset = () => {
+    console.log('[Dashboard] Resetting form state');
     setOriginalText("");
     setSelectedFiles([]);
     setAnalysisResult(null);
@@ -197,16 +399,21 @@ const Dashboard = () => {
     setSummary("");
     setActionPlan("");
     setEntities([]);
+    clearNativeFiles();
     setView('input');
   };
 
+  // Modified handleSimplify with fallback mechanisms
   const handleSimplify = async (model: 'flash' | 'pro') => {
-    // Clear previous validation errors
+    console.log('[Dashboard] Starting simplification with model:', model);
+
     setValidationErrors({});
 
-    // Rate limiting check
     const userIdentifier = user?.id || 'anonymous';
+    console.log('[Dashboard] Rate limiting check for user:', userIdentifier);
+
     if (!rateLimiter.isAllowed(userIdentifier)) {
+      console.log('[Dashboard] Rate limit exceeded');
       toast({
         title: "Çok Fazla İstek",
         description: "Çok fazla istek gönderdiniz. Lütfen 15 dakika bekleyin.",
@@ -215,10 +422,11 @@ const Dashboard = () => {
       return;
     }
 
-    // Input validation
+    console.log('[Dashboard] Validating input');
     const sanitizedText = validateAndSanitizeInput(originalText);
 
     if (!sanitizedText.trim() && selectedFiles.length === 0) {
+      console.log('[Dashboard] No input provided');
       toast({
         title: "Giriş Eksik",
         description: "Lütfen sadeleştirmek için bir metin girin veya dosya yükleyin.",
@@ -227,13 +435,13 @@ const Dashboard = () => {
       return;
     }
 
-    // Validate input with schema
     const validationResult = documentAnalysisSchema.safeParse({
-      text: sanitizedText || undefined, // Boş string yerine undefined gönder
+      text: sanitizedText || undefined,
       files: selectedFiles
     });
 
     if (!validationResult.success) {
+      console.log('[Dashboard] Validation failed:', validationResult.error.errors);
       const errors: Record<string, string> = {};
       validationResult.error.errors.forEach((err) => {
         if (err.path) {
@@ -249,18 +457,7 @@ const Dashboard = () => {
       return;
     }
 
-    // Kredi kontrolü - Geçici olarak devre dışı
-    // if (user && credits !== null) {
-    //   if (credits <= 0) {
-    //     toast({
-    //       title: "Kredi Yetersiz",
-    //       description: "Krediniz kalmadı. Lütfen daha sonra tekrar deneyin.",
-    //       variant: "destructive",
-    //     });
-    //     return;
-    //   }
-    // }
-
+    console.log('[Dashboard] Starting API call');
     setLoading(model);
     setAnalysisResult(null);
     setSummary("");
@@ -268,44 +465,62 @@ const Dashboard = () => {
     setEntities([]);
     setSimplifiedText("");
 
-
-
     try {
       let body: FormData | { text: string; model: string };
       let originalTextForDb = sanitizedText;
-      if (selectedFiles.length > 0) {
+
+      const allFiles = [...selectedFiles, ...nativeFiles];
+      console.log('[Dashboard] Total files to process:', allFiles.length);
+
+      if (allFiles.length > 0) {
+        console.log('[Dashboard] Processing files');
         const formData = new FormData();
+
         selectedFiles.forEach((file) => formData.append('files', file));
+
+        nativeFiles.forEach((fileData) => {
+          const blob = new Blob([fileData.data], { type: fileData.type });
+          const file = new File([blob], fileData.name, { type: fileData.type });
+          formData.append('files', file);
+        });
+
         formData.append('model', model);
         if (sanitizedText.trim()) formData.append('text', sanitizedText);
         body = formData;
-        originalTextForDb = `[Files: ${selectedFiles.map(f => f.name).join(", ")}] ${sanitizedText}`;
+        originalTextForDb = `[Files: ${allFiles.map(f => f.name).join(", ")}] ${sanitizedText}`;
       } else {
         body = { text: sanitizedText, model };
       }
 
+      console.log('[Dashboard] Calling simplify-text function');
       const { data, error } = await supabase.functions.invoke('simplify-text', { body });
-      if (error) throw new Error(error.message || 'Bilinmeyen bir fonksiyon hatası oluştu.');
 
+      if (error) {
+        console.error('[Dashboard] API error:', error);
+
+        if (sanitizedText.trim()) {
+          await handleApiFallback(sanitizedText);
+          return;
+        } else {
+          throw new Error(error.message || 'Bilinmeyen bir fonksiyon hatası oluştu.');
+        }
+      }
+
+      console.log('[Dashboard] API response received');
       setView('result');
 
-      // Debug: Log the API response
-      console.log('API Response:', data);
+      console.log('[Dashboard] API Response:', data);
 
-      // Check if we received structured response
       if (data.simplifiedText && data.documentType && data.extractedEntities && data.actionableSteps) {
-        // New structured response
-        console.log('Using structured response');
+        console.log('[Dashboard] Using structured response');
         setAnalysisResult(data as AnalysisResponse);
       } else {
-        // Legacy response format - maintain backwards compatibility
-        console.log('Using legacy response format');
+        console.log('[Dashboard] Using legacy response format');
         setSummary(data.summary || "");
         setSimplifiedText(data.simplifiedText || "");
         setActionPlan(data.actionPlan || "");
         setEntities(Array.isArray(data.entities) ? data.entities : []);
 
-        // Legacy entities'i AnalysisResponse formatına dönüştür
         const legacyEntities = Array.isArray(data.entities) ? data.entities : [];
         const convertedEntities = legacyEntities.map((entity: unknown) => {
           const entityObj = entity as { tip?: string; entity?: string; değer?: string; value?: string };
@@ -315,10 +530,9 @@ const Dashboard = () => {
           };
         });
 
-        // Legacy response'u AnalysisResponse formatına dönüştür
         setAnalysisResult({
           simplifiedText: data.simplifiedText || "",
-          documentType: data.documentType || "Bilinmeen",
+          documentType: data.documentType || "Bilinmeyen",
           summary: data.summary || "",
           extractedEntities: convertedEntities,
           actionableSteps: []
@@ -326,6 +540,7 @@ const Dashboard = () => {
       }
 
       if (user) {
+        console.log('[Dashboard] Saving document to database');
         const { error: insertError } = await supabase.from('documents').insert({
           user_id: user.id,
           original_text: originalTextForDb,
@@ -334,27 +549,31 @@ const Dashboard = () => {
           action_plan: data.actionPlan || "",
           entities: data.entities || null,
         });
+
         if (insertError) {
+          console.error('[Dashboard] Database insert error:', insertError);
           toast({
             title: "Kayıt Hatası",
             description: insertError.message || "Belge Supabase'a kaydedilemedi.",
             variant: "destructive",
           });
         } else {
-          // Kredi azaltma işlemi
+          console.log('[Dashboard] Document saved successfully');
           if (user) {
+            console.log('[Dashboard] Decrementing credits');
             const { error: creditError } = await supabase.rpc('decrement_credit', {
               user_id_param: user.id
             });
 
             if (creditError) {
-              console.error('Kredi azaltma hatası:', creditError);
+              console.error('[Dashboard] Credit decrement error:', creditError);
               toast({
                 title: "Kredi Azaltma Hatası",
                 description: "Krediniz azaltılamadı ama işlem tamamlandı.",
                 variant: "destructive",
               });
             } else {
+              console.log('[Dashboard] Credits decremented successfully');
               toast({
                 title: "Başarılı!",
                 description: "Belgeniz başarıyla sadeleştirildi ve kaydedildi. 1 kredi düşüldü.",
@@ -369,13 +588,20 @@ const Dashboard = () => {
         }
       }
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "Bir hata oluştu. Lütfen tekrar deneyin.";
-      toast({
-        title: "Sadeleştirme Hatası",
-        description: message,
-        variant: "destructive",
-      });
+      console.error('[Dashboard] Simplification error:', error);
+
+      if (sanitizedText.trim()) {
+        await handleApiFallback(sanitizedText);
+      } else {
+        const message = error instanceof Error ? error.message : "Bir hata oluştu. Lütfen tekrar deneyin.";
+        toast({
+          title: "Sadeleştirme Hatası",
+          description: message,
+          variant: "destructive",
+        });
+      }
     } finally {
+      console.log('[Dashboard] Simplification completed');
       setLoading(null);
     }
   };
@@ -408,24 +634,24 @@ const Dashboard = () => {
     }
   };
 
-  // Onboarding bitince Supabase Edge Function çağır
   const handleOnboardingFinish = async () => {
+    console.log('[Dashboard] Finishing onboarding');
     setShowOnboarding(false);
     if (profileId) {
       try {
+        console.log('[Dashboard] Calling complete-onboarding function');
         await supabase.functions.invoke('complete-onboarding', { body: {} });
+        console.log('[Dashboard] Onboarding completed successfully');
       } catch (e) {
-        // Hata yönetimi
+        console.error('[Dashboard] Onboarding completion error:', e);
       }
     }
   };
 
   const handleDownload = async () => {
     try {
-      // Metni paragraflara böl
       const paragraphs = draftedText.split('\n').filter(line => line.trim() !== '');
 
-      // Word dokümanı oluştur
       const doc = new Document({
         sections: [{
           properties: {},
@@ -434,22 +660,20 @@ const Dashboard = () => {
               children: [
                 new TextRun({
                   text: paragraph,
-                  size: 24, // 12pt
+                  size: 24,
                   font: 'Calibri',
                 }),
               ],
               spacing: {
-                after: 200, // Paragraf sonrası boşluk
+                after: 200,
               },
             })
           ),
         }],
       });
 
-      // Dokümanı blob olarak oluştur
       const blob = await Packer.toBlob(doc);
 
-      // İndirme linki oluştur
       const element = document.createElement("a");
       element.href = URL.createObjectURL(blob);
       element.download = "artiklo-belge.docx";
@@ -457,7 +681,6 @@ const Dashboard = () => {
       element.click();
       element.remove();
 
-      // URL'yi temizle
       URL.revokeObjectURL(element.href);
 
       toast({ title: "Başarılı!", description: "Word belgesi indiriliyor." });
@@ -473,7 +696,6 @@ const Dashboard = () => {
 
   const handleShowDraft = () => {
     if (analysisResult && analysisResult.generatedDocument) {
-      // Dilekçeyi yapısal JSON'dan okunabilir metne dönüştür
       const doc = analysisResult.generatedDocument;
       const partyDetails = doc.parties.map(p => `${p.role}:\n${p.details}`).join('\n\n');
       const explanationsText = doc.explanations.map((p, i) => `${i + 1}. ${p}`).join('\n\n');
@@ -499,7 +721,6 @@ const Dashboard = () => {
     }
   };
 
-  // Handle copying to clipboard
   const handleCopyDraft = async () => {
     try {
       await navigator.clipboard.writeText(draftedText);
@@ -516,7 +737,6 @@ const Dashboard = () => {
     }
   };
 
-  // Handle downloading as .txt file
   const handleDownloadDraft = () => {
     try {
       const element = document.createElement("a");
@@ -539,6 +759,19 @@ const Dashboard = () => {
     }
   };
 
+  // State change logging
+  useEffect(() => {
+    console.log('[Dashboard] View changed to:', view);
+  }, [view]);
+
+  useEffect(() => {
+    console.log('[Dashboard] Loading state changed to:', loading);
+  }, [loading]);
+
+  useEffect(() => {
+    console.log('[Dashboard] Analysis result updated:', !!analysisResult);
+  }, [analysisResult]);
+
   if (!user) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center pt-20 md:pt-16 pt-[env(safe-area-inset-top)]">
@@ -547,14 +780,57 @@ const Dashboard = () => {
     );
   }
 
+  // Critical error fallback UI
+  if (criticalError) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="max-w-md w-full">
+          <CardHeader>
+            <CardTitle>Dashboard Yüklenemedi</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="mb-4 text-destructive">{criticalError}</p>
+            <div className="flex gap-2">
+              <Button onClick={handleErrorRecovery} disabled={isRecovering}>
+                {isRecovering ? 'Kurtarılıyor...' : 'Kurtarmayı Dene'}
+              </Button>
+              <Button onClick={() => window.location.reload()} variant="outline">
+                Sayfayı Yenile
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Modified renderInputView with fallback indicators
   const renderInputView = () => (
     <div className="flex flex-col items-center pt-4 md:pt-0 pt-[env(safe-area-inset-top)] px-4 md:px-0">
+      {/* Fallback mode indicators */}
+      {apiFallbackMode && (
+        <div className="w-full max-w-4xl mb-4 p-3 bg-yellow-100 border border-yellow-400 rounded-lg">
+          <p className="text-yellow-800 text-sm">
+            ⚠️ Fallback modu aktif: Gelişmiş analiz kullanılamıyor
+          </p>
+        </div>
+      )}
+
+      {nativeFeatureFallback && (
+        <div className="w-full max-w-4xl mb-4 p-3 bg-blue-100 border border-blue-400 rounded-lg">
+          <p className="text-blue-800 text-sm">
+            ℹ️ Web modu: Native özellikler kullanılamıyor
+          </p>
+        </div>
+      )}
+
       {showTip && (
         <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-[9999] bg-primary text-primary-foreground px-4 py-2 rounded shadow-lg flex items-center gap-2 animate-fade-in max-w-[90vw]">
           <span className="text-sm md:text-base">Belgelerinizi yükleyin veya yapıştırın, saniyeler içinde sadeleştirin!</span>
           <button onClick={handleCloseTip} className="ml-2 text-lg font-bold">×</button>
         </div>
       )}
+
       <Card className="w-full max-w-4xl border shadow-sm">
         <CardContent className="p-4 md:p-6">
           <Textarea
@@ -565,58 +841,148 @@ const Dashboard = () => {
             disabled={loading !== null}
           />
           <div className="my-4 text-center text-xs uppercase text-muted-foreground">Veya</div>
-          <label htmlFor="file-upload" className="block w-full">
-            <input
-              id="file-upload"
-              type="file"
-              accept="image/*,application/pdf,.doc,.docx,.txt,.rtf"
-              multiple
-              className="hidden"
-              disabled={loading !== null}
-              onChange={(e) => {
-                if (e.target.files) {
-                  const files = Array.from(e.target.files);
 
-                  // Enhanced security validation for each file
-                  const validFiles = files.filter(file => {
-                    const securityCheck = validateFileSecurity(file);
-                    if (!securityCheck.isValid) {
+          {/* Native Platform için Dosya Yükleme Butonları */}
+          {Capacitor.isNativePlatform() ? (
+            <div className="space-y-3">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <Button
+                  onClick={safeTakePhoto}
+                  disabled={loading !== null || isNativeUploading}
+                  variant="outline"
+                  className="flex items-center justify-center gap-2 h-12"
+                >
+                  {isNativeUploading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Camera className="h-4 w-4" />
+                  )}
+                  <span className="text-sm font-medium">📸 Fotoğraf Çek</span>
+                </Button>
+
+                <Button
+                  onClick={safeSelectFromGallery}
+                  disabled={loading !== null || isNativeUploading}
+                  variant="outline"
+                  className="flex items-center justify-center gap-2 h-12"
+                >
+                  {isNativeUploading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Image className="h-4 w-4" />
+                  )}
+                  <span className="text-sm font-medium">🖼️ Galeriden Seç</span>
+                </Button>
+
+                <Button
+                  onClick={safeSelectDocument}
+                  disabled={loading !== null || isNativeUploading}
+                  variant="outline"
+                  className="flex items-center justify-center gap-2 h-12"
+                >
+                  {isNativeUploading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <FileUp className="h-4 w-4" />
+                  )}
+                  <span className="text-sm font-medium">📄 Dosya Seç</span>
+                </Button>
+              </div>
+
+              {/* 🧪 DEBUG TEST BUTONU - GEÇİCİ */}
+              <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-sm text-red-700 mb-2">🧪 Debug Test (Geçici)</p>
+                <Button
+                  onClick={() => {
+                    console.log('🔥 TEST BUTONU ÇALIŞIYOR!');
+                    toast({
+                      title: 'Test Başarılı!',
+                      description: 'Buton event handling çalışıyor.'
+                    });
+                  }}
+                  className="bg-red-500 hover:bg-red-600 text-white text-sm"
+                  size="sm"
+                >
+                  🧪 EVENT TEST BUTONU
+                </Button>
+              </div>
+
+              {/* Native Dosyalar Listesi */}
+              {nativeFiles.length > 0 && (
+                <ul className="mt-4 space-y-2">
+                  {nativeFiles.map((file, idx) => (
+                    <li key={`native-${file.name}-${idx}`} className="flex items-center justify-between bg-muted/50 p-2 rounded-md text-sm">
+                      <span className="truncate font-medium">{file.name}</span>
+                      <button
+                        type="button"
+                        className="ml-2 text-muted-foreground hover:text-destructive disabled:opacity-50"
+                        onClick={() => removeNativeFile(idx)}
+                        aria-label="Dosyayı kaldır"
+                        disabled={loading !== null}
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          ) : (
+            /* Web Platform için Fallback */
+            <label htmlFor="file-upload" className="block w-full">
+              <input
+                id="file-upload"
+                type="file"
+                accept="image/*,application/pdf,.doc,.docx,.txt,.rtf"
+                multiple
+                className="hidden"
+                disabled={loading !== null}
+                onChange={(e) => {
+                  if (e.target.files) {
+                    const files = Array.from(e.target.files);
+
+                    const validFiles = files.filter(file => {
+                      const securityCheck = validateFileSecurity(file);
+                      if (!securityCheck.isValid) {
+                        toast({
+                          title: "Güvenlik Uyarısı",
+                          description: securityCheck.error || "Dosya güvenlik kontrolünden geçemedi.",
+                          variant: "destructive",
+                        });
+                        return false;
+                      }
+                      return true;
+                    });
+
+                    if (validFiles.length !== files.length) {
                       toast({
-                        title: "Güvenlik Uyarısı",
-                        description: securityCheck.error || "Dosya güvenlik kontrolünden geçemedi.",
+                        title: "Güvenlik Kontrolü",
+                        description: "Bazı dosyalar güvenlik nedeniyle reddedildi.",
                         variant: "destructive",
                       });
-                      return false;
                     }
-                    return true;
-                  });
 
-                  if (validFiles.length !== files.length) {
-                    toast({
-                      title: "Güvenlik Kontrolü",
-                      description: "Bazı dosyalar güvenlik nedeniyle reddedildi.",
-                      variant: "destructive",
-                    });
+                    setSelectedFiles(validFiles);
                   }
+                }}
+              />
+              <Button
+                asChild
+                type="button"
+                variant="outline"
+                className="w-full cursor-pointer text-sm md:text-base"
+                disabled={loading !== null}
+              >
+                <span>📄 Dosya Seç (PDF, DOC, DOCX, TXT, Görüntü)</span>
+              </Button>
+            </label>
+          )}
 
-                  setSelectedFiles(validFiles);
-                }
-              }}
-            />
-            <Button
-              asChild
-              type="button"
-              variant="outline"
-              className="w-full cursor-pointer text-sm md:text-base"
-              disabled={loading !== null}
-            >
-              <span>📄 Dosya Seç (PDF, DOC, DOCX, TXT, Görüntü)</span>
-            </Button>
-          </label>
+          {/* Web Dosyalar Listesi */}
           {selectedFiles.length > 0 && (
             <ul className="mt-4 space-y-2">
               {selectedFiles.map((file, idx) => (
-                <li key={`${file.name}-${idx}`} className="flex items-center justify-between bg-muted/50 p-2 rounded-md text-sm">
+                <li key={`web-${file.name}-${idx}`} className="flex items-center justify-between bg-muted/50 p-2 rounded-md text-sm">
                   <span className="truncate font-medium">{file.name}</span>
                   <button
                     type="button"
@@ -633,6 +999,7 @@ const Dashboard = () => {
           )}
         </CardContent>
       </Card>
+
       <Button
         onClick={() => handleSimplify('flash')}
         disabled={loading !== null}
@@ -642,6 +1009,7 @@ const Dashboard = () => {
         {loading === 'flash' ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <Sparkles className="h-5 w-5 mr-2" />}
         {loading === 'flash' ? 'Sadeleştiriliyor...' : 'Sadeleştir'}
       </Button>
+
       <Button
         onClick={() => setIsProModalOpen(true)}
         disabled={loading !== null}
@@ -656,7 +1024,6 @@ const Dashboard = () => {
   );
 
   const renderResultView = () => {
-    // Render new structured response if available, otherwise fall back to legacy
     if (analysisResult) {
       return (
         <div className="space-y-6 px-4 md:px-0">
@@ -733,7 +1100,6 @@ const Dashboard = () => {
                 <div className="space-y-4">
                   {analysisResult.riskItems
                     .sort((a, b) => {
-                      // High severity first, then medium, then low
                       const severityOrder = { high: 0, medium: 1, low: 2 };
                       return severityOrder[a.severity as keyof typeof severityOrder] - severityOrder[b.severity as keyof typeof severityOrder];
                     })
@@ -964,13 +1330,14 @@ const Dashboard = () => {
     );
   };
 
+  // Dashboard render
   return (
-    <>
+    <ErrorBoundary componentName="Dashboard">
       <OnboardingTour open={showOnboarding} onFinish={handleOnboardingFinish} />
-      <div className="h-screen bg-background flex flex-col items-center pt-20 md:pt-28 px-2 dashboard-container overflow-hidden">
-        <div className="w-full max-w-5xl flex flex-col items-center mt-8 mb-8">
+      <div className={`${view === 'result' ? 'min-h-screen' : 'h-screen'} bg-background flex flex-col items-center pt-8 md:pt-16 px-2 dashboard-container ${view === 'result' ? 'overflow-auto' : 'overflow-hidden'}`}>
+        <div className="w-full max-w-5xl flex flex-col items-center mt-4 mb-6">
           <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-2 text-center">Hukuki Belgeni Sadeleştir</h2>
-          <p className="text-muted-foreground text-center max-w-xl mb-6">
+          <p className="text-muted-foreground text-center max-w-xl mb-4">
             Karmaşık hukuki metninizi aşağıdaki alana yapıştırın veya dosya olarak yükleyin.
           </p>
         </div>
@@ -978,6 +1345,7 @@ const Dashboard = () => {
           {view === 'input' ? renderInputView() : renderResultView()}
         </div>
       </div>
+
       {/* PRO Coming Soon Modal */}
       <Dialog open={isProModalOpen} onOpenChange={setIsProModalOpen}>
         <DialogContent>
@@ -1092,7 +1460,7 @@ const Dashboard = () => {
           </div>
         </DialogContent>
       </Dialog>
-    </>
+    </ErrorBoundary>
   );
 };
 

@@ -26,11 +26,15 @@ const Navbar = () => {
     pathname: location.pathname
   });
 
-  // Geçici olarak useCredits'i disable ediyoruz
-  // const { credits, loading: creditsLoading, error: creditsError } = useCredits(user?.id);
-  const credits = null;
-  const creditsLoading = false;
-  const creditsError = null;
+  // Kredi sistemi aktif
+  const { credits, loading: creditsLoading, error: creditsError } = useCredits(user?.id);
+
+  console.log('Credits debug:', {
+    userId: user?.id,
+    credits,
+    loading: creditsLoading,
+    error: creditsError
+  });
 
   useEffect(() => {
     const handleScroll = () => {

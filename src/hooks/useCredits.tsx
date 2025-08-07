@@ -8,8 +8,13 @@ export function useCredits(userId?: string) {
   const [error, setError] = useState<string | null>(null);
 
   const fetchCredits = useCallback(async () => {
-    if (!userId) return;
+    if (!userId) {
+      console.log('No userId provided for credits fetch');
+      return;
+    }
     setLoading(true);
+    console.log('Fetching credits for user:', userId);
+
     const { data, error } = await supabase
       .from("profiles")
       .select("credits")
@@ -17,8 +22,16 @@ export function useCredits(userId?: string) {
       .single<{
         credits: Tables<"profiles">["credits"]
       }>();
-    if (error) setError(error.message);
-    else setCredits(data?.credits ?? null);
+
+    console.log('Credits fetch result:', { data, error, userId });
+
+    if (error) {
+      console.error('Credits fetch error:', error);
+      setError(error.message);
+    } else {
+      console.log('Credits data:', data);
+      setCredits(data?.credits ?? null);
+    }
     setLoading(false);
   }, [userId]);
 

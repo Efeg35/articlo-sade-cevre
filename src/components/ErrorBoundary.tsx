@@ -6,6 +6,7 @@ import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
 interface Props {
     children: ReactNode;
     fallback?: ReactNode;
+    componentName?: string; // Hata oluşan component adı
 }
 
 interface State {
@@ -25,7 +26,14 @@ class ErrorBoundary extends Component<Props, State> {
     }
 
     componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-        console.error('ErrorBoundary caught an error:', error, errorInfo);
+        // Hata detaylarını state'e kaydet
+        this.setState({ errorInfo });
+        // Kapsamlı loglama
+        console.error(
+            `[ErrorBoundary] Hata yakalandı${this.props.componentName ? ` (Component: ${this.props.componentName})` : ''}:`,
+            error,
+            errorInfo
+        );
 
         // Log error to external service (Sentry, etc.)
         // if (window.Sentry) {
@@ -47,6 +55,9 @@ class ErrorBoundary extends Component<Props, State> {
                 return this.props.fallback;
             }
 
+            const { error, errorInfo } = this.state;
+            const { componentName } = this.props;
+
             return (
                 <div className="min-h-screen bg-background flex items-center justify-center p-4">
                     <Card className="w-full max-w-md">
@@ -55,21 +66,25 @@ class ErrorBoundary extends Component<Props, State> {
                                 <AlertTriangle className="h-6 w-6 text-red-600" />
                             </div>
                             <CardTitle className="text-xl">Bir Hata Oluştu</CardTitle>
+                            {componentName && (
+                                <div className="mt-2 text-xs text-muted-foreground">Bileşen: <span className="font-semibold">{componentName}</span></div>
+                            )}
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <p className="text-sm text-muted-foreground text-center">
-                                Beklenmedik bir hata oluştu. Lütfen sayfayı yenileyin veya ana sayfaya dönün.
+                                Uygulamada beklenmedik bir hata oluştu. Lütfen sayfayı yenileyin veya ana sayfaya dönün.<br />
+                                Sorun devam ederse destek ekibine ulaşabilirsiniz.
                             </p>
 
-                            {process.env.NODE_ENV === 'development' && this.state.error && (
-                                <details className="text-xs bg-muted p-3 rounded">
-                                    <summary className="cursor-pointer font-medium mb-2">Hata Detayları (Geliştirici)</summary>
+                            {error && (
+                                <details className="text-xs bg-muted p-3 rounded" open>
+                                    <summary className="cursor-pointer font-medium mb-2">Hata Detayları</summary>
                                     <pre className="whitespace-pre-wrap text-red-600">
-                                        {this.state.error.toString()}
+                                        {error.toString()}
                                     </pre>
-                                    {this.state.errorInfo && (
+                                    {errorInfo && (
                                         <pre className="whitespace-pre-wrap text-muted-foreground mt-2">
-                                            {this.state.errorInfo.componentStack}
+                                            {errorInfo.componentStack}
                                         </pre>
                                     )}
                                 </details>

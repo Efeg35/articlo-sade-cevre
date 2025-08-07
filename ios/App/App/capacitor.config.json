@@ -2,19 +2,79 @@
 	"appId": "com.artiklo.app",
 	"appName": "Artiklo",
 	"webDir": "dist",
-	"server": {
-		"hostname": "app",
-		"allowNavigation": [
-			"app",
-			"127.0.0.1",
-			"localhost"
-		]
+	"plugins": {
+		"SplashScreen": {
+			"launchShowDuration": 2000,
+			"backgroundColor": "#1a73e8",
+			"showSpinner": false,
+			"androidSpinnerStyle": "large",
+			"iosSpinnerStyle": "small",
+			"spinnerColor": "#ffffff"
+		},
+		"StatusBar": {
+			"style": "DARK",
+			"backgroundColor": "#ffffff",
+			"overlaysWebView": false
+		},
+		"Keyboard": {
+			"resize": "native",
+			"style": "default",
+			"resizeOnFullScreen": true
+		},
+		"Camera": {
+			"quality": 90,
+			"allowEditing": true,
+			"resultType": "Base64"
+		},
+		"PushNotifications": {
+			"presentationOptions": [
+				"badge",
+				"sound",
+				"alert"
+			]
+		},
+		"LocalNotifications": {
+			"smallIcon": "ic_launcher",
+			"iconColor": "#1a73e8"
+		},
+		"Haptics": {
+			"enabled": true
+		}
 	},
 	"ios": {
-		"contentInset": "automatic"
+		"contentInset": "automatic",
+		"allowsLinkPreview": false,
+		"scrollEnabled": true,
+		"backgroundColor": "#ffffff",
+		"limitsNavigationsToAppBoundDomains": false,
+		"scheme": "https"
+	},
+	"android": {
+		"allowMixedContent": false,
+		"captureInput": true,
+		"webContentsDebuggingEnabled": false,
+		"appendUserAgent": "Artiklo-Mobile",
+		"backgroundColor": "#ffffff",
+		"minWebViewVersion": 55
+	},
+	"loggingBehavior": "debug",
+	"cordova": {
+		"preferences": {
+			"scheme": "https",
+			"hostname": "localhost"
+		}
 	},
 	"packageClassList": [
 		"AppPlugin",
-		"PreferencesPlugin"
+		"CAPCameraPlugin",
+		"FilesystemPlugin",
+		"HapticsPlugin",
+		"KeyboardPlugin",
+		"LocalNotificationsPlugin",
+		"PreferencesPlugin",
+		"PushNotificationsPlugin",
+		"SplashScreenPlugin",
+		"StatusBarPlugin",
+		"FilePickerPlugin"
 	]
 }

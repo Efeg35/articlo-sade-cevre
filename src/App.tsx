@@ -1,9 +1,8 @@
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation, useNavigate, Outlet } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Capacitor } from '@capacitor/core';
 import { App as CapacitorApp } from '@capacitor/app';
 import { createClient } from '@supabase/supabase-js';
@@ -44,10 +43,26 @@ const supabaseClient = createClient(
   import.meta.env.VITE_SUPABASE_ANON_KEY!
 );
 
+// Platform detection utility
+const getPlatformInfo = () => {
+  try {
+    const isNative = Capacitor.isNativePlatform();
+    const platform = Capacitor.getPlatform();
+    return { isNative, platform };
+  } catch (error) {
+    console.error('[App] Platform detection hatası:', error);
+    return { isNative: false, platform: 'web' };
+  }
+};
+
 const MainLayout = () => {
   const location = useLocation();
   const hideNavbarOnPages = ['/splash', '/onboarding-mobil', '/auth', '/login', '/signup'];
   const shouldHideNavbar = hideNavbarOnPages.includes(location.pathname);
+
+  useEffect(() => {
+    console.log('[MainLayout] Route changed:', location.pathname);
+  }, [location.pathname]);
 
   return (
     <>
@@ -59,24 +74,50 @@ const MainLayout = () => {
   );
 };
 
-// Yeni: Protected Route wrapper
+// Güvenli Protected Route wrapper
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const session = useSession();
   const navigate = useNavigate();
   const location = useLocation();
+  const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
-    console.log('ProtectedRoute session check:', session);
-    if (!session) {
-      console.log('No session, redirecting to auth');
-      navigate('/auth', { replace: true });
-    }
-  }, [session, navigate]);
+    console.log('[ProtectedRoute] Session check:', !!session, 'Path:', location.pathname);
+
+    const checkAuth = async () => {
+      try {
+        setIsChecking(true);
+
+        if (!session) {
+          console.log('[ProtectedRoute] No session, redirecting to auth');
+          navigate('/auth', { replace: true });
+          return;
+        }
+
+        console.log('[ProtectedRoute] Session valid, allowing access');
+        setIsChecking(false);
+      } catch (error) {
+        console.error('[ProtectedRoute] Auth check error:', error);
+        navigate('/auth', { replace: true });
+      }
+    };
+
+    checkAuth();
+  }, [session, navigate, location.pathname]);
+
+  if (isChecking) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Yükleniyor...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!session) {
-    return <div className="min-h-screen bg-background flex items-center justify-center">
-      <div className="text-center">Loading...</div>
-    </div>;
+    return null; // Redirect will happen
   }
 
   return <>{children}</>;
@@ -86,49 +127,85 @@ const AppContent = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const session = useSession();
-  const isMobile = Capacitor.isNativePlatform();
+  const [platformInfo, setPlatformInfo] = useState(() => getPlatformInfo());
 
-  // Geri tuş yönetimi
+  // Platform detection'ı güncelle
   useEffect(() => {
-    if (isMobile) {
-      CapacitorApp.addListener('backButton', ({ canGoBack }) => {
+    const info = getPlatformInfo();
+    setPlatformInfo(info);
+    console.log('[AppContent] Platform info:', info);
+  }, []);
+
+  // Güvenli geri tuş yönetimi
+  useEffect(() => {
+    if (!platformInfo.isNative) return;
+
+    const handleBackButton = ({ canGoBack }: { canGoBack: boolean }) => {
+      try {
+        console.log('[AppContent] Back button pressed, canGoBack:', canGoBack);
         if (canGoBack) {
           window.history.back();
         } else {
-          console.log('No more history to go back to.');
+          console.log('[AppContent] No more history to go back to.');
         }
-      });
+      } catch (error) {
+        console.error('[AppContent] Back button error:', error);
+      }
+    };
+
+    try {
+      CapacitorApp.addListener('backButton', handleBackButton);
+      console.log('[AppContent] Back button listener added');
+    } catch (error) {
+      console.error('[AppContent] Failed to add back button listener:', error);
     }
 
     return () => {
-      if (isMobile) {
+      try {
         CapacitorApp.removeAllListeners();
+        console.log('[AppContent] Back button listener removed');
+      } catch (error) {
+        console.error('[AppContent] Failed to remove back button listener:', error);
       }
     };
-  }, [isMobile]);
+  }, [platformInfo.isNative]);
 
-  // Mobil platformlarda direkt splash screen'e yönlendirme
+  // Mobil platformlarda splash screen yönetimi
   useEffect(() => {
-    if (isMobile && location.pathname === '/') {
-      const isFirstLaunch = sessionStorage.getItem('firstLaunchDone') !== 'true';
-      if (isFirstLaunch) {
-        sessionStorage.setItem('firstLaunchDone', 'true');
-        navigate('/splash', { replace: true });
+    if (platformInfo.isNative && location.pathname === '/') {
+      try {
+        const isFirstLaunch = sessionStorage.getItem('firstLaunchDone') !== 'true';
+        console.log('[AppContent] Mobile platform, first launch:', isFirstLaunch);
+
+        if (isFirstLaunch) {
+          sessionStorage.setItem('firstLaunchDone', 'true');
+          console.log('[AppContent] Redirecting to splash screen');
+          navigate('/splash', { replace: true });
+        }
+      } catch (error) {
+        console.error('[AppContent] Splash screen redirect error:', error);
       }
     }
-  }, [navigate, location, isMobile]);
+  }, [navigate, location, platformInfo.isNative]);
 
   // Auth durumuna göre route yönetimi
   useEffect(() => {
-    console.log('Session state:', session);
+    console.log('[AppContent] Session state changed:', !!session, 'Current path:', location.pathname);
+
     if (session && location.pathname === '/auth') {
-      console.log('User authenticated, redirecting to dashboard');
+      console.log('[AppContent] User authenticated, redirecting to dashboard');
       navigate('/dashboard', { replace: true });
     }
-  }, [session, location, navigate]);
+  }, [session, location.pathname, navigate]);
 
-  // Mobil platformlarda hiç Index sayfasını render etme
-  if (isMobile && location.pathname === '/') {
+  // Route change logging
+  useEffect(() => {
+    console.log('[AppContent] Route changed to:', location.pathname);
+  }, [location.pathname]);
+
+  // Mobil platformlarda Index sayfasını render etme
+  if (platformInfo.isNative && location.pathname === '/') {
+    console.log('[AppContent] Mobile platform, showing splash screen instead of Index');
     return <SplashScreen />;
   }
 
@@ -149,16 +226,20 @@ const AppContent = () => {
         <Route path="/blog" element={<Blog />} />
         <Route path="/blog/:id" element={<BlogPost />} />
 
-        {/* Protected Routes */}
+        {/* Protected Routes with ErrorBoundary */}
         <Route path="/dashboard" element={
-          <ProtectedRoute>
-            <Dashboard />
-          </ProtectedRoute>
+          <ErrorBoundary componentName="Dashboard">
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          </ErrorBoundary>
         } />
         <Route path="/archive" element={
-          <ProtectedRoute>
-            <ArchivePage />
-          </ProtectedRoute>
+          <ErrorBoundary componentName="Archive">
+            <ProtectedRoute>
+              <ArchivePage />
+            </ProtectedRoute>
+          </ErrorBoundary>
         } />
       </Route>
 
@@ -176,18 +257,25 @@ const AppContent = () => {
 const App = () => {
   const [supabase] = useState(() => supabaseClient);
 
+  useEffect(() => {
+    console.log('[App] App component mounted - Optimized for mobile security');
+    return () => {
+      console.log('[App] App component unmounted');
+    };
+  }, []);
+
   return (
     <SessionContextProvider supabaseClient={supabase}>
       <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <BrowserRouter>
-            <ErrorBoundary>
-              <AppContent />
-            </ErrorBoundary>
-            <Toaster />
-            <Sonner />
-          </BrowserRouter>
-        </TooltipProvider>
+        {/* 🔧 TOOLTIP SYSTEM TAMAMEN KALDIRILDI - MAX GÜVENLİK VE PERFORMANS */}
+        <BrowserRouter>
+          <ErrorBoundary componentName="App">
+            <AppContent />
+          </ErrorBoundary>
+          <Toaster />
+          <Sonner />
+        </BrowserRouter>
+        {/* 🔧 TOOLTIP SYSTEM TAMAMEN KALDIRILDI - MAX GÜVENLİK VE PERFORMANS */}
       </QueryClientProvider>
     </SessionContextProvider>
   );

@@ -3,4 +3,6 @@
   <access origin="*" />
   
   
+  <preference name="scheme" value="https" />
+  <preference name="hostname" value="localhost" />
 </widget>
