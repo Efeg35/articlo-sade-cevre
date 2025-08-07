@@ -165,14 +165,16 @@ const Auth = () => {
   return (
     <div className="min-h-screen bg-background flex items-start justify-center pt-8 md:pt-12 pt-[env(safe-area-inset-top)] px-4">
 
-      {/* Logo ekranın en sol üstünde */}
-      <div className="fixed -top-4 left-4 z-50">
-        <img
-          src="/Arka-plan-aynı-logo.png"
-          alt="Artiklo Logo"
-          className="h-24 w-24 md:h-32 md:w-32 object-contain"
-        />
-      </div>
+      {/* Logo ekranın en sol üstünde (Sadece web'de göster) */}
+      {!Capacitor.isNativePlatform() && (
+        <div className="fixed -top-4 left-4 z-50">
+          <img
+            src="/Arka-plan-aynı-logo.png"
+            alt="Artiklo Logo"
+            className="h-24 w-24 md:h-32 md:w-32 object-contain"
+          />
+        </div>
+      )}
 
       <div className="w-full max-w-sm relative mt-8 md:mt-12">
 

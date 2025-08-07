@@ -269,99 +269,99 @@ serve(async (req) => {
 
   try {
     if (!geminiApiKey) throw new Error('Sunucu hatası: GEMINI_API_KEY yapılandırılmamış.');
-    
+
     let textToAnalyze: string = "";
     const contentType = req.headers.get('content-type');
     if (contentType?.includes('multipart/form-data')) {
-        const formData = await req.formData();
-        const files = formData.getAll('files') as File[];
-        if (!files || files.length === 0) throw new Error('Formda "files" adında bir dosya bulunamadı.');
-        const file = files[0];
-        const fileName = file.name.toLowerCase();
-        
-        if (fileName.endsWith('.docx') || fileName.endsWith('.doc')) {
-            const arrayBuffer = await file.arrayBuffer();
-            const result = await mammoth.extractRawText({ arrayBuffer });
-            textToAnalyze = result.value;
-        } else if (fileName.endsWith('.txt')) {
-            // TXT dosyaları için düz metin okuma
-            const text = await file.text();
-            textToAnalyze = text;
-        } else if (fileName.endsWith('.pdf')) {
-            // PDF dosyaları için OCR (PDF'ler resim olarak işlenir)
-            const arrayBuffer = await file.arrayBuffer();
-            const uint8Array = new Uint8Array(arrayBuffer);
-            const base64Image = base64Encode(uint8Array);
-            
-            // Gemini Vision API ile OCR
-            const visionResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                contents: [{
-                  parts: [
-                    { text: "Bu PDF dosyasındaki tüm metni oku ve döndür. Sadece metni döndür, başka hiçbir şey ekleme." },
-                    {
-                      inline_data: {
-                        mime_type: 'application/pdf',
-                        data: base64Image
-                      }
-                    }
-                  ]
-                }]
-              })
-            });
-            
-            if (!visionResponse.ok) {
-              throw new Error(`Gemini Vision API hatası: ${visionResponse.status} ${await visionResponse.text()}`);
-            }
-            
-            const visionData = await visionResponse.json();
-            textToAnalyze = visionData.candidates?.[0]?.content?.parts?.[0]?.text || "";
-        } else if (fileName.endsWith('.jpg') || fileName.endsWith('.jpeg') || fileName.endsWith('.png') || fileName.endsWith('.gif') || fileName.endsWith('.bmp') || fileName.endsWith('.webp')) {
-            // Resim dosyaları için OCR
-            const arrayBuffer = await file.arrayBuffer();
-            const uint8Array = new Uint8Array(arrayBuffer);
-            // Deno ortamında base64 encoding
-            const base64Image = base64Encode(uint8Array);
-            
-            // Gemini Vision API ile OCR
-            const visionResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                contents: [{
-                  parts: [
-                    { text: "Bu resimdeki tüm metni oku ve döndür. Sadece metni döndür, başka hiçbir şey ekleme." },
-                    {
-                      inline_data: {
-                        mime_type: file.type,
-                        data: base64Image
-                      }
-                    }
-                  ]
-                }]
-              })
-            });
-            
-            if (!visionResponse.ok) {
-              throw new Error(`Gemini Vision API hatası: ${visionResponse.status} ${await visionResponse.text()}`);
-            }
-            
-            const visionData = await visionResponse.json();
-            textToAnalyze = visionData.candidates?.[0]?.content?.parts?.[0]?.text || "";
-        } else {
-            throw new Error(`Desteklenmeyen dosya türü: ${file.name}. Desteklenen türler: .docx, .doc, .pdf, .txt, .jpg, .jpeg, .png, .gif, .bmp, .webp`);
+      const formData = await req.formData();
+      const files = formData.getAll('files') as File[];
+      if (!files || files.length === 0) throw new Error('Formda "files" adında bir dosya bulunamadı.');
+      const file = files[0];
+      const fileName = file.name.toLowerCase();
+
+      if (fileName.endsWith('.docx') || fileName.endsWith('.doc')) {
+        const arrayBuffer = await file.arrayBuffer();
+        const result = await mammoth.extractRawText({ arrayBuffer });
+        textToAnalyze = result.value;
+      } else if (fileName.endsWith('.txt')) {
+        // TXT dosyaları için düz metin okuma
+        const text = await file.text();
+        textToAnalyze = text;
+      } else if (fileName.endsWith('.pdf')) {
+        // PDF dosyaları için OCR (PDF'ler resim olarak işlenir)
+        const arrayBuffer = await file.arrayBuffer();
+        const uint8Array = new Uint8Array(arrayBuffer);
+        const base64Image = base64Encode(uint8Array);
+
+        // Gemini Vision API ile OCR
+        const visionResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{
+              parts: [
+                { text: "Bu PDF dosyasındaki tüm metni oku ve döndür. Sadece metni döndür, başka hiçbir şey ekleme." },
+                {
+                  inline_data: {
+                    mime_type: 'application/pdf',
+                    data: base64Image
+                  }
+                }
+              ]
+            }]
+          })
+        });
+
+        if (!visionResponse.ok) {
+          throw new Error(`Gemini Vision API hatası: ${visionResponse.status} ${await visionResponse.text()}`);
         }
+
+        const visionData = await visionResponse.json();
+        textToAnalyze = visionData.candidates?.[0]?.content?.parts?.[0]?.text || "";
+      } else if (fileName.endsWith('.jpg') || fileName.endsWith('.jpeg') || fileName.endsWith('.png') || fileName.endsWith('.gif') || fileName.endsWith('.bmp') || fileName.endsWith('.webp')) {
+        // Resim dosyaları için OCR
+        const arrayBuffer = await file.arrayBuffer();
+        const uint8Array = new Uint8Array(arrayBuffer);
+        // Deno ortamında base64 encoding
+        const base64Image = base64Encode(uint8Array);
+
+        // Gemini Vision API ile OCR
+        const visionResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{
+              parts: [
+                { text: "Bu resimdeki tüm metni oku ve döndür. Sadece metni döndür, başka hiçbir şey ekleme." },
+                {
+                  inline_data: {
+                    mime_type: file.type,
+                    data: base64Image
+                  }
+                }
+              ]
+            }]
+          })
+        });
+
+        if (!visionResponse.ok) {
+          throw new Error(`Gemini Vision API hatası: ${visionResponse.status} ${await visionResponse.text()}`);
+        }
+
+        const visionData = await visionResponse.json();
+        textToAnalyze = visionData.candidates?.[0]?.content?.parts?.[0]?.text || "";
+      } else {
+        throw new Error(`Desteklenmeyen dosya türü: ${file.name}. Desteklenen türler: .docx, .doc, .pdf, .txt, .jpg, .jpeg, .png, .gif, .bmp, .webp`);
+      }
     } else { // JSON varsayımı
-        const body = await req.json();
-        textToAnalyze = body.text;
+      const body = await req.json();
+      textToAnalyze = body.text;
     }
 
     if (!textToAnalyze.trim()) throw new Error('Analiz edilecek metin bulunamadı.');
 
     const geminiPrompt = createMasterPrompt(textToAnalyze);
-    
+
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${geminiApiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

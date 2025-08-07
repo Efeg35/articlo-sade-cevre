@@ -9,6 +9,7 @@ import { Scale, ChevronDown, LogIn, User as UserIcon, Archive, LogOut, Sparkles 
 import type { User } from "@supabase/supabase-js";
 import { useCredits } from "../hooks/useCredits";
 import { Badge } from "@/components/ui/badge";
+import { Capacitor } from "@capacitor/core";
 
 const Navbar = () => {
   const session = useSession();
@@ -73,21 +74,33 @@ const Navbar = () => {
       )}
     >
       <nav className="container mx-auto px-4 h-16 flex items-center justify-between">
-        {/* Logo - Sol */}
-        <Link
-          to={user ? "/dashboard" : "/"}
-          className="flex items-center gap-0 font-bold text-xl hover:opacity-80 transition-opacity"
-        >
-          <img
-            src="/Arka-plan-aynı-logo.png"
-            alt="Artiklo Logo"
-            className="w-32 h-32 object-contain"
-            style={{ mixBlendMode: 'multiply' }}
-          />
-          <span className="text-black font-bold text-2xl -ml-6">
-            ARTIKLO
-          </span>
-        </Link>
+        {/* Logo - Sol (Web'de logo, mobilde sadece yazı) */}
+        {!Capacitor.isNativePlatform() ? (
+          <Link
+            to={user ? "/dashboard" : "/"}
+            className="flex items-center gap-0 font-bold text-xl hover:opacity-80 transition-opacity"
+          >
+            <img
+              src="/Arka-plan-aynı-logo.png"
+              alt="Artiklo Logo"
+              className="w-32 h-32 object-contain"
+              style={{ mixBlendMode: 'multiply' }}
+            />
+            <span className="text-black font-bold text-2xl -ml-6">
+              ARTIKLO
+            </span>
+          </Link>
+        ) : (
+          /* Mobil platformda sadece yazı */
+          <Link
+            to={user ? "/dashboard" : "/"}
+            className="flex items-center hover:opacity-80 transition-opacity"
+          >
+            <span className="text-black font-bold text-base">
+              ARTIKLO
+            </span>
+          </Link>
+        )}
 
         {/* Navigation Links - Orta */}
         {!user && (
@@ -111,7 +124,7 @@ const Navbar = () => {
         )}
 
         {/* Auth Buttons - Sağ */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 ml-auto">
           {user ? (
             <>
               {isDashboard || isArchive ? (

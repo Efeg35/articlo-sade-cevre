@@ -425,7 +425,8 @@ const Dashboard = () => {
     console.log('[Dashboard] Validating input');
     const sanitizedText = validateAndSanitizeInput(originalText);
 
-    if (!sanitizedText.trim() && selectedFiles.length === 0) {
+    const allFiles = [...selectedFiles, ...nativeFiles];
+    if (!sanitizedText.trim() && allFiles.length === 0) {
       console.log('[Dashboard] No input provided');
       toast({
         title: "Giriş Eksik",
@@ -437,7 +438,7 @@ const Dashboard = () => {
 
     const validationResult = documentAnalysisSchema.safeParse({
       text: sanitizedText || undefined,
-      files: selectedFiles
+      files: allFiles
     });
 
     if (!validationResult.success) {
@@ -478,11 +479,47 @@ const Dashboard = () => {
 
         selectedFiles.forEach((file) => formData.append('files', file));
 
-        nativeFiles.forEach((fileData) => {
-          const blob = new Blob([fileData.data], { type: fileData.type });
-          const file = new File([blob], fileData.name, { type: fileData.type });
-          formData.append('files', file);
-        });
+        // Native dosyaları güvenli şekilde işle
+        for (let i = 0; i < nativeFiles.length; i++) {
+          const fileData = nativeFiles[i];
+          try {
+            console.log('[Dashboard] Processing native file:', fileData.name, 'type:', fileData.type);
+            console.log('[Dashboard] File data length:', fileData.data?.length || 0);
+            console.log('[Dashboard] File data preview:', fileData.data?.substring(0, 100) + '...');
+
+            // Base64 data kontrolü
+            if (!fileData.data || fileData.data.length === 0) {
+              throw new Error('Dosya verisi boş veya eksik');
+            }
+
+            // Base64 string'i binary data'ya çevir
+            const binaryString = atob(fileData.data);
+            const bytes = new Uint8Array(binaryString.length);
+            for (let j = 0; j < binaryString.length; j++) {
+              bytes[j] = binaryString.charCodeAt(j);
+            }
+
+            const blob = new Blob([bytes], { type: fileData.type });
+            console.log('[Dashboard] Blob created, size:', blob.size);
+
+            const file = new File([blob], fileData.name, { type: fileData.type });
+            console.log('[Dashboard] File created, size:', file.size);
+
+            formData.append('files', file);
+
+            console.log('[Dashboard] Successfully processed native file:', fileData.name);
+          } catch (error) {
+            console.error('[Dashboard] Error processing native file:', error);
+            console.error('[Dashboard] File data:', fileData);
+            toast({
+              title: "Dosya İşleme Hatası",
+              description: `Dosya işlenirken hata oluştu: ${error instanceof Error ? error.message : 'Bilinmeyen hata'}`,
+              variant: "destructive",
+            });
+            setLoading(null);
+            return;
+          }
+        }
 
         formData.append('model', model);
         if (sanitizedText.trim()) formData.append('text', sanitizedText);
@@ -889,23 +926,7 @@ const Dashboard = () => {
                 </Button>
               </div>
 
-              {/* 🧪 DEBUG TEST BUTONU - GEÇİCİ */}
-              <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-sm text-red-700 mb-2">🧪 Debug Test (Geçici)</p>
-                <Button
-                  onClick={() => {
-                    console.log('🔥 TEST BUTONU ÇALIŞIYOR!');
-                    toast({
-                      title: 'Test Başarılı!',
-                      description: 'Buton event handling çalışıyor.'
-                    });
-                  }}
-                  className="bg-red-500 hover:bg-red-600 text-white text-sm"
-                  size="sm"
-                >
-                  🧪 EVENT TEST BUTONU
-                </Button>
-              </div>
+
 
               {/* Native Dosyalar Listesi */}
               {nativeFiles.length > 0 && (
@@ -1335,9 +1356,9 @@ const Dashboard = () => {
     <ErrorBoundary componentName="Dashboard">
       <OnboardingTour open={showOnboarding} onFinish={handleOnboardingFinish} />
       <div className={`${view === 'result' ? 'min-h-screen' : 'h-screen'} bg-background flex flex-col items-center pt-8 md:pt-16 px-2 dashboard-container ${view === 'result' ? 'overflow-auto' : 'overflow-hidden'}`}>
-        <div className="w-full max-w-5xl flex flex-col items-center mt-4 mb-6">
-          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-2 text-center">Hukuki Belgeni Sadeleştir</h2>
-          <p className="text-muted-foreground text-center max-w-xl mb-4">
+        <div className={`w-full max-w-5xl flex flex-col items-center ${Capacitor.isNativePlatform() ? 'mt-12' : 'mt-4'} ${Capacitor.isNativePlatform() ? 'mb-2' : 'mb-6'}`}>
+          <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2 text-center">Hukuki Belgeni Sadeleştir</h2>
+          <p className={`text-muted-foreground text-center max-w-xl text-sm ${Capacitor.isNativePlatform() ? 'mb-1' : 'mb-4'}`}>
             Karmaşık hukuki metninizi aşağıdaki alana yapıştırın veya dosya olarak yükleyin.
           </p>
         </div>
