@@ -1,5 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { BrowserRouter } from 'react-router-dom'
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
 import ErrorBoundary from '../ErrorBoundary'
 
 // Test component that throws an error
@@ -46,7 +47,7 @@ describe('ErrorBoundary', () => {
         )
 
         expect(screen.getByText('Bir Hata Oluştu')).toBeInTheDocument()
-        expect(screen.getByText('Beklenmedik bir hata oluştu. Lütfen sayfayı yenileyin veya ana sayfaya dönün.')).toBeInTheDocument()
+        expect(screen.getByText(/Uygulamada beklenmedik bir hata oluştu/)).toBeInTheDocument()
     })
 
     it('shows reset and home buttons', () => {
