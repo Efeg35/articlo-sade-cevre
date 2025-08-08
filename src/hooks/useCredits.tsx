@@ -1,11 +1,12 @@
 import { useEffect, useState, useCallback } from "react";
-import { supabase } from "../integrations/supabase/client";
-import { Tables } from "../integrations/supabase/types";
+import { useSupabaseClient } from '@supabase/auth-helpers-react';
+import type { Database } from "../integrations/supabase/types";
 
 export function useCredits(userId?: string) {
   const [credits, setCredits] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const supabase = useSupabaseClient<Database>();
 
   const fetchCredits = useCallback(async () => {
     if (!userId) {
@@ -19,9 +20,7 @@ export function useCredits(userId?: string) {
       .from("profiles")
       .select("credits")
       .eq("id", userId)
-      .single<{
-        credits: Tables<"profiles">["credits"]
-      }>();
+      .single();
 
     console.log('Credits fetch result:', { data, error, userId });
 
@@ -30,7 +29,8 @@ export function useCredits(userId?: string) {
       setError(error.message);
     } else {
       console.log('Credits data:', data);
-      setCredits(data?.credits ?? null);
+      setError(null);
+      setCredits((data as { credits: number } | null)?.credits ?? null);
     }
     setLoading(false);
   }, [userId]);
