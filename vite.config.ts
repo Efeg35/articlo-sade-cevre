@@ -58,29 +58,65 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          // React ekosistemi
-          vendor: ['react', 'react-dom'],
-          router: ['react-router-dom'],
+          // React ekosistemi - AYRILMAMALI
+          'react-vendor': ['react', 'react-dom', 'react/jsx-runtime'],
 
-          // UI kütüphaneleri
-          ui: [
+          // Router
+          'router': ['react-router-dom'],
+
+          // UI kütüphaneleri - Ana
+          'ui-core': [
             '@radix-ui/react-dialog',
-            '@radix-ui/react-select',
             '@radix-ui/react-dropdown-menu',
-            '@radix-ui/react-tabs'
+            '@radix-ui/react-select',
+            '@radix-ui/react-tabs',
+            '@radix-ui/react-toast'
           ],
 
+          // UI kütüphaneleri - Ek
+          'ui-extended': [
+            '@radix-ui/react-accordion',
+            '@radix-ui/react-alert-dialog',
+            '@radix-ui/react-aspect-ratio',
+            '@radix-ui/react-avatar',
+            '@radix-ui/react-checkbox',
+            '@radix-ui/react-collapsible'
+          ],
+
+          // Capacitor
+          'capacitor': [
+            '@capacitor/core',
+            '@capacitor/app',
+            '@capacitor/keyboard',
+            '@capacitor/camera',
+            '@capacitor/status-bar'
+          ],
+
+          // Supabase
+          'supabase': ['@supabase/supabase-js', '@supabase/auth-helpers-react'],
+
+          // Büyük kütüphaneler
+          'charts': ['recharts'],
+          'document-processing': ['docx'],
+          'query': ['@tanstack/react-query'],
+
+          // Form utilities
+          'forms': ['react-hook-form', '@hookform/resolvers', 'zod'],
+
+          // Icons
+          'icons': ['lucide-react'],
+
+          // Date utilities
+          'date-utils': ['date-fns', 'react-day-picker'],
+
           // Utility kütüphaneleri
-          utils: ['clsx', 'tailwind-merge', 'class-variance-authority'],
-
-          // Form ve validation
-          forms: ['react-hook-form', '@hookform/resolvers', 'zod'],
-
-          // İkonlar ve medya
-          icons: ['lucide-react'],
-
-          // Supabase ve auth
-          supabase: ['@supabase/supabase-js']
+          'utils': [
+            'clsx',
+            'tailwind-merge',
+            'class-variance-authority',
+            'dompurify',
+            'sonner'
+          ]
         }
       }
     },

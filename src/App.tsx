@@ -2,43 +2,65 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation, useNavigate, Outlet } from "react-router-dom";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, Suspense, lazy } from "react";
 import { Capacitor } from '@capacitor/core';
 import { App as CapacitorApp } from '@capacitor/app';
 import { createClient } from '@supabase/supabase-js';
 import { SessionContextProvider, useSession } from '@supabase/auth-helpers-react';
 import { useAnalytics } from "./hooks/useAnalytics";
+import ErrorBoundary from "./components/ErrorBoundary";
+
+// Critical pages - immediate load
 import Index from "./pages/Index";
-import Dashboard from "./pages/Dashboard";
-import ArchivePage from "./pages/ArchivePage";
-import { TemplatesPage } from "./pages/TemplatesPage";
-import Navbar from "./components/Navbar";
-import MobileOnboarding from "./pages/MobileOnboarding";
 import SplashScreen from "./pages/SplashScreen";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
-import NedenArtiklo from "./pages/NedenArtiklo";
-import Yorumlar from "./pages/Yorumlar";
-import Senaryolar from "./pages/Senaryolar";
-import SSS from "./pages/SSS";
-import Hakkimizda from "./pages/Hakkimizda";
-import KullaniciSozlesmesi from "./pages/KullaniciSozlesmesi";
-import KvkkAydinlatma from "./pages/KvkkAydinlatma";
-import Blog from "./pages/Blog";
-import BlogPost from "./pages/BlogPost";
-import MobileWelcome from "./pages/MobileWelcome";
-import NasilCalisir from "./pages/NasilCalisir";
-import Fiyatlandirma from "./pages/Fiyatlandirma";
-import RehberPage from "./pages/RehberPage";
-import RehberDetayPage from "./pages/RehberDetayPage";
-import PartnerSignUpPage from "./pages/partner/PartnerSignUpPage";
-import PartnerLoginPage from "./pages/partner/PartnerLoginPage";
-import ProfilePage from "./pages/partner/ProfilePage";
-import DashboardPage from "./pages/partner/DashboardPage";
-import ApplicationPage from "./pages/partner/ApplicationPage";
-import AnalyticsPage from "./pages/AnalyticsPage";
-import NotificationSettingsPage from "./pages/NotificationSettingsPage";
-import ErrorBoundary from "./components/ErrorBoundary";
+import Navbar from "./components/Navbar";
+
+// Lazy loaded pages - route-based code splitting
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const ArchivePage = lazy(() => import("./pages/ArchivePage"));
+const TemplatesPage = lazy(() => import("./pages/TemplatesPage").then(module => ({ default: module.TemplatesPage })));
+const AnalyticsPage = lazy(() => import("./pages/AnalyticsPage"));
+const NotificationSettingsPage = lazy(() => import("./pages/NotificationSettingsPage"));
+
+// Public pages - lazy load
+const NasilCalisir = lazy(() => import("./pages/NasilCalisir"));
+const Fiyatlandirma = lazy(() => import("./pages/Fiyatlandirma"));
+const NedenArtiklo = lazy(() => import("./pages/NedenArtiklo"));
+const Yorumlar = lazy(() => import("./pages/Yorumlar"));
+const Senaryolar = lazy(() => import("./pages/Senaryolar"));
+const SSS = lazy(() => import("./pages/SSS"));
+const Hakkimizda = lazy(() => import("./pages/Hakkimizda"));
+const KullaniciSozlesmesi = lazy(() => import("./pages/KullaniciSozlesmesi"));
+const KvkkAydinlatma = lazy(() => import("./pages/KvkkAydinlatma"));
+const Blog = lazy(() => import("./pages/Blog"));
+const BlogPost = lazy(() => import("./pages/BlogPost"));
+
+// Mobile specific pages
+const MobileOnboarding = lazy(() => import("./pages/MobileOnboarding"));
+const MobileWelcome = lazy(() => import("./pages/MobileWelcome"));
+
+// Guide pages
+const RehberPage = lazy(() => import("./pages/RehberPage"));
+const RehberDetayPage = lazy(() => import("./pages/RehberDetayPage"));
+
+// Partner pages
+const PartnerSignUpPage = lazy(() => import("./pages/partner/PartnerSignUpPage"));
+const PartnerLoginPage = lazy(() => import("./pages/partner/PartnerLoginPage"));
+const ProfilePage = lazy(() => import("./pages/partner/ProfilePage"));
+const DashboardPage = lazy(() => import("./pages/partner/DashboardPage"));
+const ApplicationPage = lazy(() => import("./pages/partner/ApplicationPage"));
+
+// Loading fallback component
+const PageLoader = () => (
+  <div className="min-h-screen bg-background flex items-center justify-center">
+    <div className="text-center">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+      <p className="text-muted-foreground">Sayfa yükleniyor...</p>
+    </div>
+  </div>
+);
 
 const queryClient = new QueryClient();
 
@@ -139,6 +161,24 @@ const AppContent = () => {
     console.log('[AppContent] Platform info:', info);
   }, []);
 
+  // Global StatusBar ayarları
+  useEffect(() => {
+    if (!platformInfo.isNative) return;
+
+    const setGlobalStatusBar = async () => {
+      try {
+        const { StatusBar, Style } = await import('@capacitor/status-bar');
+        await StatusBar.setStyle({ style: Style.Dark });
+        await StatusBar.setBackgroundColor({ color: '#ffffff' });
+        console.log('[AppContent] Global StatusBar set to dark style');
+      } catch (error) {
+        console.error('[AppContent] Global StatusBar hatası (normal):', error);
+      }
+    };
+
+    setGlobalStatusBar();
+  }, [platformInfo.isNative]);
+
   // Güvenli geri tuş yönetimi
   useEffect(() => {
     if (!platformInfo.isNative) return;
@@ -215,68 +255,84 @@ const AppContent = () => {
   }
 
   return (
-    <Routes>
-      {/* Navbar'ın görüneceği public sayfalar */}
-      <Route element={<MainLayout />}>
-        <Route path="/" element={<Index />} />
-        <Route path="/nasil-calisir" element={<NasilCalisir />} />
-        <Route path="/fiyatlandirma" element={<Fiyatlandirma />} />
-        <Route path="/neden-artiklo" element={<NedenArtiklo />} />
-        <Route path="/yorumlar" element={<Yorumlar />} />
-        <Route path="/senaryolar" element={<Senaryolar />} />
-        <Route path="/sss" element={<SSS />} />
-        <Route path="/hakkimizda" element={<Hakkimizda />} />
-        <Route path="/kullanici-sozlesmesi" element={<KullaniciSozlesmesi />} />
-        <Route path="/kvkk-aydinlatma" element={<KvkkAydinlatma />} />
-        <Route path="/blog" element={<Blog />} />
-        <Route path="/blog/:id" element={<BlogPost />} />
+    <Suspense fallback={<PageLoader />}>
+      <Routes>
+        {/* Navbar'ın görüneceği public sayfalar */}
+        <Route element={<MainLayout />}>
+          <Route path="/" element={<Index />} />
+          <Route path="/nasil-calisir" element={<NasilCalisir />} />
+          <Route path="/fiyatlandirma" element={<Fiyatlandirma />} />
+          <Route path="/neden-artiklo" element={<NedenArtiklo />} />
+          <Route path="/yorumlar" element={<Yorumlar />} />
+          <Route path="/senaryolar" element={<Senaryolar />} />
+          <Route path="/sss" element={<SSS />} />
+          <Route path="/hakkimizda" element={<Hakkimizda />} />
+          <Route path="/kullanici-sozlesmesi" element={<KullaniciSozlesmesi />} />
+          <Route path="/kvkk-aydinlatma" element={<KvkkAydinlatma />} />
+          <Route path="/blog" element={<Blog />} />
+          <Route path="/blog/:id" element={<BlogPost />} />
 
-        {/* Protected Routes with ErrorBoundary */}
-        <Route path="/dashboard" element={
-          <ErrorBoundary componentName="Dashboard">
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          </ErrorBoundary>
-        } />
-        <Route path="/archive" element={
-          <ErrorBoundary componentName="Archive">
-            <ProtectedRoute>
-              <ArchivePage />
-            </ProtectedRoute>
-          </ErrorBoundary>
-        } />
-        <Route path="/templates" element={
-          <ErrorBoundary componentName="Templates">
-            <ProtectedRoute>
-              <TemplatesPage />
-            </ProtectedRoute>
-          </ErrorBoundary>
-        } />
-        <Route path="/analytics" element={
-          <ErrorBoundary componentName="Analytics">
-            <ProtectedRoute>
-              <AnalyticsPage />
-            </ProtectedRoute>
-          </ErrorBoundary>
-        } />
-        <Route path="/notifications" element={
-          <ErrorBoundary componentName="Notifications">
-            <ProtectedRoute>
-              <NotificationSettingsPage />
-            </ProtectedRoute>
-          </ErrorBoundary>
-        } />
-      </Route>
+          {/* Protected Routes with ErrorBoundary and Lazy Loading */}
+          <Route path="/dashboard" element={
+            <ErrorBoundary componentName="Dashboard">
+              <ProtectedRoute>
+                <Suspense fallback={<PageLoader />}>
+                  <Dashboard />
+                </Suspense>
+              </ProtectedRoute>
+            </ErrorBoundary>
+          } />
+          <Route path="/archive" element={
+            <ErrorBoundary componentName="Archive">
+              <ProtectedRoute>
+                <Suspense fallback={<PageLoader />}>
+                  <ArchivePage />
+                </Suspense>
+              </ProtectedRoute>
+            </ErrorBoundary>
+          } />
+          <Route path="/templates" element={
+            <ErrorBoundary componentName="Templates">
+              <ProtectedRoute>
+                <Suspense fallback={<PageLoader />}>
+                  <TemplatesPage />
+                </Suspense>
+              </ProtectedRoute>
+            </ErrorBoundary>
+          } />
+          <Route path="/analytics" element={
+            <ErrorBoundary componentName="Analytics">
+              <ProtectedRoute>
+                <Suspense fallback={<PageLoader />}>
+                  <AnalyticsPage />
+                </Suspense>
+              </ProtectedRoute>
+            </ErrorBoundary>
+          } />
+          <Route path="/notifications" element={
+            <ErrorBoundary componentName="Notifications">
+              <ProtectedRoute>
+                <Suspense fallback={<PageLoader />}>
+                  <NotificationSettingsPage />
+                </Suspense>
+              </ProtectedRoute>
+            </ErrorBoundary>
+          } />
+        </Route>
 
-      {/* Navbar'ın görünmeyeceği, tam ekran sayfalar */}
-      <Route path="/splash" element={<SplashScreen />} />
-      <Route path="/onboarding-mobil" element={<MobileOnboarding />} />
-      <Route path="/auth" element={<Auth />} />
-      <Route path="/login" element={<Auth />} />
-      <Route path="/signup" element={<Auth />} />
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+        {/* Navbar'ın görünmeyeceği, tam ekran sayfalar */}
+        <Route path="/splash" element={<SplashScreen />} />
+        <Route path="/onboarding-mobil" element={
+          <Suspense fallback={<PageLoader />}>
+            <MobileOnboarding />
+          </Suspense>
+        } />
+        <Route path="/auth" element={<Auth />} />
+        <Route path="/login" element={<Auth />} />
+        <Route path="/signup" element={<Auth />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </Suspense>
   );
 };
 

@@ -36,7 +36,7 @@ const config: CapacitorConfig = {
     },
     Camera: {
       quality: 90,
-      allowEditing: true,
+      allowEditing: false,
       resultType: "Base64"
     },
     PushNotifications: {

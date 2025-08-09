@@ -22,8 +22,8 @@ const ToastViewport = React.forwardRef<
   }, []);
 
   const positionClasses = isNative
-    ? "fixed top-16 left-0 right-0 z-[9998] flex max-h-screen w-full flex-col p-4 sm:top-0 sm:right-0 sm:w-auto md:max-w-[420px]"
-    : "fixed bottom-0 right-0 z-[9998] flex max-h-screen w-full flex-col p-4 sm:bottom-0 sm:right-0 sm:w-auto md:max-w-[420px]";
+    ? "fixed top-16 left-0 right-0 z-[10001] flex max-h-screen w-full flex-col p-4 sm:top-0 sm:right-0 sm:w-auto md:max-w-[420px]"
+    : "fixed bottom-0 right-0 z-[10001] flex max-h-screen w-full flex-col p-4 sm:bottom-0 sm:right-0 sm:w-auto md:max-w-[420px]";
 
   return (
     <ToastPrimitives.Viewport

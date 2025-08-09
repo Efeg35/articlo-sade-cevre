@@ -148,7 +148,7 @@ export const useNativeFileUpload = (): UseNativeFileUploadReturn => {
 
             const image = await Camera.getPhoto({
                 quality: 90,
-                allowEditing: true,
+                allowEditing: false,
                 resultType: CameraResultType.Base64,
                 source: CameraSource.Camera,
             });
@@ -216,7 +216,7 @@ export const useNativeFileUpload = (): UseNativeFileUploadReturn => {
 
             const image = await Camera.getPhoto({
                 quality: 90,
-                allowEditing: true,
+                allowEditing: false,
                 resultType: CameraResultType.Base64,
                 source: CameraSource.Photos,
             });

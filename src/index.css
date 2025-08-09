@@ -158,8 +158,35 @@
     pointer-events: auto !important;
   }
 
-  /* iOS/Mobil platformlar için özel düzeltmeler */
-  @supports (-webkit-touch-callout: none) {
+  /* Mobil tarayıcı scroll optimizasyonları */
+  @media (max-width: 768px) {
+    html {
+      -webkit-overflow-scrolling: touch;
+      -webkit-text-size-adjust: 100%;
+      -ms-text-size-adjust: 100%;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      -webkit-overflow-scrolling: touch;
+      -webkit-tap-highlight-color: transparent;
+      /* Mobil tarayıcı için overflow auto'ya dönüştür */
+      overflow-x: hidden;
+      overflow-y: auto;
+    }
+
+    /* Tüm sayfa container'ları için mobil scroll fix */
+    .mobile-scroll-fix {
+      -webkit-overflow-scrolling: touch;
+      overflow-y: auto;
+      overflow-x: hidden;
+      min-height: 100vh;
+      touch-action: pan-y;
+    }
+  }
+
+  /* SADECE Native iOS uygulaması için aşırı kurallar */
+  .native-ios-platform {
 
     /* iOS Safari için viewport düzeltmeleri */
     html {

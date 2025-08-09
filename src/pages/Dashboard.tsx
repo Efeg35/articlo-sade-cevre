@@ -14,7 +14,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, X, Sparkles, ArrowRight, BrainCircuit, ListChecks, FileJson, Redo, Copy, FileText, CheckCircle, Download, BookMarked, Shield, Camera, Image, FileUp } from "lucide-react";
+import { Loader2, X, Sparkles, ArrowRight, BrainCircuit, ListChecks, FileJson, Redo, Copy, FileText, CheckCircle, Download, BookMarked, Shield, Camera, Image, FileUp, ChevronDown, Plus } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 import {
   Dialog,
@@ -24,8 +24,14 @@ import {
   DialogTitle,
   DialogDescription
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Capacitor } from "@capacitor/core";
-import OnboardingTour from "@/components/OnboardingTour";
+import SimpleOnboardingTour from "@/components/SimpleOnboardingTour";
 import ReactMarkdown from 'react-markdown';
 import { Document, Packer, Paragraph, TextRun } from 'docx';
 import { useCredits } from "@/hooks/useCredits";
@@ -108,6 +114,22 @@ const Dashboard = () => {
   // iOS Keyboard Event Listener - UI Reset için
   useEffect(() => {
     if (Capacitor.isNativePlatform()) {
+      // Status bar'ı güvenli şekilde ayarla
+      const setStatusBarSafe = async () => {
+        try {
+          // Dinamik import ile StatusBar'ı yükle
+          const { StatusBar, Style } = await import('@capacitor/status-bar');
+          await StatusBar.setStyle({ style: Style.Dark });
+          await StatusBar.setBackgroundColor({ color: '#ffffff' });
+          console.log('[Dashboard] Status bar set to dark style');
+        } catch (error) {
+          console.error('[Dashboard] Status bar ayarlama hatası (normal):', error);
+          // StatusBar mevcut değilse devam et
+        }
+      };
+
+      setStatusBarSafe();
+
       const handleKeyboardDidHide = () => {
         console.log('[Dashboard] Keyboard hidden, resetting UI...');
 
@@ -737,6 +759,10 @@ const Dashboard = () => {
         console.error('[Dashboard] Onboarding completion error:', e);
       }
     }
+
+    // Redirect to auth for login/signup
+    console.log('[Dashboard] Redirecting to auth');
+    navigate('/auth');
   };
 
   const handleDownload = async () => {
@@ -923,7 +949,7 @@ const Dashboard = () => {
       )}
 
       <Card className="w-full max-w-4xl border shadow-sm">
-        <CardContent className="p-4 md:p-6">
+        <CardContent className="p-4 md:p-6 max-h-[70vh] overflow-y-auto">
           <Textarea
             placeholder="Karmaşık hukuki belgenizi buraya yapıştırın..."
             value={originalText}
@@ -933,73 +959,96 @@ const Dashboard = () => {
           />
           <div className="my-4 text-center text-xs uppercase text-muted-foreground">Veya</div>
 
-          {/* Native Platform için Dosya Yükleme Butonları */}
+          {/* Native Platform için Dosya Yükleme Dropdown */}
           {Capacitor.isNativePlatform() ? (
-            <div className="space-y-3">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <Button
-                  onClick={safeTakePhoto}
-                  disabled={loading !== null || isNativeUploading}
-                  variant="outline"
-                  className="flex items-center justify-center gap-2 h-12"
-                >
-                  {isNativeUploading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
+            <div className="space-y-3 flex-shrink-0">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    disabled={loading !== null || isNativeUploading}
+                    variant="outline"
+                    className="w-full flex items-center justify-center gap-2 h-12"
+                  >
+                    {isNativeUploading ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Plus className="h-4 w-4" />
+                    )}
+                    <span className="text-sm font-medium">
+                      {isNativeUploading ? 'Dosya Yükleniyor...' : '📁 Dosya Ekle'}
+                    </span>
+                    {!isNativeUploading && <ChevronDown className="h-4 w-4 ml-1" />}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="center" className="w-56">
+                  <DropdownMenuItem
+                    onSelect={(event) => {
+                      event.preventDefault();
+                      safeTakePhoto();
+                    }}
+                    disabled={loading !== null || isNativeUploading}
+                    className="cursor-pointer flex items-center gap-2 py-3"
+                  >
                     <Camera className="h-4 w-4" />
-                  )}
-                  <span className="text-sm font-medium">📸 Fotoğraf Çek</span>
-                </Button>
-
-                <Button
-                  onClick={safeSelectFromGallery}
-                  disabled={loading !== null || isNativeUploading}
-                  variant="outline"
-                  className="flex items-center justify-center gap-2 h-12"
-                >
-                  {isNativeUploading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
+                    <span>📸 Fotoğraf Çek</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onSelect={(event) => {
+                      event.preventDefault();
+                      safeSelectFromGallery();
+                    }}
+                    disabled={loading !== null || isNativeUploading}
+                    className="cursor-pointer flex items-center gap-2 py-3"
+                  >
                     <Image className="h-4 w-4" />
-                  )}
-                  <span className="text-sm font-medium">🖼️ Galeriden Seç</span>
-                </Button>
-
-                <Button
-                  onClick={safeSelectDocument}
-                  disabled={loading !== null || isNativeUploading}
-                  variant="outline"
-                  className="flex items-center justify-center gap-2 h-12"
-                >
-                  {isNativeUploading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
+                    <span>🖼️ Galeriden Seç</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onSelect={(event) => {
+                      event.preventDefault();
+                      safeSelectDocument();
+                    }}
+                    disabled={loading !== null || isNativeUploading}
+                    className="cursor-pointer flex items-center gap-2 py-3"
+                  >
                     <FileUp className="h-4 w-4" />
-                  )}
-                  <span className="text-sm font-medium">📄 Dosya Seç</span>
-                </Button>
-              </div>
+                    <span>📄 Dosya Seç</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
 
 
 
               {/* Native Dosyalar Listesi */}
               {nativeFiles.length > 0 && (
-                <ul className="mt-4 space-y-2">
-                  {nativeFiles.map((file, idx) => (
-                    <li key={`native-${file.name}-${idx}`} className="flex items-center justify-between bg-muted/50 p-2 rounded-md text-sm">
-                      <span className="truncate font-medium">{file.name}</span>
-                      <button
-                        type="button"
-                        className="ml-2 text-muted-foreground hover:text-destructive disabled:opacity-50"
-                        onClick={() => removeNativeFile(idx)}
-                        aria-label="Dosyayı kaldır"
-                        disabled={loading !== null}
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </li>
-                  ))}
-                </ul>
+                <div className="mt-4 flex-shrink-0">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-muted-foreground">
+                      Seçilen Dosyalar ({nativeFiles.length})
+                    </span>
+                    {nativeFiles.length > 2 && (
+                      <span className="text-xs text-muted-foreground">
+                        Kaydır ↕
+                      </span>
+                    )}
+                  </div>
+                  <ul className="space-y-2 max-h-24 overflow-y-auto scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
+                    {nativeFiles.map((file, idx) => (
+                      <li key={`native-${file.name}-${idx}`} className="flex items-center justify-between bg-muted/50 p-2 rounded-md text-sm">
+                        <span className="truncate font-medium pr-2">{file.name}</span>
+                        <button
+                          type="button"
+                          className="ml-2 text-muted-foreground hover:text-destructive disabled:opacity-50 flex-shrink-0"
+                          onClick={() => removeNativeFile(idx)}
+                          aria-label="Dosyayı kaldır"
+                          disabled={loading !== null}
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               )}
             </div>
           ) : (
@@ -1079,22 +1128,34 @@ const Dashboard = () => {
 
           {/* Web Dosyalar Listesi */}
           {selectedFiles.length > 0 && (
-            <ul className="mt-4 space-y-2">
-              {selectedFiles.map((file, idx) => (
-                <li key={`web-${file.name}-${idx}`} className="flex items-center justify-between bg-muted/50 p-2 rounded-md text-sm">
-                  <span className="truncate font-medium">{file.name}</span>
-                  <button
-                    type="button"
-                    className="ml-2 text-muted-foreground hover:text-destructive disabled:opacity-50"
-                    onClick={() => setSelectedFiles(selectedFiles.filter((_, i) => i !== idx))}
-                    aria-label="Dosyayı kaldır"
-                    disabled={loading !== null}
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </li>
-              ))}
-            </ul>
+            <div className="mt-4 flex-shrink-0">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-muted-foreground">
+                  Seçilen Dosyalar ({selectedFiles.length})
+                </span>
+                {selectedFiles.length > 2 && (
+                  <span className="text-xs text-muted-foreground">
+                    Kaydır ↕
+                  </span>
+                )}
+              </div>
+              <ul className="space-y-2 max-h-24 overflow-y-auto scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
+                {selectedFiles.map((file, idx) => (
+                  <li key={`web-${file.name}-${idx}`} className="flex items-center justify-between bg-muted/50 p-2 rounded-md text-sm">
+                    <span className="truncate font-medium pr-2">{file.name}</span>
+                    <button
+                      type="button"
+                      className="ml-2 text-muted-foreground hover:text-destructive disabled:opacity-50 flex-shrink-0"
+                      onClick={() => setSelectedFiles(selectedFiles.filter((_, i) => i !== idx))}
+                      aria-label="Dosyayı kaldır"
+                      disabled={loading !== null}
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
           )}
         </CardContent>
       </Card>
@@ -1432,8 +1493,8 @@ const Dashboard = () => {
   // Dashboard render
   return (
     <ErrorBoundary componentName="Dashboard">
-      <OnboardingTour open={showOnboarding} onFinish={handleOnboardingFinish} />
-      <div className={`${view === 'result' ? 'min-h-screen' : 'h-screen'} bg-background flex flex-col items-center pt-8 md:pt-16 px-2 dashboard-container ${view === 'result' ? 'overflow-auto' : 'overflow-hidden'}`}>
+      <SimpleOnboardingTour open={showOnboarding} onFinish={handleOnboardingFinish} />
+      <div className={`${view === 'result' ? 'min-h-screen' : 'h-screen'} bg-background flex flex-col items-center pt-8 md:pt-16 px-2 dashboard-container mobile-scroll-fix ${view === 'result' ? 'overflow-auto' : 'overflow-hidden'}`}>
         <div className={`w-full max-w-5xl flex flex-col items-center ${Capacitor.isNativePlatform() ? 'mt-12' : 'mt-4'} ${Capacitor.isNativePlatform() ? 'mb-2' : 'mb-6'}`}>
           <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2 text-center">Hukuki Belgeni Sadeleştir</h2>
           <p className={`text-muted-foreground text-center max-w-xl text-sm ${Capacitor.isNativePlatform() ? 'mb-1' : 'mb-4'}`}>

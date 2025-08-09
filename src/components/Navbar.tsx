@@ -5,26 +5,50 @@ import { Button } from "@/components/ui/button";
 import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger } from "@/components/ui/navigation-menu";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import { Scale, ChevronDown, LogIn, User as UserIcon, Archive, LogOut, Sparkles, FileText, BarChart3, Bell } from "lucide-react";
+import { Scale, ChevronDown, LogIn, User as UserIcon, Archive, LogOut, Sparkles, FileText, BarChart3, Bell, Menu } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 import { useCredits } from "../hooks/useCredits";
 import { Badge } from "@/components/ui/badge";
 import { Capacitor } from "@capacitor/core";
+
+// Mobil tarayıcı detection fonksiyonu
+const isMobileBrowser = () => {
+  if (typeof window === 'undefined') return false;
+  const userAgent = navigator.userAgent.toLowerCase();
+  const mobileKeywords = ['android', 'iphone', 'ipad', 'ipod', 'blackberry', 'windows phone'];
+  const isMobileUA = mobileKeywords.some(keyword => userAgent.includes(keyword));
+  const isSmallScreen = window.innerWidth <= 768;
+  return isMobileUA || isSmallScreen;
+};
 
 const Navbar = () => {
   const session = useSession();
   const supabase = useSupabaseClient();
   const user = session?.user || null;
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+
+  // Mobil browser detection
+  useEffect(() => {
+    const checkIfMobile = () => {
+      setIsMobile(isMobileBrowser());
+    };
+
+    checkIfMobile();
+    window.addEventListener('resize', checkIfMobile);
+    return () => window.removeEventListener('resize', checkIfMobile);
+  }, []);
 
   // Debug log'ları
   console.log('Navbar render:', {
     session: !!session,
     user: !!user,
     userEmail: user?.email,
-    pathname: location.pathname
+    pathname: location.pathname,
+    isMobile,
+    isNative: Capacitor.isNativePlatform()
   });
 
   // Kredi sistemi aktif
@@ -139,47 +163,111 @@ const Navbar = () => {
           {user ? (
             <>
               {isDashboard || isArchive || isTemplates || isAnalytics ? (
-                <div className="flex items-center gap-1">
-                  <Link to="/dashboard">
-                    <Button
-                      variant={isDashboard ? "default" : "ghost"}
-                      size="sm"
-                      className="text-sm font-medium"
-                    >
-                      Dashboard
-                    </Button>
-                  </Link>
-                  <Link to="/templates">
-                    <Button
-                      variant={isTemplates ? "default" : "ghost"}
-                      size="sm"
-                      className="text-sm font-medium flex items-center gap-1"
-                    >
-                      <FileText className="h-4 w-4" />
-                      Şablonlar
-                    </Button>
-                  </Link>
-                  <Link to="/archive">
-                    <Button
-                      variant={isArchive ? "default" : "ghost"}
-                      size="sm"
-                      className="text-sm font-medium flex items-center gap-1"
-                    >
-                      <Archive className="h-4 w-4" />
-                      Belgelerim
-                    </Button>
-                  </Link>
-                  <Link to="/analytics">
-                    <Button
-                      variant={isAnalytics ? "default" : "ghost"}
-                      size="sm"
-                      className="text-sm font-medium flex items-center gap-1"
-                    >
-                      <BarChart3 className="h-4 w-4" />
-                      Analytics
-                    </Button>
-                  </Link>
-                </div>
+                <>
+                  {/* Desktop Navigation - Sadece gerçek desktop'ta göster */}
+                  {!Capacitor.isNativePlatform() && !isMobile ? (
+                    <div className="flex items-center gap-1">
+                      <Link to="/dashboard">
+                        <Button
+                          variant={isDashboard ? "default" : "ghost"}
+                          size="sm"
+                          className="text-sm font-medium"
+                        >
+                          Dashboard
+                        </Button>
+                      </Link>
+                      <Link to="/templates">
+                        <Button
+                          variant={isTemplates ? "default" : "ghost"}
+                          size="sm"
+                          className="text-sm font-medium flex items-center gap-1"
+                        >
+                          <FileText className="h-4 w-4" />
+                          Şablonlar
+                        </Button>
+                      </Link>
+                      <Link to="/archive">
+                        <Button
+                          variant={isArchive ? "default" : "ghost"}
+                          size="sm"
+                          className="text-sm font-medium flex items-center gap-1"
+                        >
+                          <Archive className="h-4 w-4" />
+                          Belgelerim
+                        </Button>
+                      </Link>
+                      <Link to="/analytics">
+                        <Button
+                          variant={isAnalytics ? "default" : "ghost"}
+                          size="sm"
+                          className="text-sm font-medium flex items-center gap-1"
+                        >
+                          <BarChart3 className="h-4 w-4" />
+                          Analytics
+                        </Button>
+                      </Link>
+                    </div>
+                  ) : (
+                    /* Mobile Navigation - Native mobil VE mobil tarayıcı için dropdown */
+                    <DropdownMenu modal={false}>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm" className="flex items-center gap-1">
+                          <Menu className="h-4 w-4" />
+                          <span className="text-xs">Menü</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent
+                        align="end"
+                        className="w-48 z-[10000]"
+                        side="bottom"
+                        sideOffset={4}
+                        onCloseAutoFocus={(e) => e.preventDefault()}
+                        onInteractOutside={(e) => e.preventDefault()}
+                      >
+                        <DropdownMenuItem
+                          onSelect={(e) => {
+                            e.preventDefault();
+                            navigate("/dashboard");
+                          }}
+                          className="cursor-pointer"
+                        >
+                          <FileText className="w-4 h-4 mr-2" />
+                          Dashboard
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onSelect={(e) => {
+                            e.preventDefault();
+                            navigate("/templates");
+                          }}
+                          className="cursor-pointer"
+                        >
+                          <FileText className="w-4 h-4 mr-2" />
+                          Şablonlar
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onSelect={(e) => {
+                            e.preventDefault();
+                            navigate("/archive");
+                          }}
+                          className="cursor-pointer"
+                        >
+                          <Archive className="w-4 h-4 mr-2" />
+                          Belgelerim
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onSelect={(e) => {
+                            e.preventDefault();
+                            navigate("/analytics");
+                          }}
+                          className="cursor-pointer"
+                        >
+                          <BarChart3 className="w-4 h-4 mr-2" />
+                          Analytics
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
+                </>
               ) : (
                 <Button
                   variant="ghost"
