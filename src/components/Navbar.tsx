@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useSupabaseClient, useSession } from '@supabase/auth-helpers-react';
+import { useAdminAuth } from '../hooks/useAdminAuth';
 import { Button } from "@/components/ui/button";
 import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger } from "@/components/ui/navigation-menu";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
@@ -54,6 +55,9 @@ const Navbar = () => {
   // Kredi sistemi aktif
   const { credits, loading: creditsLoading, error: creditsError } = useCredits(user?.id);
 
+  // Admin kontrolü
+  const { isAdmin } = useAdminAuth();
+
   console.log('Credits debug:', {
     userId: user?.id,
     credits,
@@ -88,7 +92,6 @@ const Navbar = () => {
   const isDashboard = location.pathname.startsWith("/dashboard");
   const isArchive = location.pathname.startsWith("/archive");
   const isTemplates = location.pathname.startsWith("/templates");
-  const isAnalytics = location.pathname.startsWith("/analytics");
 
   return (
     <header
@@ -162,7 +165,7 @@ const Navbar = () => {
         <div className="flex items-center gap-2 ml-auto">
           {user ? (
             <>
-              {isDashboard || isArchive || isTemplates || isAnalytics ? (
+              {isDashboard || isArchive || isTemplates ? (
                 <>
                   {/* Desktop Navigation - Sadece gerçek desktop'ta göster */}
                   {!Capacitor.isNativePlatform() && !isMobile ? (
@@ -194,16 +197,6 @@ const Navbar = () => {
                         >
                           <Archive className="h-4 w-4" />
                           Belgelerim
-                        </Button>
-                      </Link>
-                      <Link to="/analytics">
-                        <Button
-                          variant={isAnalytics ? "default" : "ghost"}
-                          size="sm"
-                          className="text-sm font-medium flex items-center gap-1"
-                        >
-                          <BarChart3 className="h-4 w-4" />
-                          Analytics
                         </Button>
                       </Link>
                     </div>
@@ -254,16 +247,6 @@ const Navbar = () => {
                           <Archive className="w-4 h-4 mr-2" />
                           Belgelerim
                         </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onSelect={(e) => {
-                            e.preventDefault();
-                            navigate("/analytics");
-                          }}
-                          className="cursor-pointer"
-                        >
-                          <BarChart3 className="w-4 h-4 mr-2" />
-                          Analytics
-                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   )}
@@ -302,10 +285,21 @@ const Navbar = () => {
                     </div>
                   </div>
                   <DropdownMenuSeparator />
+                  {isAdmin && (
+                    <DropdownMenuItem onSelect={() => navigate("/admin")} className="cursor-pointer">
+                      <Scale className="w-4 h-4 mr-2" /> Admin Panel
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem onSelect={() => navigate("/notifications")} className="cursor-pointer">
                     <Bell className="w-4 h-4 mr-2" /> Bildirim Ayarları
                   </DropdownMenuItem>
-                  <DropdownMenuItem onSelect={handleSignOut} className="cursor-pointer">
+                  <DropdownMenuItem
+                    onSelect={(e) => {
+                      e.preventDefault();
+                      handleSignOut();
+                    }}
+                    className="cursor-pointer"
+                  >
                     <LogOut className="w-4 h-4 mr-2" /> Çıkış Yap
                   </DropdownMenuItem>
                 </DropdownMenuContent>

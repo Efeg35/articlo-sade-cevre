@@ -21,8 +21,14 @@ import Navbar from "./components/Navbar";
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const ArchivePage = lazy(() => import("./pages/ArchivePage"));
 const TemplatesPage = lazy(() => import("./pages/TemplatesPage").then(module => ({ default: module.TemplatesPage })));
-const AnalyticsPage = lazy(() => import("./pages/AnalyticsPage"));
 const NotificationSettingsPage = lazy(() => import("./pages/NotificationSettingsPage"));
+
+// Admin pages - lazy load
+const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
+const AdminUsers = lazy(() => import("./pages/admin/AdminUsers"));
+const AdminAnalytics = lazy(() => import("./pages/admin/AdminAnalytics"));
+const AdminSettings = lazy(() => import("./pages/admin/AdminSettings"));
+const AdminLayout = lazy(() => import("./components/admin/AdminLayout"));
 
 // Public pages - lazy load
 const NasilCalisir = lazy(() => import("./pages/NasilCalisir"));
@@ -300,20 +306,56 @@ const AppContent = () => {
               </ProtectedRoute>
             </ErrorBoundary>
           } />
-          <Route path="/analytics" element={
-            <ErrorBoundary componentName="Analytics">
-              <ProtectedRoute>
-                <Suspense fallback={<PageLoader />}>
-                  <AnalyticsPage />
-                </Suspense>
-              </ProtectedRoute>
-            </ErrorBoundary>
-          } />
           <Route path="/notifications" element={
             <ErrorBoundary componentName="Notifications">
               <ProtectedRoute>
                 <Suspense fallback={<PageLoader />}>
                   <NotificationSettingsPage />
+                </Suspense>
+              </ProtectedRoute>
+            </ErrorBoundary>
+          } />
+          {/* Admin Routes - Protected with AdminLayout */}
+          <Route path="/admin" element={
+            <ErrorBoundary componentName="Admin">
+              <ProtectedRoute>
+                <Suspense fallback={<PageLoader />}>
+                  <AdminLayout>
+                    <AdminDashboard />
+                  </AdminLayout>
+                </Suspense>
+              </ProtectedRoute>
+            </ErrorBoundary>
+          } />
+          <Route path="/admin/users" element={
+            <ErrorBoundary componentName="AdminUsers">
+              <ProtectedRoute>
+                <Suspense fallback={<PageLoader />}>
+                  <AdminLayout>
+                    <AdminUsers />
+                  </AdminLayout>
+                </Suspense>
+              </ProtectedRoute>
+            </ErrorBoundary>
+          } />
+          <Route path="/admin/analytics" element={
+            <ErrorBoundary componentName="AdminAnalytics">
+              <ProtectedRoute>
+                <Suspense fallback={<PageLoader />}>
+                  <AdminLayout>
+                    <AdminAnalytics />
+                  </AdminLayout>
+                </Suspense>
+              </ProtectedRoute>
+            </ErrorBoundary>
+          } />
+          <Route path="/admin/settings" element={
+            <ErrorBoundary componentName="AdminSettings">
+              <ProtectedRoute>
+                <Suspense fallback={<PageLoader />}>
+                  <AdminLayout>
+                    <AdminSettings />
+                  </AdminLayout>
                 </Suspense>
               </ProtectedRoute>
             </ErrorBoundary>

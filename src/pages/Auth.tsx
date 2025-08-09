@@ -30,6 +30,8 @@ const Auth = () => {
   const supabase = useSupabaseClient();
   const initialTab = location.pathname === "/signup" ? "signup" : "signin";
   const [activeTab, setActiveTab] = useState(initialTab);
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendInfo, setResendInfo] = useState<string>("");
 
   // Check for session timeout
   useEffect(() => {
@@ -55,6 +57,7 @@ const Auth = () => {
     setError("");
     setSuccessMessage("");
     setValidationErrors({});
+    setResendInfo("");
 
     // Rate limiting check
     const userIdentifier = email || 'anonymous';
@@ -104,7 +107,10 @@ const Auth = () => {
         response = await supabase.auth.signUp({
           email: sanitizedEmail,
           password: sanitizedPassword,
-          options: { emailRedirectTo: redirectUrl },
+          options: {
+            emailRedirectTo: redirectUrl,
+            data: { full_name: sanitizedFullName },
+          },
         });
       }
 
@@ -133,17 +139,6 @@ const Auth = () => {
         });
         setEmail("");
         setPassword("");
-        try {
-          await supabase.from('profiles').insert({
-            id: data.user.id,
-            email: data.user.email,
-            full_name: fullName,
-            credits: 3,
-            has_completed_onboarding: false
-          });
-        } catch (profileError) {
-          console.error('Profile creation error:', profileError);
-        }
       }
 
       if (data.session) {
@@ -161,6 +156,31 @@ const Auth = () => {
       setError("Beklenmedik bir hata oluştu. Lütfen tekrar deneyin.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResendVerification = async () => {
+    setResendInfo("");
+    if (!email) {
+      setResendInfo("Önce e-posta adresinizi girin.");
+      return;
+    }
+    setResendLoading(true);
+    try {
+      const sanitizedEmail = validateAndSanitizeInput(email);
+      const { error: resendError } = await supabase.auth.resend({
+        type: 'signup',
+        email: sanitizedEmail,
+      });
+      if (resendError) {
+        setResendInfo(`Tekrar gönderme hatası: ${resendError.message}`);
+      } else {
+        setResendInfo("Doğrulama e-postası tekrar gönderildi. Lütfen gelen kutunuzu ve spam klasörünü kontrol edin.");
+      }
+    } catch (e) {
+      setResendInfo("Beklenmedik bir hata oluştu. Lütfen daha sonra tekrar deneyin.");
+    } finally {
+      setResendLoading(false);
     }
   };
 
@@ -353,6 +373,16 @@ const Auth = () => {
                     {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Hesap Oluştur
                   </Button>
+                  <div className="text-xs text-muted-foreground mt-2 space-y-2">
+                    <div>E-posta gelmediyse spam klasörünü kontrol edin.</div>
+                    <div className="flex items-center gap-2">
+                      <Button type="button" variant="outline" size="sm" onClick={handleResendVerification} disabled={resendLoading}>
+                        {resendLoading && <Loader2 className="mr-2 h-3 w-3 animate-spin" />}
+                        Doğrulama e-postasını tekrar gönder
+                      </Button>
+                      {resendInfo && <span className="text-[11px]">{resendInfo}</span>}
+                    </div>
+                  </div>
                 </form>
                 <div className="mt-6 bg-muted/50 border rounded-lg p-4 text-xs text-muted-foreground">
                   <b>Avantajlar:</b>
