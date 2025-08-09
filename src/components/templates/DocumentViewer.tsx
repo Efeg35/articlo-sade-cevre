@@ -6,6 +6,9 @@ import { GeneratedDocument } from '@/types/templates';
 import { useToast } from '@/hooks/use-toast';
 import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType } from 'docx';
 import { saveAs } from 'file-saver';
+import { useAnalytics } from '@/hooks/useAnalytics';
+import { useNotifications } from '@/hooks/useNotifications';
+import { useEffect } from 'react';
 
 interface DocumentViewerProps {
     document: GeneratedDocument | null;
@@ -21,6 +24,22 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
     const [isDownloading, setIsDownloading] = useState(false);
     const [isCopying, setIsCopying] = useState(false);
     const { toast } = useToast();
+    const analytics = useAnalytics();
+    const { sendDocumentReady } = useNotifications();
+
+    // Track document view when component mounts and document changes
+    useEffect(() => {
+        if (document && isOpen) {
+            analytics.trackTemplateView(
+                document.templateId || 'unknown',
+                document.title,
+                'unknown'
+            );
+
+            // Send document ready notification
+            sendDocumentReady(document.title);
+        }
+    }, [document, isOpen, analytics, sendDocumentReady]);
 
     const handleCopyToClipboard = async () => {
         if (!document) return;
@@ -28,12 +47,20 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
         setIsCopying(true);
         try {
             await navigator.clipboard.writeText(document.content);
+
+            // Track copy action
+            analytics.trackUserAction('Copy Document', 'clipboard', {
+                template_id: document.templateId || 'unknown',
+                template_title: document.title
+            });
+
             toast({
                 title: "Kopyalandı!",
                 description: "Belge içeriği panoya kopyalandı.",
             });
         } catch (error) {
             console.error('Copy failed:', error);
+            analytics.trackError('copy_to_clipboard', error instanceof Error ? error.message : 'Unknown error');
             toast({
                 title: "Hata",
                 description: "Kopyalama işlemi başarısız oldu.",
@@ -213,12 +240,20 @@ ARTIKLO bu şablonun içeriğinden sorumlu değildir.`;
             const fileName = `${document.title.replace(/[^a-zA-Z0-9çğıöşüÇĞIİÖŞÜ\s]/g, '')}.docx`;
             saveAs(blob, fileName);
 
+            // Track download
+            analytics.trackDocumentDownload(
+                document.templateId || 'unknown',
+                'docx',
+                document.title
+            );
+
             toast({
                 title: "İndirildi!",
                 description: "DOCX belgesi başarıyla indirildi.",
             });
         } catch (error) {
             console.error('DOCX download failed:', error);
+            analytics.trackError('docx_download', error instanceof Error ? error.message : 'Unknown error');
             toast({
                 title: "Hata",
                 description: "DOCX indirme işlemi başarısız oldu.",
@@ -265,12 +300,20 @@ ARTIKLO bu şablonun içeriğinden sorumlu değildir.`;
             // Cleanup
             URL.revokeObjectURL(url);
 
+            // Track download
+            analytics.trackDocumentDownload(
+                document.templateId || 'unknown',
+                'txt',
+                document.title
+            );
+
             toast({
                 title: "TXT İndirildi!",
                 description: "Metin belgesi başarıyla indirildi.",
             });
         } catch (error) {
             console.error('TXT download failed:', error);
+            analytics.trackError('txt_download', error instanceof Error ? error.message : 'Unknown error');
             toast({
                 title: "Hata",
                 description: "TXT indirme işlemi başarısız oldu.",
@@ -376,6 +419,12 @@ ARTIKLO bu şablonun içeriğinden sorumlu değildir.`;
             printWindow.print();
             printWindow.close();
         };
+
+        // Track print action
+        analytics.trackUserAction('Print Document', 'print', {
+            template_id: document.templateId || 'unknown',
+            template_title: document.title
+        });
     };
 
     const handleShare = async () => {
@@ -389,19 +438,36 @@ ARTIKLO bu şablonun içeriğinden sorumlu değildir.`;
                     text: `ARTIKLO ile oluşturulmuş belge: ${document.title}`,
                     url: window.location.href
                 });
+
+                // Track successful share
+                analytics.trackUserAction('Share Document', 'native_share', {
+                    template_id: document.templateId || 'unknown',
+                    template_title: document.title
+                });
             } catch (error) {
                 // User cancelled or error occurred
                 console.log('Share cancelled or failed:', error);
+                if (error instanceof Error && error.name !== 'AbortError') {
+                    analytics.trackError('native_share', error.message);
+                }
             }
         } else {
             // Fallback: copy current page URL
             try {
                 await navigator.clipboard.writeText(window.location.href);
+
+                // Track fallback share
+                analytics.trackUserAction('Share Document', 'copy_link', {
+                    template_id: document.templateId || 'unknown',
+                    template_title: document.title
+                });
+
                 toast({
                     title: "Bağlantı Kopyalandı!",
                     description: "Sayfa bağlantısı panoya kopyalandı.",
                 });
             } catch (error) {
+                analytics.trackError('copy_link_share', error instanceof Error ? error.message : 'Unknown error');
                 toast({
                     title: "Hata",
                     description: "Paylaşım işlemi başarısız oldu.",

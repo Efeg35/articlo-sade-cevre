@@ -17,6 +17,7 @@ import {
     SlidersHorizontal
 } from 'lucide-react';
 import { SearchFilter, SearchOptions } from '@/lib/search';
+import { useAnalytics } from '@/hooks/useAnalytics';
 
 // Category labels mapping
 const CATEGORY_LABELS: Record<string, string> = {
@@ -66,6 +67,7 @@ export const AdvancedSearchBar: React.FC<AdvancedSearchBarProps> = ({
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [showAdvanced, setShowAdvanced] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
+    const analytics = useAnalytics();
 
     const handleInputChange = (value: string) => {
         onQueryChange(value);
@@ -77,6 +79,12 @@ export const AdvancedSearchBar: React.FC<AdvancedSearchBarProps> = ({
         setShowSuggestions(false);
         onSearch(suggestion);
         inputRef.current?.blur();
+
+        // Track suggestion usage
+        analytics.trackFeatureUsage('Search', 'Suggestion Selected', {
+            suggestion,
+            results_count: totalResults
+        });
     };
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -84,6 +92,15 @@ export const AdvancedSearchBar: React.FC<AdvancedSearchBarProps> = ({
             onSearch(query);
             setShowSuggestions(false);
             inputRef.current?.blur();
+
+            // Track search via Enter key
+            if (query.trim()) {
+                analytics.trackSearch(query, totalResults, {
+                    search_method: 'keyboard',
+                    has_filters: Object.keys(filters).length > 0,
+                    sort_by: options.sortBy
+                });
+            }
         } else if (e.key === 'Escape') {
             setShowSuggestions(false);
             inputRef.current?.blur();
@@ -156,7 +173,17 @@ export const AdvancedSearchBar: React.FC<AdvancedSearchBarProps> = ({
                         )}
 
                         <Button
-                            onClick={() => onSearch(query)}
+                            onClick={() => {
+                                onSearch(query);
+                                // Track search via button click
+                                if (query.trim()) {
+                                    analytics.trackSearch(query, totalResults, {
+                                        search_method: 'button',
+                                        has_filters: Object.keys(filters).length > 0,
+                                        sort_by: options.sortBy
+                                    });
+                                }
+                            }}
                             size="sm"
                             className="h-8"
                         >
@@ -200,7 +227,10 @@ export const AdvancedSearchBar: React.FC<AdvancedSearchBarProps> = ({
                                         <Button
                                             variant="ghost"
                                             size="sm"
-                                            onClick={onClearHistory}
+                                            onClick={() => {
+                                                onClearHistory();
+                                                analytics.trackFeatureUsage('Search', 'Clear History', {});
+                                            }}
                                             className="h-6 text-xs"
                                         >
                                             Temizle
@@ -278,6 +308,12 @@ export const AdvancedSearchBar: React.FC<AdvancedSearchBarProps> = ({
                                                                 categories: newCategories.filter(c => c !== category.value)
                                                             });
                                                         }
+
+                                                        // Track filter usage
+                                                        analytics.trackFeatureUsage('Search Filter', 'Category Filter', {
+                                                            category: category.value,
+                                                            action: e.target.checked ? 'add' : 'remove'
+                                                        });
                                                     }}
                                                     className="rounded"
                                                 />
@@ -475,6 +511,11 @@ export const AdvancedSearchBar: React.FC<AdvancedSearchBarProps> = ({
                                 ...options,
                                 sortBy: 'relevance',
                                 sortOrder: 'desc'
+                            });
+
+                            // Track clear all filters
+                            analytics.trackFeatureUsage('Search Filter', 'Clear All Filters', {
+                                previous_filters_count: activeFiltersCount
                             });
                         }}
                         className="h-6 text-xs text-red-600 hover:text-red-700"

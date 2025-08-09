@@ -33,7 +33,7 @@ export function useCredits(userId?: string) {
       setCredits((data as { credits: number } | null)?.credits ?? null);
     }
     setLoading(false);
-  }, [userId]);
+  }, [userId, supabase]);
 
   useEffect(() => {
     if (!userId) return;
@@ -64,7 +64,7 @@ export function useCredits(userId?: string) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [userId, fetchCredits]);
+  }, [userId, fetchCredits, supabase]);
 
   return { credits, loading, error, refetch: fetchCredits, setCredits };
 } 

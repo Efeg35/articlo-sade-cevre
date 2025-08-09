@@ -7,6 +7,7 @@ import { Capacitor } from '@capacitor/core';
 import { App as CapacitorApp } from '@capacitor/app';
 import { createClient } from '@supabase/supabase-js';
 import { SessionContextProvider, useSession } from '@supabase/auth-helpers-react';
+import { useAnalytics } from "./hooks/useAnalytics";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import ArchivePage from "./pages/ArchivePage";
@@ -125,6 +126,9 @@ const AppContent = () => {
   const navigate = useNavigate();
   const session = useSession();
   const [platformInfo, setPlatformInfo] = useState(() => getPlatformInfo());
+
+  // Initialize analytics tracking
+  useAnalytics();
 
   // Platform detection'ı güncelle
   useEffect(() => {
