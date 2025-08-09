@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import DOMPurify from 'dompurify';
 
 // Email validation schema
 export const emailSchema = z
@@ -45,7 +46,121 @@ export const fileSchema = z.object({
     }, 'Desteklenmeyen dosya türü')
 });
 
+// File magic number signatures for validation
+const FILE_SIGNATURES = {
+    pdf: [0x25, 0x50, 0x44, 0x46], // %PDF
+    jpg: [0xFF, 0xD8, 0xFF],       // JPEG
+    png: [0x89, 0x50, 0x4E, 0x47], // PNG
+    gif: [0x47, 0x49, 0x46, 0x38], // GIF8
+    docx: [0x50, 0x4B, 0x03, 0x04], // DOCX (ZIP signature)
+    doc: [0xD0, 0xCF, 0x11, 0xE0]  // DOC (OLE signature)
+};
+
+// Check file magic number
+const checkFileMagicNumber = async (file: File): Promise<boolean> => {
+    return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const buffer = e.target?.result as ArrayBuffer;
+            if (!buffer) {
+                resolve(false);
+                return;
+            }
+
+            const bytes = new Uint8Array(buffer.slice(0, 8));
+            const fileType = file.type.toLowerCase();
+
+            // Check against known signatures
+            if (fileType.includes('pdf')) {
+                resolve(bytes.slice(0, 4).every((byte, i) => byte === FILE_SIGNATURES.pdf[i]));
+            } else if (fileType.includes('jpeg') || fileType.includes('jpg')) {
+                resolve(bytes.slice(0, 3).every((byte, i) => byte === FILE_SIGNATURES.jpg[i]));
+            } else if (fileType.includes('png')) {
+                resolve(bytes.slice(0, 4).every((byte, i) => byte === FILE_SIGNATURES.png[i]));
+            } else if (fileType.includes('gif')) {
+                resolve(bytes.slice(0, 4).every((byte, i) => byte === FILE_SIGNATURES.gif[i]));
+            } else if (fileType.includes('wordprocessingml') || fileType.includes('openxmlformats')) {
+                resolve(bytes.slice(0, 4).every((byte, i) => byte === FILE_SIGNATURES.docx[i]));
+            } else if (fileType.includes('msword')) {
+                resolve(bytes.slice(0, 4).every((byte, i) => byte === FILE_SIGNATURES.doc[i]));
+            } else if (fileType.includes('text/plain')) {
+                // Text files don't have magic numbers, allow them
+                resolve(true);
+            } else {
+                resolve(false);
+            }
+        };
+        reader.onerror = () => resolve(false);
+        reader.readAsArrayBuffer(file.slice(0, 8));
+    });
+};
+
 // Enhanced file security validation
+// Async deep validation (kept but renamed for backward compatibility)
+export const validateFileSecurityAsync = async (file: File): Promise<{ isValid: boolean; error?: string }> => {
+    // Check file extension
+    const fileName = file.name.toLowerCase();
+    const allowedExtensions = ['.txt', '.pdf', '.doc', '.docx', '.jpg', '.jpeg', '.png', '.gif'];
+    const hasValidExtension = allowedExtensions.some(ext => fileName.endsWith(ext));
+
+    if (!hasValidExtension) {
+        return { isValid: false, error: 'Desteklenmeyen dosya uzantısı' };
+    }
+
+    // Check file size (10MB limit)
+    if (file.size > 10 * 1024 * 1024) {
+        return { isValid: false, error: 'Dosya boyutu 10MB\'dan büyük olamaz' };
+    }
+
+    // Check for potentially dangerous file types
+    const dangerousTypes = [
+        'application/x-executable',
+        'application/x-msdownload',
+        'application/x-msi',
+        'application/x-msdos-program',
+        'application/javascript',
+        'text/javascript',
+        'application/x-shellscript'
+    ];
+
+    if (dangerousTypes.includes(file.type)) {
+        return { isValid: false, error: 'Güvenlik nedeniyle bu dosya türü desteklenmiyor' };
+    }
+
+    // Check file name for suspicious patterns
+    const suspiciousPatterns = [
+        /\.exe$/i,
+        /\.bat$/i,
+        /\.cmd$/i,
+        /\.com$/i,
+        /\.scr$/i,
+        /\.pif$/i,
+        /\.vbs$/i,
+        /\.js$/i,
+        /\.sh$/i,
+        /\.ps1$/i,
+        /\.jar$/i
+    ];
+
+    if (suspiciousPatterns.some(pattern => pattern.test(fileName))) {
+        return { isValid: false, error: 'Güvenlik nedeniyle bu dosya türü desteklenmiyor' };
+    }
+
+    // Check file magic number (deep validation)
+    try {
+        const isValidMagicNumber = await checkFileMagicNumber(file);
+        if (!isValidMagicNumber) {
+            return { isValid: false, error: 'Dosya içeriği belirtilen türle uyuşmuyor' };
+        }
+    } catch (error) {
+        console.error('Magic number validation error:', error);
+        return { isValid: false, error: 'Dosya doğrulama hatası' };
+    }
+
+    return { isValid: true };
+};
+
+// Synchronous version for backward compatibility
 export const validateFileSecurity = (file: File): { isValid: boolean; error?: string } => {
     // Check file extension
     const fileName = file.name.toLowerCase();
@@ -66,7 +181,10 @@ export const validateFileSecurity = (file: File): { isValid: boolean; error?: st
         'application/x-executable',
         'application/x-msdownload',
         'application/x-msi',
-        'application/x-msdos-program'
+        'application/x-msdos-program',
+        'application/javascript',
+        'text/javascript',
+        'application/x-shellscript'
     ];
 
     if (dangerousTypes.includes(file.type)) {
@@ -82,7 +200,10 @@ export const validateFileSecurity = (file: File): { isValid: boolean; error?: st
         /\.scr$/i,
         /\.pif$/i,
         /\.vbs$/i,
-        /\.js$/i
+        /\.js$/i,
+        /\.sh$/i,
+        /\.ps1$/i,
+        /\.jar$/i
     ];
 
     if (suspiciousPatterns.some(pattern => pattern.test(fileName))) {
@@ -110,17 +231,29 @@ export const documentAnalysisSchema = z.object({
     message: "En az bir metin girin veya dosya yükleyin"
 });
 
-// Sanitize HTML content
+// Enhanced HTML sanitization with DOMPurify
 export const sanitizeHtml = (html: string): string => {
-    // Basic HTML sanitization for now
-    // In production, you can use DOMPurify if available
-    return html
-        .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-        .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
-        .replace(/javascript:/gi, '')
-        .replace(/on\w+\s*=/gi, '')
-        .replace(/<object\b[^<]*(?:(?!<\/object>)<[^<]*)*<\/object>/gi, '')
-        .replace(/<embed\b[^<]*(?:(?!<\/embed>)<[^<]*)*<\/embed>/gi, '');
+    try {
+        // Use DOMPurify for comprehensive XSS protection
+        return DOMPurify.sanitize(html, {
+            ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'blockquote'],
+            ALLOWED_ATTR: ['class'],
+            FORBID_TAGS: ['script', 'iframe', 'object', 'embed', 'form', 'input', 'button'],
+            FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover', 'onfocus', 'onblur'],
+            RETURN_DOM_FRAGMENT: false,
+            RETURN_DOM: false
+        });
+    } catch (error) {
+        console.error('HTML sanitization error:', error);
+        // Fallback to basic sanitization
+        return html
+            .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+            .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
+            .replace(/javascript:/gi, '')
+            .replace(/on\w+\s*=/gi, '')
+            .replace(/<object\b[^<]*(?:(?!<\/object>)<[^<]*)*<\/object>/gi, '')
+            .replace(/<embed\b[^<]*(?:(?!<\/embed>)<[^<]*)*<\/embed>/gi, '');
+    }
 };
 
 // Validate and sanitize user input
@@ -159,3 +292,54 @@ export class RateLimiter {
 
 // Export rate limiter instance
 export const rateLimiter = new RateLimiter();
+
+// CSRF Protection utility
+export const generateCSRFToken = (): string => {
+    const array = new Uint8Array(32);
+    crypto.getRandomValues(array);
+    return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+};
+
+// Validate CSRF token
+export const validateCSRFToken = (token: string, storedToken: string): boolean => {
+    if (!token || !storedToken) return false;
+    return token === storedToken;
+};
+
+// Input length validation for DoS protection
+export const validateInputLength = (input: string, maxLength: number = 50000): boolean => {
+    return input.length <= maxLength;
+};
+
+// SQL injection pattern detection
+export const detectSQLInjection = (input: string): boolean => {
+    const sqlPatterns = [
+        /(\bUNION\b|\bSELECT\b|\bINSERT\b|\bDELETE\b|\bDROP\b|\bUPDATE\b)/i,
+        /(\bOR\b|\bAND\b)\s+\d+\s*=\s*\d+/i,
+        /['";][\s]*(\bOR\b|\bAND\b)/i,
+        /\b(exec|execute|sp_)\b/i
+    ];
+
+    return sqlPatterns.some(pattern => pattern.test(input));
+};
+
+// Enhanced input validation with multiple security checks
+export const validateSecureInput = (input: string): { isValid: boolean; error?: string } => {
+    // Check input length
+    if (!validateInputLength(input)) {
+        return { isValid: false, error: 'Girdi çok uzun' };
+    }
+
+    // Check for SQL injection patterns
+    if (detectSQLInjection(input)) {
+        return { isValid: false, error: 'Güvenlik ihlali tespit edildi' };
+    }
+
+    // Check for excessive special characters (potential attack)
+    const specialCharCount = (input.match(/[<>'"&;]/g) || []).length;
+    if (specialCharCount > input.length * 0.1) { // More than 10% special chars
+        return { isValid: false, error: 'Geçersiz karakter kullanımı' };
+    }
+
+    return { isValid: true };
+};

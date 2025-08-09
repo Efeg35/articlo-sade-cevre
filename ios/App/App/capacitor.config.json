@@ -78,6 +78,7 @@
 		"PushNotificationsPlugin",
 		"SplashScreenPlugin",
 		"StatusBarPlugin",
-		"FilePickerPlugin"
+		"FilePickerPlugin",
+		"PurchasesPlugin"
 	]
 }

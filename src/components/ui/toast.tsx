@@ -2,6 +2,7 @@ import * as React from "react"
 import * as ToastPrimitives from "@radix-ui/react-toast"
 import { cva, type VariantProps } from "class-variance-authority"
 import { X } from "lucide-react"
+import { Capacitor } from "@capacitor/core"
 
 import { cn } from "@/lib/utils"
 
@@ -10,16 +11,28 @@ const ToastProvider = ToastPrimitives.Provider
 const ToastViewport = React.forwardRef<
   React.ElementRef<typeof ToastPrimitives.Viewport>,
   React.ComponentPropsWithoutRef<typeof ToastPrimitives.Viewport>
->(({ className, ...props }, ref) => (
-  <ToastPrimitives.Viewport
-    ref={ref}
-    className={cn(
-      "fixed top-16 left-0 right-0 z-[9998] flex max-h-screen w-full flex-col p-4 sm:top-0 sm:right-0 sm:w-auto md:max-w-[420px]",
-      className
-    )}
-    {...props}
-  />
-))
+>(({ className, ...props }, ref) => {
+  // Platform-aware positioning: mobile top, web bottom-right
+  const isNative = React.useMemo(() => {
+    try {
+      return Capacitor.isNativePlatform();
+    } catch {
+      return false;
+    }
+  }, []);
+
+  const positionClasses = isNative
+    ? "fixed top-16 left-0 right-0 z-[9998] flex max-h-screen w-full flex-col p-4 sm:top-0 sm:right-0 sm:w-auto md:max-w-[420px]"
+    : "fixed bottom-0 right-0 z-[9998] flex max-h-screen w-full flex-col p-4 sm:bottom-0 sm:right-0 sm:w-auto md:max-w-[420px]";
+
+  return (
+    <ToastPrimitives.Viewport
+      ref={ref}
+      className={cn(positionClasses, className)}
+      {...props}
+    />
+  );
+})
 ToastViewport.displayName = ToastPrimitives.Viewport.displayName
 
 const toastVariants = cva(

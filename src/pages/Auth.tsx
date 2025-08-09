@@ -64,6 +64,8 @@ const Auth = () => {
       return;
     }
 
+    // Not: Girdi güvenliği validation şemaları (Zod) ile zaten sağlanıyor.
+
     // Input validation and sanitization
     const sanitizedEmail = validateAndSanitizeInput(email);
     const sanitizedPassword = validateAndSanitizeInput(password);
@@ -169,9 +171,9 @@ const Auth = () => {
       {!Capacitor.isNativePlatform() && (
         <div className="fixed -top-4 left-4 z-50">
           <img
-            src="/Arka-plan-aynı-logo.png"
+            src="/logo-transparent.png"
             alt="Artiklo Logo"
-            className="h-24 w-24 md:h-32 md:w-32 object-contain"
+            className="h-16 w-16 md:h-20 md:w-20 object-contain"
           />
         </div>
       )}

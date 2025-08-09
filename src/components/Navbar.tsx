@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger } from "@/components/ui/navigation-menu";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import { Scale, ChevronDown, LogIn, User as UserIcon, Archive, LogOut, Sparkles } from "lucide-react";
+import { Scale, ChevronDown, LogIn, User as UserIcon, Archive, LogOut, Sparkles, FileText } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 import { useCredits } from "../hooks/useCredits";
 import { Badge } from "@/components/ui/badge";
@@ -63,6 +63,7 @@ const Navbar = () => {
 
   const isDashboard = location.pathname.startsWith("/dashboard");
   const isArchive = location.pathname.startsWith("/archive");
+  const isTemplates = location.pathname.startsWith("/templates");
 
   return (
     <header
@@ -91,10 +92,9 @@ const Navbar = () => {
             className="flex items-center gap-0 font-bold text-xl hover:opacity-80 transition-opacity"
           >
             <img
-              src="/Arka-plan-aynı-logo.png"
+              src="/logo-transparent.png"
               alt="Artiklo Logo"
-              className="w-32 h-32 object-contain"
-              style={{ mixBlendMode: 'multiply' }}
+              className="w-16 h-16 object-contain"
             />
             <span className="text-black font-bold text-2xl -ml-6">
               ARTIKLO
@@ -137,19 +137,38 @@ const Navbar = () => {
         <div className="flex items-center gap-2 ml-auto">
           {user ? (
             <>
-              {isDashboard || isArchive ? (
-                <>
-                  <Link to={isDashboard ? "/archive" : "/dashboard"}>
-                    <Button variant="ghost" className="text-sm font-medium">
-                      {isDashboard ? "Belgelerim" : "Dashboard"}
+              {isDashboard || isArchive || isTemplates ? (
+                <div className="flex items-center gap-1">
+                  <Link to="/dashboard">
+                    <Button
+                      variant={isDashboard ? "default" : "ghost"}
+                      size="sm"
+                      className="text-sm font-medium"
+                    >
+                      Dashboard
                     </Button>
                   </Link>
-                  {/* <Link to="/rehber">
-                  <Button variant="outline" className="text-sm font-medium ml-1">
-                    Avukat Rehberi
-                  </Button>
-                </Link> */}
-                </>
+                  <Link to="/templates">
+                    <Button
+                      variant={isTemplates ? "default" : "ghost"}
+                      size="sm"
+                      className="text-sm font-medium flex items-center gap-1"
+                    >
+                      <FileText className="h-4 w-4" />
+                      Şablonlar
+                    </Button>
+                  </Link>
+                  <Link to="/archive">
+                    <Button
+                      variant={isArchive ? "default" : "ghost"}
+                      size="sm"
+                      className="text-sm font-medium flex items-center gap-1"
+                    >
+                      <Archive className="h-4 w-4" />
+                      Belgelerim
+                    </Button>
+                  </Link>
+                </div>
               ) : (
                 <Button
                   variant="ghost"

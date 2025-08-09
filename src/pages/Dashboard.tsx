@@ -29,7 +29,7 @@ import OnboardingTour from "@/components/OnboardingTour";
 import ReactMarkdown from 'react-markdown';
 import { Document, Packer, Paragraph, TextRun } from 'docx';
 import { useCredits } from "@/hooks/useCredits";
-import { documentAnalysisSchema, validateAndSanitizeInput, rateLimiter, validateFileSecurity } from "@/lib/validation";
+import { documentAnalysisSchema, validateAndSanitizeInput, rateLimiter, validateFileSecurity, validateFileSecurityAsync, validateSecureInput } from "@/lib/validation";
 import { useSessionSecurity } from "@/lib/sessionSecurity";
 import { useNativeFileUpload } from "@/hooks/useNativeFileUpload";
 import ErrorBoundary from "@/components/ErrorBoundary";
@@ -468,6 +468,15 @@ const Dashboard = () => {
     }
 
     console.log('[Dashboard] Validating input');
+
+    // Enhanced input validation
+    const secureInputCheck = validateSecureInput(originalText);
+    if (!secureInputCheck.isValid) {
+      console.log('[Dashboard] Secure input validation failed:', secureInputCheck.error);
+      setValidationErrors({ general: secureInputCheck.error || 'Geçersiz girdi tespit edildi' });
+      return;
+    }
+
     const sanitizedText = validateAndSanitizeInput(originalText);
 
     const allFiles = [...selectedFiles, ...nativeFiles];
@@ -1003,22 +1012,46 @@ const Dashboard = () => {
                 multiple
                 className="hidden"
                 disabled={loading !== null}
-                onChange={(e) => {
+                onChange={async (e) => {
                   if (e.target.files) {
                     const files = Array.from(e.target.files);
 
-                    const validFiles = files.filter(file => {
-                      const securityCheck = validateFileSecurity(file);
-                      if (!securityCheck.isValid) {
+                    // Use sync validation for immediate feedback, async for deeper checks
+                    const validFiles: File[] = [];
+                    for (const file of files) {
+                      try {
+                        // First, quick sync validation
+                        const syncCheck = validateFileSecurity(file);
+                        if (!syncCheck.isValid) {
+                          toast({
+                            title: "Güvenlik Uyarısı",
+                            description: syncCheck.error || "Dosya güvenlik kontrolünden geçemedi.",
+                            variant: "destructive",
+                          });
+                          continue;
+                        }
+
+                        // Then async deep validation
+                        const deepCheck = await validateFileSecurityAsync(file);
+                        if (!deepCheck.isValid) {
+                          toast({
+                            title: "Güvenlik Uyarısı",
+                            description: deepCheck.error || "Dosya içeriği güvenlik kontrolünden geçemedi.",
+                            variant: "destructive",
+                          });
+                          continue;
+                        }
+
+                        validFiles.push(file);
+                      } catch (error) {
+                        console.error('[Dashboard] File validation error:', error);
                         toast({
-                          title: "Güvenlik Uyarısı",
-                          description: securityCheck.error || "Dosya güvenlik kontrolünden geçemedi.",
+                          title: "Güvenlik Hatası",
+                          description: "Dosya doğrulama sırasında hata oluştu.",
                           variant: "destructive",
                         });
-                        return false;
                       }
-                      return true;
-                    });
+                    }
 
                     if (validFiles.length !== files.length) {
                       toast({

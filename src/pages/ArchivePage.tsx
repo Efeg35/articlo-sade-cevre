@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useSupabaseClient, useSession } from '@supabase/auth-helpers-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Loader2, Trash2, FileText, Clock, Sparkles, Zap, Search, SlidersHorizontal, CalendarRange, ArrowUpDown } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Dialog as ConfirmDialog, DialogContent as ConfirmDialogContent, DialogHeader as ConfirmDialogHeader, DialogTitle as ConfirmDialogTitle, DialogFooter as ConfirmDialogFooter } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
@@ -104,6 +105,30 @@ const ArchivePage = () => {
     }
     return title || "Başlıksız Belge";
   }
+
+  // Skeleton component for loading state
+  const DocumentSkeleton = () => (
+    <Card className="border shadow-sm">
+      <CardContent className="p-6">
+        <Skeleton className="h-5 w-3/4 mb-2" />
+        <Skeleton className="h-4 w-1/2" />
+      </CardContent>
+    </Card>
+  );
+
+  // Stats Skeleton
+  const StatsSkeleton = () => (
+    <Card className="group">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <Skeleton className="h-4 w-20" />
+        <Skeleton className="h-8 w-8 rounded-lg" />
+      </CardHeader>
+      <CardContent>
+        <Skeleton className="h-8 w-16 mb-1" />
+        <Skeleton className="h-4 w-24" />
+      </CardContent>
+    </Card>
+  );
 
   async function handleDelete(id: string) {
     setIsDeleting(true);
@@ -217,93 +242,104 @@ const ArchivePage = () => {
 
         {/* İstatistikler */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-          <Card className="group hover:shadow-lg transition-all duration-300 hover:border-primary/40">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 group-hover:text-primary transition-colors">
-              <CardTitle className="text-sm font-medium">Bu Ay</CardTitle>
-              <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                <FileText className="h-4 w-4 text-primary" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold group-hover:text-primary transition-colors">{stats.thisMonth}</div>
-              <div className="flex items-center mt-1">
-                <p className="text-sm text-muted-foreground">
-                  Sadeleştirilen Belge
-                </p>
-                {stats.thisMonth > 0 && (
-                  <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary">
-                    Aktif
-                  </span>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+          {loading ? (
+            <>
+              <StatsSkeleton />
+              <StatsSkeleton />
+              <StatsSkeleton />
+              <StatsSkeleton />
+            </>
+          ) : (
+            <>
+              <Card className="group hover:shadow-lg transition-all duration-300 hover:border-primary/40">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 group-hover:text-primary transition-colors">
+                  <CardTitle className="text-sm font-medium">Bu Ay</CardTitle>
+                  <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                    <FileText className="h-4 w-4 text-primary" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold group-hover:text-primary transition-colors">{stats.thisMonth}</div>
+                  <div className="flex items-center mt-1">
+                    <p className="text-sm text-muted-foreground">
+                      Sadeleştirilen Belge
+                    </p>
+                    {stats.thisMonth > 0 && (
+                      <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+                        Aktif
+                      </span>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
 
-          <Card className="group hover:shadow-lg transition-all duration-300 hover:border-primary/40">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 group-hover:text-primary transition-colors">
-              <CardTitle className="text-sm font-medium">Tasarruf Edilen Süre</CardTitle>
-              <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                <Clock className="h-4 w-4 text-primary" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold group-hover:text-primary transition-colors">{stats.timeSaved} dk</div>
-              <div className="flex items-center mt-1">
-                <p className="text-sm text-muted-foreground">
-                  Yaklaşık {Math.round(stats.timeSaved / 60)} saat
-                </p>
-                {stats.timeSaved > 60 && (
-                  <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary">
-                    {Math.round(stats.timeSaved / 60)}+ saat
-                  </span>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+              <Card className="group hover:shadow-lg transition-all duration-300 hover:border-primary/40">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 group-hover:text-primary transition-colors">
+                  <CardTitle className="text-sm font-medium">Tasarruf Edilen Süre</CardTitle>
+                  <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                    <Clock className="h-4 w-4 text-primary" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold group-hover:text-primary transition-colors">{stats.timeSaved} dk</div>
+                  <div className="flex items-center mt-1">
+                    <p className="text-sm text-muted-foreground">
+                      Yaklaşık {Math.round(stats.timeSaved / 60)} saat
+                    </p>
+                    {stats.timeSaved > 60 && (
+                      <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+                        {Math.round(stats.timeSaved / 60)}+ saat
+                      </span>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
 
-          <Card className="group hover:shadow-lg transition-all duration-300 hover:border-primary/40">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 group-hover:text-primary transition-colors">
-              <CardTitle className="text-sm font-medium">Kullanılan Kredi</CardTitle>
-              <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                <Sparkles className="h-4 w-4 text-primary" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold group-hover:text-primary transition-colors">{stats.creditsUsed}</div>
-              <div className="flex items-center mt-1">
-                <p className="text-sm text-muted-foreground">
-                  Kalan: {credits} kredi
-                </p>
-                {credits > 0 && (
-                  <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary">
-                    {credits} kredi kaldı
-                  </span>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+              <Card className="group hover:shadow-lg transition-all duration-300 hover:border-primary/40">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 group-hover:text-primary transition-colors">
+                  <CardTitle className="text-sm font-medium">Kullanılan Kredi</CardTitle>
+                  <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                    <Sparkles className="h-4 w-4 text-primary" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold group-hover:text-primary transition-colors">{stats.creditsUsed}</div>
+                  <div className="flex items-center mt-1">
+                    <p className="text-sm text-muted-foreground">
+                      Kalan: {credits} kredi
+                    </p>
+                    {credits > 0 && (
+                      <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+                        {credits} kredi kaldı
+                      </span>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
 
-          <Card className="group hover:shadow-lg transition-all duration-300 hover:border-primary/40">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 group-hover:text-primary transition-colors">
-              <CardTitle className="text-sm font-medium">Toplam Belge</CardTitle>
-              <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                <Zap className="h-4 w-4 text-primary" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold group-hover:text-primary transition-colors">{stats.totalDocs}</div>
-              <div className="flex items-center mt-1">
-                <p className="text-sm text-muted-foreground">
-                  Tüm zamanlar
-                </p>
-                {stats.totalDocs > 10 && (
-                  <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary">
-                    10+ belge
-                  </span>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+              <Card className="group hover:shadow-lg transition-all duration-300 hover:border-primary/40">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 group-hover:text-primary transition-colors">
+                  <CardTitle className="text-sm font-medium">Toplam Belge</CardTitle>
+                  <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                    <Zap className="h-4 w-4 text-primary" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold group-hover:text-primary transition-colors">{stats.totalDocs}</div>
+                  <div className="flex items-center mt-1">
+                    <p className="text-sm text-muted-foreground">
+                      Tüm zamanlar
+                    </p>
+                    {stats.totalDocs > 10 && (
+                      <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+                        10+ belge
+                      </span>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </>
+          )}
         </div>
 
         {/* Arama ve Filtreler */}
@@ -558,8 +594,12 @@ const ArchivePage = () => {
           )}
 
           {loading ? (
-            <div className="flex justify-center items-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            <div className="grid gap-4">
+              <DocumentSkeleton />
+              <DocumentSkeleton />
+              <DocumentSkeleton />
+              <DocumentSkeleton />
+              <DocumentSkeleton />
             </div>
           ) : filteredDocuments.length === 0 ? (
             <Card className="text-center py-12">

@@ -10,6 +10,7 @@ import { SessionContextProvider, useSession } from '@supabase/auth-helpers-react
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import ArchivePage from "./pages/ArchivePage";
+import { TemplatesPage } from "./pages/TemplatesPage";
 import Navbar from "./components/Navbar";
 import MobileOnboarding from "./pages/MobileOnboarding";
 import SplashScreen from "./pages/SplashScreen";
@@ -79,33 +80,28 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const session = useSession();
   const navigate = useNavigate();
   const location = useLocation();
-  const [isChecking, setIsChecking] = useState(true);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
 
   useEffect(() => {
-    console.log('[ProtectedRoute] Session check:', !!session, 'Path:', location.pathname);
+    // İlk yüklemede kısa bir gecikme ile session durumunu kontrol et
+    const timer = setTimeout(() => {
+      console.log('[ProtectedRoute] Session check after initial load:', !!session, 'Path:', location.pathname);
 
-    const checkAuth = async () => {
-      try {
-        setIsChecking(true);
-
-        if (!session) {
-          console.log('[ProtectedRoute] No session, redirecting to auth');
-          navigate('/auth', { replace: true });
-          return;
-        }
-
-        console.log('[ProtectedRoute] Session valid, allowing access');
-        setIsChecking(false);
-      } catch (error) {
-        console.error('[ProtectedRoute] Auth check error:', error);
+      if (!session) {
+        console.log('[ProtectedRoute] No session after timeout, redirecting to auth');
         navigate('/auth', { replace: true });
+      } else {
+        console.log('[ProtectedRoute] Session found, allowing access to:', location.pathname);
       }
-    };
 
-    checkAuth();
+      setIsInitialLoading(false);
+    }, 100); // Session yüklenmesi için kısa gecikme
+
+    return () => clearTimeout(timer);
   }, [session, navigate, location.pathname]);
 
-  if (isChecking) {
+  // Session durumu belirsizse (henüz yükleniyorsa) loading göster
+  if (session === undefined || isInitialLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
@@ -116,8 +112,9 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     );
   }
 
+  // Session yoksa null döndür (yönlendirme useEffect'te yapılıyor)
   if (!session) {
-    return null; // Redirect will happen
+    return null;
   }
 
   return <>{children}</>;
@@ -188,12 +185,14 @@ const AppContent = () => {
     }
   }, [navigate, location, platformInfo.isNative]);
 
-  // Auth durumuna göre route yönetimi
+  // Auth durumuna göre route yönetimi - sadece auth sayfasından çıkarken
   useEffect(() => {
     console.log('[AppContent] Session state changed:', !!session, 'Current path:', location.pathname);
 
+    // Sadece auth sayfasında olup da session geldiğinde dashboard'a yönlendir
+    // Diğer durumlarda kullanıcıyı bulunduğu sayfada bırak
     if (session && location.pathname === '/auth') {
-      console.log('[AppContent] User authenticated, redirecting to dashboard');
+      console.log('[AppContent] User authenticated from auth page, redirecting to dashboard');
       navigate('/dashboard', { replace: true });
     }
   }, [session, location.pathname, navigate]);
@@ -238,6 +237,13 @@ const AppContent = () => {
           <ErrorBoundary componentName="Archive">
             <ProtectedRoute>
               <ArchivePage />
+            </ProtectedRoute>
+          </ErrorBoundary>
+        } />
+        <Route path="/templates" element={
+          <ErrorBoundary componentName="Templates">
+            <ProtectedRoute>
+              <TemplatesPage />
             </ProtectedRoute>
           </ErrorBoundary>
         } />

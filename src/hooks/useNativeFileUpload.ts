@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { useToast } from '@/hooks/use-toast';
-import { validateFileSecurity } from '@/lib/validation';
+import { validateFileSecurity, validateFileSecurityAsync } from '@/lib/validation';
 
 // Plugin import'larını güvenli şekilde yap
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
@@ -349,12 +349,23 @@ export const useNativeFileUpload = (): UseNativeFileUploadReturn => {
                         const file = files[0];
                         console.log('[useNativeFileUpload] Web dosya secildi:', file.name);
 
-                        // Security validation
-                        const securityCheck = validateFileSecurity(file);
-                        if (!securityCheck.isValid) {
+                        // Enhanced security validation
+                        try {
+                            const securityCheck = await validateFileSecurityAsync(file);
+                            if (!securityCheck.isValid) {
+                                toast({
+                                    title: "Güvenlik Uyarısı",
+                                    description: securityCheck.error || "Dosya güvenlik kontrolünden geçemedi.",
+                                    variant: "destructive",
+                                });
+                                setIsUploading(false);
+                                return;
+                            }
+                        } catch (error) {
+                            console.error('[useNativeFileUpload] Security validation error:', error);
                             toast({
-                                title: "Güvenlik Uyarısı",
-                                description: securityCheck.error || "Dosya güvenlik kontrolünden geçemedi.",
+                                title: "Güvenlik Hatası",
+                                description: "Dosya güvenlik kontrolü başarısız oldu.",
                                 variant: "destructive",
                             });
                             setIsUploading(false);
