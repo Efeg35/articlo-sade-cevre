@@ -241,19 +241,19 @@ SELECT
     nc.delivered_count,
     nc.clicked_count,
     ROUND(
-        CASE 
-            WHEN nc.recipients_count > 0 
-            THEN (nc.delivered_count::FLOAT / nc.recipients_count::FLOAT) * 100 
-            ELSE 0 
-        END, 
+        CASE
+            WHEN nc.recipients_count > 0
+            THEN (nc.delivered_count::NUMERIC / nc.recipients_count::NUMERIC) * 100
+            ELSE 0
+        END,
         2
     ) as delivery_rate,
     ROUND(
-        CASE 
-            WHEN nc.delivered_count > 0 
-            THEN (nc.clicked_count::FLOAT / nc.delivered_count::FLOAT) * 100 
-            ELSE 0 
-        END, 
+        CASE
+            WHEN nc.delivered_count > 0
+            THEN (nc.clicked_count::NUMERIC / nc.delivered_count::NUMERIC) * 100
+            ELSE 0
+        END,
         2
     ) as click_rate,
     nc.sent_at,
@@ -284,11 +284,11 @@ SELECT
     COUNT(ne.id) FILTER (WHERE ne.event_type = 'clicked') as notifications_clicked,
     COUNT(ne.id) FILTER (WHERE ne.event_type = 'dismissed') as notifications_dismissed,
     ROUND(
-        CASE 
-            WHEN COUNT(ne.id) > 0 
-            THEN (COUNT(ne.id) FILTER (WHERE ne.event_type = 'clicked')::FLOAT / COUNT(ne.id)::FLOAT) * 100 
-            ELSE 0 
-        END, 
+        CASE
+            WHEN COUNT(ne.id) > 0
+            THEN (COUNT(ne.id) FILTER (WHERE ne.event_type = 'clicked')::NUMERIC / COUNT(ne.id)::NUMERIC) * 100
+            ELSE 0
+        END,
         2
     ) as engagement_rate,
     MAX(ne.timestamp) as last_interaction,

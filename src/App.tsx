@@ -36,6 +36,8 @@ import PartnerLoginPage from "./pages/partner/PartnerLoginPage";
 import ProfilePage from "./pages/partner/ProfilePage";
 import DashboardPage from "./pages/partner/DashboardPage";
 import ApplicationPage from "./pages/partner/ApplicationPage";
+import AnalyticsPage from "./pages/AnalyticsPage";
+import NotificationSettingsPage from "./pages/NotificationSettingsPage";
 import ErrorBoundary from "./components/ErrorBoundary";
 
 const queryClient = new QueryClient();
@@ -248,6 +250,20 @@ const AppContent = () => {
           <ErrorBoundary componentName="Templates">
             <ProtectedRoute>
               <TemplatesPage />
+            </ProtectedRoute>
+          </ErrorBoundary>
+        } />
+        <Route path="/analytics" element={
+          <ErrorBoundary componentName="Analytics">
+            <ProtectedRoute>
+              <AnalyticsPage />
+            </ProtectedRoute>
+          </ErrorBoundary>
+        } />
+        <Route path="/notifications" element={
+          <ErrorBoundary componentName="Notifications">
+            <ProtectedRoute>
+              <NotificationSettingsPage />
             </ProtectedRoute>
           </ErrorBoundary>
         } />

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger } from "@/components/ui/navigation-menu";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import { Scale, ChevronDown, LogIn, User as UserIcon, Archive, LogOut, Sparkles, FileText } from "lucide-react";
+import { Scale, ChevronDown, LogIn, User as UserIcon, Archive, LogOut, Sparkles, FileText, BarChart3, Bell } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 import { useCredits } from "../hooks/useCredits";
 import { Badge } from "@/components/ui/badge";
@@ -64,6 +64,7 @@ const Navbar = () => {
   const isDashboard = location.pathname.startsWith("/dashboard");
   const isArchive = location.pathname.startsWith("/archive");
   const isTemplates = location.pathname.startsWith("/templates");
+  const isAnalytics = location.pathname.startsWith("/analytics");
 
   return (
     <header
@@ -137,7 +138,7 @@ const Navbar = () => {
         <div className="flex items-center gap-2 ml-auto">
           {user ? (
             <>
-              {isDashboard || isArchive || isTemplates ? (
+              {isDashboard || isArchive || isTemplates || isAnalytics ? (
                 <div className="flex items-center gap-1">
                   <Link to="/dashboard">
                     <Button
@@ -166,6 +167,16 @@ const Navbar = () => {
                     >
                       <Archive className="h-4 w-4" />
                       Belgelerim
+                    </Button>
+                  </Link>
+                  <Link to="/analytics">
+                    <Button
+                      variant={isAnalytics ? "default" : "ghost"}
+                      size="sm"
+                      className="text-sm font-medium flex items-center gap-1"
+                    >
+                      <BarChart3 className="h-4 w-4" />
+                      Analytics
                     </Button>
                   </Link>
                 </div>
@@ -203,6 +214,9 @@ const Navbar = () => {
                     </div>
                   </div>
                   <DropdownMenuSeparator />
+                  <DropdownMenuItem onSelect={() => navigate("/notifications")} className="cursor-pointer">
+                    <Bell className="w-4 h-4 mr-2" /> Bildirim Ayarları
+                  </DropdownMenuItem>
                   <DropdownMenuItem onSelect={handleSignOut} className="cursor-pointer">
                     <LogOut className="w-4 h-4 mr-2" /> Çıkış Yap
                   </DropdownMenuItem>
