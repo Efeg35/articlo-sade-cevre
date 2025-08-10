@@ -61,25 +61,39 @@ const AdminDashboard: React.FC = () => {
     const loadDashboardData = useCallback(async () => {
         setLoading(true);
         try {
-            // Kullanıcı istatistikleri
-            const { data: users } = await supabase
+            // Kullanıcı istatistikleri - profiles tablosundan alıyoruz
+            const { data: users, count: totalUsersCount } = await supabase
                 .from('profiles')
-                .select('id, created_at')
+                .select('id, created_at', { count: 'exact' })
                 .returns<UserRow[]>();
 
-            // Belge istatistikleri
-            const { data: documents } = await supabase
+            // Son 7 gündeki aktif kullanıcılar için last_sign_in_at kullanamadığımız için
+            // documents tablosundan son 7 gündeki belgesi olan kullanıcıları sayıyoruz
+            const weekAgo = new Date();
+            weekAgo.setDate(weekAgo.getDate() - 7);
+
+            const { data: activeUserDocs } = await supabase
                 .from('documents')
-                .select('id, created_at')
+                .select('user_id')
+                .gte('created_at', weekAgo.toISOString())
+                .returns<Array<{ user_id: string }>>();
+
+            // Unique aktif kullanıcı sayısı
+            const uniqueActiveUsers = new Set(activeUserDocs?.map(doc => doc.user_id) || []);
+
+            // Belge istatistikleri
+            const { data: documents, count: totalDocumentsCount } = await supabase
+                .from('documents')
+                .select('id, created_at', { count: 'exact' })
                 .returns<DocumentRow[]>();
 
-            // Bugünkü analizler
+            // Bugünkü belgeler
             const today = new Date();
             today.setHours(0, 0, 0, 0);
 
-            const { data: todayDocs } = await supabase
+            const { data: todayDocs, count: todayDocsCount } = await supabase
                 .from('documents')
-                .select('id')
+                .select('id', { count: 'exact' })
                 .gte('created_at', today.toISOString())
                 .returns<Array<{ id: string }>>();
 
@@ -100,16 +114,12 @@ const AdminDashboard: React.FC = () => {
 
             // İstatistikleri güncelle
             setStats({
-                totalUsers: users?.length || 0,
-                activeUsers: users?.filter(u => {
-                    const weekAgo = new Date();
-                    weekAgo.setDate(weekAgo.getDate() - 7);
-                    return new Date(u.created_at) > weekAgo;
-                }).length || 0,
-                totalDocuments: documents?.length || 0,
-                documentsToday: todayDocs?.length || 0,
-                totalAnalyses: documents?.length || 0,
-                analysesToday: todayDocs?.length || 0,
+                totalUsers: totalUsersCount || 0,
+                activeUsers: uniqueActiveUsers.size,
+                totalDocuments: totalDocumentsCount || 0,
+                documentsToday: todayDocsCount || 0,
+                totalAnalyses: totalDocumentsCount || 0, // Toplam analiz = toplam belge
+                analysesToday: todayDocsCount || 0, // Bugünkü analiz = bugünkü belge
                 systemHealth: 'healthy',
                 lastUpdated: new Date().toLocaleString('tr-TR')
             });

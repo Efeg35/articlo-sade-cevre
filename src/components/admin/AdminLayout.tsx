@@ -10,11 +10,9 @@ import {
     Settings,
     Home,
     Shield,
-    LogOut,
     Database,
     Activity
 } from 'lucide-react';
-import { useSupabaseClient } from '@supabase/auth-helpers-react';
 import { Loader2 } from 'lucide-react';
 
 interface AdminLayoutProps {
@@ -23,7 +21,6 @@ interface AdminLayoutProps {
 
 const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     const { isAdmin, isLoading, shouldRedirect } = useAdminRouteGuard();
-    const supabase = useSupabaseClient();
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -65,14 +62,6 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
         );
     }
 
-    const handleSignOut = async () => {
-        try {
-            await supabase.auth.signOut();
-            navigate('/');
-        } catch (error) {
-            console.error('Sign out error:', error);
-        }
-    };
 
     const navItems = [
         {
@@ -114,43 +103,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     ];
 
     return (
-        <div className="min-h-screen bg-background">
-            {/* Admin Header */}
-            <header className="bg-white shadow-sm border-b border-border">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between items-center h-16">
-                        <div className="flex items-center">
-                            <Link to="/admin" className="flex items-center space-x-2">
-                                <Shield className="h-8 w-8 text-primary" />
-                                <div>
-                                    <span className="font-bold text-lg">ARTIKLO</span>
-                                    <span className="text-xs text-muted-foreground ml-2">Admin Panel</span>
-                                </div>
-                            </Link>
-                        </div>
-
-                        <div className="flex items-center space-x-4">
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => navigate('/')}
-                            >
-                                Siteye Dön
-                            </Button>
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={handleSignOut}
-                                className="text-destructive hover:text-destructive"
-                            >
-                                <LogOut className="h-4 w-4 mr-2" />
-                                Çıkış
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-            </header>
-
+        <div className="min-h-screen bg-background pt-16">
             <div className="flex">
                 {/* Sidebar */}
                 <aside className="w-64 bg-white shadow-sm border-r border-border min-h-[calc(100vh-4rem)]">

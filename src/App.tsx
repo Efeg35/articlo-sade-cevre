@@ -9,6 +9,7 @@ import { createClient } from '@supabase/supabase-js';
 import { SessionContextProvider, useSession } from '@supabase/auth-helpers-react';
 import { useAnalytics } from "./hooks/useAnalytics";
 import ErrorBoundary from "./components/ErrorBoundary";
+import { Logger } from "@/utils/logger";
 
 // Critical pages - immediate load
 import Index from "./pages/Index";
@@ -22,12 +23,15 @@ const Dashboard = lazy(() => import("./pages/Dashboard"));
 const ArchivePage = lazy(() => import("./pages/ArchivePage"));
 const TemplatesPage = lazy(() => import("./pages/TemplatesPage").then(module => ({ default: module.TemplatesPage })));
 const NotificationSettingsPage = lazy(() => import("./pages/NotificationSettingsPage"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 
 // Admin pages - lazy load
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
 const AdminUsers = lazy(() => import("./pages/admin/AdminUsers"));
 const AdminAnalytics = lazy(() => import("./pages/admin/AdminAnalytics"));
 const AdminSettings = lazy(() => import("./pages/admin/AdminSettings"));
+const AdminDocuments = lazy(() => import("./pages/admin/AdminDocuments"));
+const AdminSystem = lazy(() => import("./pages/admin/AdminSystem"));
 const AdminLayout = lazy(() => import("./components/admin/AdminLayout"));
 
 // Public pages - lazy load
@@ -82,7 +86,7 @@ const getPlatformInfo = () => {
     const platform = Capacitor.getPlatform();
     return { isNative, platform };
   } catch (error) {
-    console.error('[App] Platform detection hatası:', error);
+    Logger.error('App', 'Platform detection error', error);
     return { isNative: false, platform: 'web' };
   }
 };
@@ -93,7 +97,7 @@ const MainLayout = () => {
   const shouldHideNavbar = hideNavbarOnPages.includes(location.pathname);
 
   useEffect(() => {
-    console.log('[MainLayout] Route changed:', location.pathname);
+    Logger.debug('MainLayout', 'Route changed', { pathname: location.pathname });
   }, [location.pathname]);
 
   return (
@@ -116,13 +120,16 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     // İlk yüklemede kısa bir gecikme ile session durumunu kontrol et
     const timer = setTimeout(() => {
-      console.log('[ProtectedRoute] Session check after initial load:', !!session, 'Path:', location.pathname);
+      Logger.log('ProtectedRoute', 'Session check after initial load', {
+        hasSession: !!session,
+        pathname: location.pathname
+      });
 
       if (!session) {
-        console.log('[ProtectedRoute] No session after timeout, redirecting to auth');
+        Logger.log('ProtectedRoute', 'No session after timeout, redirecting to auth');
         navigate('/auth', { replace: true });
       } else {
-        console.log('[ProtectedRoute] Session found, allowing access to:', location.pathname);
+        Logger.log('ProtectedRoute', 'Session found, allowing access', { pathname: location.pathname });
       }
 
       setIsInitialLoading(false);
@@ -164,7 +171,7 @@ const AppContent = () => {
   useEffect(() => {
     const info = getPlatformInfo();
     setPlatformInfo(info);
-    console.log('[AppContent] Platform info:', info);
+    Logger.log('AppContent', 'Platform info updated', info);
   }, []);
 
   // Global StatusBar ayarları
@@ -176,9 +183,9 @@ const AppContent = () => {
         const { StatusBar, Style } = await import('@capacitor/status-bar');
         await StatusBar.setStyle({ style: Style.Dark });
         await StatusBar.setBackgroundColor({ color: '#ffffff' });
-        console.log('[AppContent] Global StatusBar set to dark style');
+        Logger.log('AppContent', 'Global StatusBar set to dark style');
       } catch (error) {
-        console.error('[AppContent] Global StatusBar hatası (normal):', error);
+        Logger.error('AppContent', 'Global StatusBar error (normal)', error);
       }
     };
 
@@ -191,30 +198,30 @@ const AppContent = () => {
 
     const handleBackButton = ({ canGoBack }: { canGoBack: boolean }) => {
       try {
-        console.log('[AppContent] Back button pressed, canGoBack:', canGoBack);
+        Logger.log('AppContent', 'Back button pressed', { canGoBack });
         if (canGoBack) {
           window.history.back();
         } else {
-          console.log('[AppContent] No more history to go back to.');
+          Logger.log('AppContent', 'No more history to go back to');
         }
       } catch (error) {
-        console.error('[AppContent] Back button error:', error);
+        Logger.error('AppContent', 'Back button error', error);
       }
     };
 
     try {
       CapacitorApp.addListener('backButton', handleBackButton);
-      console.log('[AppContent] Back button listener added');
+      Logger.log('AppContent', 'Back button listener added');
     } catch (error) {
-      console.error('[AppContent] Failed to add back button listener:', error);
+      Logger.error('AppContent', 'Failed to add back button listener', error);
     }
 
     return () => {
       try {
         CapacitorApp.removeAllListeners();
-        console.log('[AppContent] Back button listener removed');
+        Logger.log('AppContent', 'Back button listener removed');
       } catch (error) {
-        console.error('[AppContent] Failed to remove back button listener:', error);
+        Logger.error('AppContent', 'Failed to remove back button listener', error);
       }
     };
   }, [platformInfo.isNative]);
@@ -224,39 +231,42 @@ const AppContent = () => {
     if (platformInfo.isNative && location.pathname === '/') {
       try {
         const isFirstLaunch = sessionStorage.getItem('firstLaunchDone') !== 'true';
-        console.log('[AppContent] Mobile platform, first launch:', isFirstLaunch);
+        Logger.log('AppContent', 'Mobile platform first launch check', { isFirstLaunch });
 
         if (isFirstLaunch) {
           sessionStorage.setItem('firstLaunchDone', 'true');
-          console.log('[AppContent] Redirecting to splash screen');
+          Logger.log('AppContent', 'Redirecting to splash screen');
           navigate('/splash', { replace: true });
         }
       } catch (error) {
-        console.error('[AppContent] Splash screen redirect error:', error);
+        Logger.error('AppContent', 'Splash screen redirect error', error);
       }
     }
   }, [navigate, location, platformInfo.isNative]);
 
   // Auth durumuna göre route yönetimi - sadece auth sayfasından çıkarken
   useEffect(() => {
-    console.log('[AppContent] Session state changed:', !!session, 'Current path:', location.pathname);
+    Logger.log('AppContent', 'Session state changed', {
+      hasSession: !!session,
+      pathname: location.pathname
+    });
 
     // Sadece auth sayfasında olup da session geldiğinde dashboard'a yönlendir
     // Diğer durumlarda kullanıcıyı bulunduğu sayfada bırak
     if (session && location.pathname === '/auth') {
-      console.log('[AppContent] User authenticated from auth page, redirecting to dashboard');
+      Logger.log('AppContent', 'User authenticated from auth page, redirecting to dashboard');
       navigate('/dashboard', { replace: true });
     }
   }, [session, location.pathname, navigate]);
 
   // Route change logging
   useEffect(() => {
-    console.log('[AppContent] Route changed to:', location.pathname);
+    Logger.debug('AppContent', 'Route changed', { pathname: location.pathname });
   }, [location.pathname]);
 
   // Mobil platformlarda Index sayfasını render etme
   if (platformInfo.isNative && location.pathname === '/') {
-    console.log('[AppContent] Mobile platform, showing splash screen instead of Index');
+    Logger.log('AppContent', 'Mobile platform, showing splash screen instead of Index');
     return <SplashScreen />;
   }
 
@@ -360,6 +370,28 @@ const AppContent = () => {
               </ProtectedRoute>
             </ErrorBoundary>
           } />
+          <Route path="/admin/documents" element={
+            <ErrorBoundary componentName="AdminDocuments">
+              <ProtectedRoute>
+                <Suspense fallback={<PageLoader />}>
+                  <AdminLayout>
+                    <AdminDocuments />
+                  </AdminLayout>
+                </Suspense>
+              </ProtectedRoute>
+            </ErrorBoundary>
+          } />
+          <Route path="/admin/system" element={
+            <ErrorBoundary componentName="AdminSystem">
+              <ProtectedRoute>
+                <Suspense fallback={<PageLoader />}>
+                  <AdminLayout>
+                    <AdminSystem />
+                  </AdminLayout>
+                </Suspense>
+              </ProtectedRoute>
+            </ErrorBoundary>
+          } />
         </Route>
 
         {/* Navbar'ın görünmeyeceği, tam ekran sayfalar */}
@@ -372,6 +404,12 @@ const AppContent = () => {
         <Route path="/auth" element={<Auth />} />
         <Route path="/login" element={<Auth />} />
         <Route path="/signup" element={<Auth />} />
+        {/* 🔒 Password Reset Page - No navbar */}
+        <Route path="/reset-password" element={
+          <Suspense fallback={<PageLoader />}>
+            <ResetPassword />
+          </Suspense>
+        } />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Suspense>
@@ -382,9 +420,9 @@ const App = () => {
   const [supabase] = useState(() => supabaseClient);
 
   useEffect(() => {
-    console.log('[App] App component mounted - Optimized for mobile security');
+    Logger.log('App', 'App component mounted - Optimized for mobile security');
     return () => {
-      console.log('[App] App component unmounted');
+      Logger.log('App', 'App component unmounted');
     };
   }, []);
 

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Keyboard } from '@capacitor/keyboard';
 import { useNavigate, Link } from "react-router-dom";
 import { useSupabaseClient, useSession } from '@supabase/auth-helpers-react';
+import { Logger } from "@/utils/logger";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -96,10 +97,10 @@ const Dashboard = () => {
   const supabase = useSupabaseClient();
   const user = session?.user || null;
 
-  // Comprehensive logging sistemi
+  // 🔒 KONTROL NOKTASI: Production-safe logging
   useEffect(() => {
-    console.log('[Dashboard] Component mounted');
-    console.log('[Dashboard] Initial state:', {
+    Logger.log('Dashboard', 'Component mounted');
+    Logger.log('Dashboard', 'Initial state', {
       user: user?.email,
       session: !!session,
       platform: Capacitor.getPlatform(),
@@ -107,7 +108,7 @@ const Dashboard = () => {
     });
 
     return () => {
-      console.log('[Dashboard] Component unmounted');
+      Logger.log('Dashboard', 'Component unmounted');
     };
   }, [session, user?.email]);
 
@@ -121,9 +122,9 @@ const Dashboard = () => {
           const { StatusBar, Style } = await import('@capacitor/status-bar');
           await StatusBar.setStyle({ style: Style.Dark });
           await StatusBar.setBackgroundColor({ color: '#ffffff' });
-          console.log('[Dashboard] Status bar set to dark style');
+          Logger.log('Dashboard', 'Status bar set to dark style');
         } catch (error) {
-          console.error('[Dashboard] Status bar ayarlama hatası (normal):', error);
+          Logger.error('Dashboard', 'Status bar ayarlama hatası (normal)', error);
           // StatusBar mevcut değilse devam et
         }
       };
@@ -131,7 +132,7 @@ const Dashboard = () => {
       setStatusBarSafe();
 
       const handleKeyboardDidHide = () => {
-        console.log('[Dashboard] Keyboard hidden, resetting UI...');
+        Logger.log('Dashboard', 'Keyboard hidden, resetting UI...');
 
         // Kapsamlı UI reset
         setTimeout(() => {
@@ -161,7 +162,7 @@ const Dashboard = () => {
           document.documentElement.style.transform = 'translateZ(0)';
           document.documentElement.style.willChange = 'transform';
 
-          console.log('[Dashboard] Keyboard UI reset tamamlandı');
+          Logger.log('Dashboard', 'Keyboard UI reset tamamlandı');
         }, 100);
       };
 
@@ -227,23 +228,23 @@ const Dashboard = () => {
 
   // 🔧 BUTON ÇALIŞMA TESTİ İÇİN DEBUG FONKSIYONLARI
   const safeTakePhoto = async () => {
-    console.log('🔥 safeTakePhoto ÇAĞRILDI!');
-    console.log('[Dashboard] takePhoto fonksiyon tipi:', typeof takePhoto);
+    Logger.debug('Dashboard', 'safeTakePhoto called');
+    Logger.debug('Dashboard', 'takePhoto function type', { type: typeof takePhoto });
 
     try {
       if (typeof takePhoto !== 'function') {
         throw new Error('takePhoto fonksiyonu tanımlanmamış');
       }
 
-      console.log('[Dashboard] takePhoto çağrılıyor...');
+      Logger.log('Dashboard', 'takePhoto calling...');
       await takePhoto();
-      console.log('[Dashboard] ✅ Fotoğraf çekildi başarılı');
+      Logger.log('Dashboard', 'Photo capture successful');
       successToast({
         title: 'Başarılı!',
         description: 'Fotoğraf çekme işlemi tamamlandı.'
       });
     } catch (err) {
-      console.error('[Dashboard] ❌ Fotoğraf çekme hatası:', err);
+      Logger.error('Dashboard', 'Photo capture error', err);
       errorToast({
         title: 'Fotoğraf Hatası',
         description: `Fotoğraf çekilirken hata: ${err instanceof Error ? err.message : 'Bilinmeyen hata'}`
@@ -252,23 +253,23 @@ const Dashboard = () => {
   };
 
   const safeSelectFromGallery = async () => {
-    console.log('🔥 safeSelectFromGallery ÇAĞRILDI!');
-    console.log('[Dashboard] selectFromGallery fonksiyon tipi:', typeof selectFromGallery);
+    Logger.debug('Dashboard', 'safeSelectFromGallery called');
+    Logger.debug('Dashboard', 'selectFromGallery function type', { type: typeof selectFromGallery });
 
     try {
       if (typeof selectFromGallery !== 'function') {
         throw new Error('selectFromGallery fonksiyonu tanımlanmamış');
       }
 
-      console.log('[Dashboard] selectFromGallery çağrılıyor...');
+      Logger.log('Dashboard', 'selectFromGallery calling...');
       await selectFromGallery();
-      console.log('[Dashboard] ✅ Galeriden seçim başarılı');
+      Logger.log('Dashboard', 'Gallery selection successful');
       successToast({
         title: 'Başarılı!',
         description: 'Galeriden dosya seçimi tamamlandı.'
       });
     } catch (err) {
-      console.error('[Dashboard] ❌ Galeri seçme hatası:', err);
+      Logger.error('Dashboard', 'Gallery selection error', err);
       errorToast({
         title: 'Galeri Hatası',
         description: `Galeriden dosya seçilirken hata: ${err instanceof Error ? err.message : 'Bilinmeyen hata'}`
@@ -277,23 +278,23 @@ const Dashboard = () => {
   };
 
   const safeSelectDocument = async () => {
-    console.log('🔥 safeSelectDocument ÇAĞRILDI!');
-    console.log('[Dashboard] selectDocument fonksiyon tipi:', typeof selectDocument);
+    Logger.debug('Dashboard', 'safeSelectDocument called');
+    Logger.debug('Dashboard', 'selectDocument function type', { type: typeof selectDocument });
 
     try {
       if (typeof selectDocument !== 'function') {
         throw new Error('selectDocument fonksiyonu tanımlanmamış');
       }
 
-      console.log('[Dashboard] selectDocument çağrılıyor...');
+      Logger.log('Dashboard', 'selectDocument calling...');
       await selectDocument();
-      console.log('[Dashboard] ✅ Doküman seçimi başarılı');
+      Logger.log('Dashboard', 'Document selection successful');
       successToast({
         title: 'Başarılı!',
         description: 'Doküman seçimi tamamlandı.'
       });
     } catch (err) {
-      console.error('[Dashboard] ❌ Doküman seçme hatası:', err);
+      Logger.error('Dashboard', 'Document selection error', err);
       errorToast({
         title: 'Doküman Hatası',
         description: `Doküman seçilirken hata: ${err instanceof Error ? err.message : 'Bilinmeyen hata'}`
@@ -303,7 +304,7 @@ const Dashboard = () => {
 
   // Hook durumu debug
   useEffect(() => {
-    console.log('🔍 Hook durumu kontrol:', {
+    Logger.debug('Dashboard', 'Hook status check', {
       nativeFiles: nativeFiles?.length || 0,
       isNativeUploading,
       takePhoto: typeof takePhoto,
@@ -314,7 +315,7 @@ const Dashboard = () => {
 
   // Error recovery mechanism
   const handleErrorRecovery = useCallback(async () => {
-    console.log('[Dashboard] Attempting error recovery');
+    Logger.log('Dashboard', 'Attempting error recovery');
     setIsRecovering(true);
     setCriticalError(null);
     setApiFallbackMode(false);
@@ -330,9 +331,9 @@ const Dashboard = () => {
       setEntities([]);
       clearNativeFiles();
       setView('input');
-      console.log('[Dashboard] Error recovery completed');
+      Logger.log('Dashboard', 'Error recovery completed');
     } catch (error) {
-      console.error('[Dashboard] Error recovery failed:', error);
+      Logger.error('Dashboard', 'Error recovery failed', error);
       setCriticalError('Kurtarma işlemi başarısız oldu. Lütfen sayfayı yenileyin.');
     } finally {
       setIsRecovering(false);
@@ -341,7 +342,7 @@ const Dashboard = () => {
 
   // API fallback mechanism
   const handleApiFallback = useCallback(async (text: string) => {
-    console.log('[Dashboard] Using API fallback mode');
+    Logger.log('Dashboard', 'Using API fallback mode');
     setApiFallbackMode(true);
 
     try {
@@ -357,7 +358,7 @@ const Dashboard = () => {
         description: "Gelişmiş analiz kullanılamıyor, basit sadeleştirme yapıldı.",
       });
     } catch (error) {
-      console.error('[Dashboard] API fallback error:', error);
+      Logger.error('Dashboard', 'API fallback error', error);
       errorToast({
         title: "Fallback Hatası",
         description: "Basit sadeleştirme de başarısız oldu.",
@@ -367,7 +368,7 @@ const Dashboard = () => {
 
   // Native feature fallback
   const handleNativeFeatureFallback = useCallback(() => {
-    console.log('[Dashboard] Using native feature fallback');
+    Logger.log('Dashboard', 'Using native feature fallback');
     setNativeFeatureFallback(true);
     successToast({
       title: "Web Modu",
@@ -377,7 +378,7 @@ const Dashboard = () => {
 
   // Sayfa yüklendiğinde scroll pozisyonunu sıfırla
   useEffect(() => {
-    console.log('[Dashboard] Resetting scroll position');
+    Logger.log('Dashboard', 'Resetting scroll position');
     window.scrollTo(0, 0);
   }, []);
 
@@ -385,42 +386,42 @@ const Dashboard = () => {
   useEffect(() => {
     const checkAuthAndOnboarding = async () => {
       if (!session || !user) {
-        console.log('[Dashboard] No session or user, skipping auth check');
+        Logger.log('Dashboard', 'No session or user, skipping auth check');
         return;
       }
 
-      console.log('[Dashboard] Dashboard mounted, user:', user.email);
+      Logger.log('Dashboard', 'Dashboard mounted', { userEmail: user.email });
 
       try {
         let isNative = false;
         try {
           isNative = Capacitor.isNativePlatform();
-          console.log('[Dashboard] Platform check:', isNative ? 'Native' : 'Web');
+          Logger.log('Dashboard', 'Platform check', { platform: isNative ? 'Native' : 'Web' });
         } catch (err) {
-          console.error('[Dashboard] Capacitor.isNativePlatform() kontrolünde hata:', err);
+          Logger.error('Dashboard', 'Capacitor platform check error', err);
           isNative = false;
         }
 
         if (isNative) {
-          console.log('[Dashboard] Checking onboarding status for user:', user.id);
+          Logger.log('Dashboard', 'Checking onboarding status', { userId: user.id });
           const { data, error } = await supabase
             .from("profiles")
             .select("id, has_completed_onboarding")
             .eq("id", user.id)
             .single();
 
-          console.log('[Dashboard] Profile query result:', { data, error });
+          Logger.log('Dashboard', 'Profile query result', { hasData: !!data, hasError: !!error });
 
           if (!error && data && data.has_completed_onboarding === false) {
-            console.log('[Dashboard] User has not completed onboarding, showing onboarding');
+            Logger.log('Dashboard', 'User has not completed onboarding, showing onboarding');
             setShowOnboarding(true);
             setProfileId(data.id);
           } else if (error) {
-            console.error('[Dashboard] Error fetching profile:', error);
+            Logger.error('Dashboard', 'Error fetching profile', error);
           }
         }
       } catch (err) {
-        console.error('[Dashboard] Error in checkAuthAndOnboarding:', err);
+        Logger.error('Dashboard', 'Error in checkAuthAndOnboarding', err);
       }
     };
 
@@ -429,9 +430,13 @@ const Dashboard = () => {
     try {
       const { data: { subscription } } = supabase.auth.onAuthStateChange(
         (_event, session) => {
-          console.log('[Dashboard] Auth state change:', _event, session?.user?.email || 'no session');
+          Logger.log('Dashboard', 'Auth state change', {
+            event: _event,
+            hasSession: !!session,
+            userEmail: session?.user?.email || 'no session'
+          });
           if (!session) {
-            console.log('[Dashboard] No session, navigating to auth');
+            Logger.log('Dashboard', 'No session, navigating to auth');
             navigate("/auth");
           }
         }
@@ -439,26 +444,26 @@ const Dashboard = () => {
 
       return () => subscription.unsubscribe();
     } catch (err) {
-      console.error('[Dashboard] Error setting up auth state listener:', err);
+      Logger.error('Dashboard', 'Error setting up auth state listener', err);
     }
   }, [navigate, supabase, session, user]);
 
   useEffect(() => {
     if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
       const seen = localStorage.getItem("artiklo_dashboard_tip_seen");
-      console.log('[Dashboard] Mobile tip check:', !seen);
+      Logger.log('Dashboard', 'Mobile tip check', { showTip: !seen });
       setShowTip(!seen);
     }
   }, []);
 
   const handleCloseTip = () => {
-    console.log('[Dashboard] Closing tip');
+    Logger.log('Dashboard', 'Closing tip');
     localStorage.setItem("artiklo_dashboard_tip_seen", "1");
     setShowTip(false);
   };
 
   const handleReset = () => {
-    console.log('[Dashboard] Resetting form state');
+    Logger.log('Dashboard', 'Resetting form state');
     setOriginalText("");
     setSelectedFiles([]);
     setAnalysisResult(null);
@@ -472,15 +477,15 @@ const Dashboard = () => {
 
   // Modified handleSimplify with fallback mechanisms
   const handleSimplify = async (model: 'flash' | 'pro') => {
-    console.log('[Dashboard] Starting simplification with model:', model);
+    Logger.log('Dashboard', 'Starting simplification', { model });
 
     setValidationErrors({});
 
     const userIdentifier = user?.id || 'anonymous';
-    console.log('[Dashboard] Rate limiting check for user:', userIdentifier);
+    Logger.log('Dashboard', 'Rate limiting check', { userIdentifier });
 
     if (!rateLimiter.isAllowed(userIdentifier)) {
-      console.log('[Dashboard] Rate limit exceeded');
+      Logger.warn('Dashboard', 'Rate limit exceeded', { userIdentifier });
       toast({
         title: "Çok Fazla İstek",
         description: "Çok fazla istek gönderdiniz. Lütfen 15 dakika bekleyin.",
@@ -489,12 +494,12 @@ const Dashboard = () => {
       return;
     }
 
-    console.log('[Dashboard] Validating input');
+    Logger.log('Dashboard', 'Validating input');
 
     // Enhanced input validation
     const secureInputCheck = validateSecureInput(originalText);
     if (!secureInputCheck.isValid) {
-      console.log('[Dashboard] Secure input validation failed:', secureInputCheck.error);
+      Logger.warn('Dashboard', 'Secure input validation failed', { error: secureInputCheck.error });
       setValidationErrors({ general: secureInputCheck.error || 'Geçersiz girdi tespit edildi' });
       return;
     }
@@ -503,7 +508,7 @@ const Dashboard = () => {
 
     const allFiles = [...selectedFiles, ...nativeFiles];
     if (!sanitizedText.trim() && allFiles.length === 0) {
-      console.log('[Dashboard] No input provided');
+      Logger.warn('Dashboard', 'No input provided');
       toast({
         title: "Giriş Eksik",
         description: "Lütfen sadeleştirmek için bir metin girin veya dosya yükleyin.",
@@ -518,7 +523,9 @@ const Dashboard = () => {
     });
 
     if (!validationResult.success) {
-      console.log('[Dashboard] Validation failed:', validationResult.error.errors);
+      Logger.warn('Dashboard', 'Validation failed', {
+        errorCount: validationResult.error.errors.length
+      });
       const errors: Record<string, string> = {};
       validationResult.error.errors.forEach((err) => {
         if (err.path) {
@@ -534,7 +541,7 @@ const Dashboard = () => {
       return;
     }
 
-    console.log('[Dashboard] Starting API call');
+    Logger.log('Dashboard', 'Starting API call');
     setLoading(model);
     setAnalysisResult(null);
     setSummary("");
@@ -547,10 +554,10 @@ const Dashboard = () => {
       let originalTextForDb = sanitizedText;
 
       const allFiles = [...selectedFiles, ...nativeFiles];
-      console.log('[Dashboard] Total files to process:', allFiles.length);
+      Logger.log('Dashboard', 'Total files to process', { count: allFiles.length });
 
       if (allFiles.length > 0) {
-        console.log('[Dashboard] Processing files');
+        Logger.log('Dashboard', 'Processing files');
         const formData = new FormData();
 
         selectedFiles.forEach((file) => formData.append('files', file));
@@ -559,9 +566,13 @@ const Dashboard = () => {
         for (let i = 0; i < nativeFiles.length; i++) {
           const fileData = nativeFiles[i];
           try {
-            console.log('[Dashboard] Processing native file:', fileData.name, 'type:', fileData.type);
-            console.log('[Dashboard] File data length:', fileData.data?.length || 0);
-            console.log('[Dashboard] File data preview:', fileData.data?.substring(0, 100) + '...');
+            Logger.log('Dashboard', 'Processing native file', {
+              name: fileData.name,
+              type: fileData.type
+            });
+            Logger.debug('Dashboard', 'File data details', {
+              dataLength: fileData.data?.length || 0
+            });
 
             // Base64 data kontrolü
             if (!fileData.data || fileData.data.length === 0) {
@@ -576,17 +587,16 @@ const Dashboard = () => {
             }
 
             const blob = new Blob([bytes], { type: fileData.type });
-            console.log('[Dashboard] Blob created, size:', blob.size);
+            Logger.debug('Dashboard', 'Blob created', { size: blob.size });
 
             const file = new File([blob], fileData.name, { type: fileData.type });
-            console.log('[Dashboard] File created, size:', file.size);
+            Logger.debug('Dashboard', 'File created', { size: file.size });
 
             formData.append('files', file);
 
-            console.log('[Dashboard] Successfully processed native file:', fileData.name);
+            Logger.log('Dashboard', 'Successfully processed native file', { name: fileData.name });
           } catch (error) {
-            console.error('[Dashboard] Error processing native file:', error);
-            console.error('[Dashboard] File data:', fileData);
+            Logger.error('Dashboard', 'Error processing native file', error);
             toast({
               title: "Dosya İşleme Hatası",
               description: `Dosya işlenirken hata oluştu: ${error instanceof Error ? error.message : 'Bilinmeyen hata'}`,
@@ -605,11 +615,11 @@ const Dashboard = () => {
         body = { text: sanitizedText, model };
       }
 
-      console.log('[Dashboard] Calling simplify-text function');
+      Logger.log('Dashboard', 'Calling simplify-text function');
       const { data, error } = await supabase.functions.invoke('simplify-text', { body });
 
       if (error) {
-        console.error('[Dashboard] API error:', error);
+        Logger.error('Dashboard', 'API error', error);
 
         if (sanitizedText.trim()) {
           await handleApiFallback(sanitizedText);
@@ -619,16 +629,19 @@ const Dashboard = () => {
         }
       }
 
-      console.log('[Dashboard] API response received');
+      Logger.log('Dashboard', 'API response received');
       setView('result');
 
-      console.log('[Dashboard] API Response:', data);
+      Logger.debug('Dashboard', 'API Response received', {
+        hasSimplifiedText: !!data?.simplifiedText,
+        hasDocumentType: !!data?.documentType
+      });
 
       if (data.simplifiedText && data.documentType && data.extractedEntities && data.actionableSteps) {
-        console.log('[Dashboard] Using structured response');
+        Logger.log('Dashboard', 'Using structured response');
         setAnalysisResult(data as AnalysisResponse);
       } else {
-        console.log('[Dashboard] Using legacy response format');
+        Logger.log('Dashboard', 'Using legacy response format');
         setSummary(data.summary || "");
         setSimplifiedText(data.simplifiedText || "");
         setActionPlan(data.actionPlan || "");
@@ -653,7 +666,7 @@ const Dashboard = () => {
       }
 
       if (user) {
-        console.log('[Dashboard] Saving document to database');
+        Logger.log('Dashboard', 'Saving document to database');
         const { error: insertError } = await supabase.from('documents').insert({
           user_id: user.id,
           original_text: originalTextForDb,
@@ -664,29 +677,29 @@ const Dashboard = () => {
         });
 
         if (insertError) {
-          console.error('[Dashboard] Database insert error:', insertError);
+          Logger.error('Dashboard', 'Database insert error', insertError);
           toast({
             title: "Kayıt Hatası",
             description: insertError.message || "Belge Supabase'a kaydedilemedi.",
             variant: "destructive",
           });
         } else {
-          console.log('[Dashboard] Document saved successfully');
+          Logger.log('Dashboard', 'Document saved successfully');
           if (user) {
-            console.log('[Dashboard] Decrementing credits');
+            Logger.log('Dashboard', 'Decrementing credits');
             const { error: creditError } = await supabase.rpc('decrement_credit', {
               user_id_param: user.id
             });
 
             if (creditError) {
-              console.error('[Dashboard] Credit decrement error:', creditError);
+              Logger.error('Dashboard', 'Credit decrement error', creditError);
               toast({
                 title: "Kredi Azaltma Hatası",
                 description: "Krediniz azaltılamadı ama işlem tamamlandı.",
                 variant: "destructive",
               });
             } else {
-              console.log('[Dashboard] Credits decremented successfully');
+              Logger.log('Dashboard', 'Credits decremented successfully');
               toast({
                 title: "Başarılı!",
                 description: "Belgeniz başarıyla sadeleştirildi ve kaydedildi. 1 kredi düşüldü.",
@@ -701,7 +714,7 @@ const Dashboard = () => {
         }
       }
     } catch (error: unknown) {
-      console.error('[Dashboard] Simplification error:', error);
+      Logger.error('Dashboard', 'Simplification error', error);
 
       if (sanitizedText.trim()) {
         await handleApiFallback(sanitizedText);
@@ -714,7 +727,7 @@ const Dashboard = () => {
         });
       }
     } finally {
-      console.log('[Dashboard] Simplification completed');
+      Logger.log('Dashboard', 'Simplification completed');
       setLoading(null);
     }
   };
@@ -748,20 +761,20 @@ const Dashboard = () => {
   };
 
   const handleOnboardingFinish = async () => {
-    console.log('[Dashboard] Finishing onboarding');
+    Logger.log('Dashboard', 'Finishing onboarding');
     setShowOnboarding(false);
     if (profileId) {
       try {
-        console.log('[Dashboard] Calling complete-onboarding function');
+        Logger.log('Dashboard', 'Calling complete-onboarding function');
         await supabase.functions.invoke('complete-onboarding', { body: {} });
-        console.log('[Dashboard] Onboarding completed successfully');
+        Logger.log('Dashboard', 'Onboarding completed successfully');
       } catch (e) {
-        console.error('[Dashboard] Onboarding completion error:', e);
+        Logger.error('Dashboard', 'Onboarding completion error', e);
       }
     }
 
     // Redirect to auth for login/signup
-    console.log('[Dashboard] Redirecting to auth');
+    Logger.log('Dashboard', 'Redirecting to auth');
     navigate('/auth');
   };
 
@@ -802,7 +815,7 @@ const Dashboard = () => {
 
       successToast({ title: "Başarılı!", description: "Word belgesi indiriliyor." });
     } catch (error) {
-      console.error('Word belgesi oluşturma hatası:', error);
+      Logger.error('Dashboard', 'Word document creation error', error);
       toast({
         title: "Hata",
         description: "Word belgesi oluşturulurken bir hata oluştu.",
@@ -878,15 +891,15 @@ const Dashboard = () => {
 
   // State change logging
   useEffect(() => {
-    console.log('[Dashboard] View changed to:', view);
+    Logger.debug('Dashboard', 'View changed', { view });
   }, [view]);
 
   useEffect(() => {
-    console.log('[Dashboard] Loading state changed to:', loading);
+    Logger.debug('Dashboard', 'Loading state changed', { loading });
   }, [loading]);
 
   useEffect(() => {
-    console.log('[Dashboard] Analysis result updated:', !!analysisResult);
+    Logger.debug('Dashboard', 'Analysis result updated', { hasResult: !!analysisResult });
   }, [analysisResult]);
 
   if (!user) {
@@ -1093,7 +1106,7 @@ const Dashboard = () => {
 
                         validFiles.push(file);
                       } catch (error) {
-                        console.error('[Dashboard] File validation error:', error);
+                        Logger.error('Dashboard', 'File validation error', error);
                         toast({
                           title: "Güvenlik Hatası",
                           description: "Dosya doğrulama sırasında hata oluştu.",

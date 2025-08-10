@@ -8,11 +8,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, ArrowLeft, FileText, Eye, EyeOff } from "lucide-react";
+import { Loader2, ArrowLeft, FileText, Eye, EyeOff, Mail, CheckCircle } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 import { Capacitor } from '@capacitor/core';
 import { authFormSchema, rateLimiter, validateAndSanitizeInput } from "@/lib/validation";
 import { Shield, AlertTriangle } from "lucide-react";
+import { Logger } from "@/utils/logger";
 
 const Auth = () => {
   const [email, setEmail] = useState("");
@@ -33,6 +34,12 @@ const Auth = () => {
   const [resendLoading, setResendLoading] = useState(false);
   const [resendInfo, setResendInfo] = useState<string>("");
 
+  // 🔒 Password reset states
+  const [isResetMode, setIsResetMode] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetSuccess, setResetSuccess] = useState(false);
+
   // Check for session timeout
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
@@ -40,6 +47,14 @@ const Auth = () => {
       setError("Oturum süreniz doldu. Lütfen tekrar giriş yapın.");
     }
   }, [location]);
+
+  // 🔒 KONTROL NOKTASI: Component mounted with logger
+  useEffect(() => {
+    Logger.log('Auth', 'Component mounted', {
+      initialTab,
+      hasTimeout: new URLSearchParams(location.search).get('timeout') === 'true'
+    });
+  }, []);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -117,7 +132,7 @@ const Auth = () => {
       const { data, error: authError } = response;
 
       if (authError) {
-        console.error('Auth error:', authError);
+        Logger.error('Auth', 'Authentication failed', { error: authError.message });
         if (authError.message.includes("Invalid login credentials")) {
           setError("Geçersiz e-posta veya şifre. Lütfen bilgilerinizi kontrol edin.");
         } else if (authError.message.includes("User already registered")) {
@@ -142,17 +157,17 @@ const Auth = () => {
       }
 
       if (data.session) {
-        console.log('Session created successfully:', data.session);
+        Logger.log('Auth', 'Session created successfully');
         toast({
           title: "Başarılı!",
           description: "Giriş yapıldı, panele yönlendiriliyorsunuz.",
         });
         navigate("/dashboard");
       } else {
-        console.log('No session created, data:', data);
+        Logger.warn('Auth', 'No session created after auth');
       }
     } catch (err) {
-      console.error('Unexpected error:', err);
+      Logger.error('Auth', 'Unexpected authentication error', err);
       setError("Beklenmedik bir hata oluştu. Lütfen tekrar deneyin.");
     } finally {
       setLoading(false);
@@ -181,6 +196,44 @@ const Auth = () => {
       setResendInfo("Beklenmedik bir hata oluştu. Lütfen daha sonra tekrar deneyin.");
     } finally {
       setResendLoading(false);
+    }
+  };
+
+  // 🔒 Password reset handler
+  const handlePasswordReset = async (e: FormEvent) => {
+    e.preventDefault();
+    Logger.log('Auth', 'Password reset requested');
+
+    setResetLoading(true);
+    setError("");
+    setSuccessMessage("");
+
+    try {
+      const sanitizedEmail = validateAndSanitizeInput(resetEmail);
+
+      if (!sanitizedEmail || !sanitizedEmail.includes('@')) {
+        setError("Lütfen geçerli bir e-posta adresi girin.");
+        setResetLoading(false);
+        return;
+      }
+
+      const { error } = await supabase.auth.resetPasswordForEmail(sanitizedEmail, {
+        redirectTo: `${window.location.origin}/reset-password`
+      });
+
+      if (error) {
+        Logger.error('Auth', 'Password reset failed', { error: error.message });
+        setError("Şifre sıfırlama e-postası gönderilemedi. Lütfen e-posta adresinizi kontrol edin.");
+      } else {
+        Logger.log('Auth', 'Password reset email sent successfully');
+        setResetSuccess(true);
+        setSuccessMessage("Şifre sıfırlama bağlantısı e-posta adresinize gönderildi. Lütfen gelen kutunuzu ve spam klasörünü kontrol edin.");
+      }
+    } catch (err) {
+      Logger.error('Auth', 'Unexpected password reset error', err);
+      setError("Beklenmedik bir hata oluştu. Lütfen tekrar deneyin.");
+    } finally {
+      setResetLoading(false);
     }
   };
 
@@ -287,7 +340,14 @@ const Auth = () => {
                   </Button>
                 </form>
                 <div className="text-xs text-muted-foreground mt-4 text-center">
-                  Şifrenizi mi unuttunuz? <span className="underline cursor-pointer">Şifre sıfırlama yakında!</span>
+                  Şifrenizi mi unuttunuz?{" "}
+                  <button
+                    type="button"
+                    onClick={() => setIsResetMode(true)}
+                    className="underline cursor-pointer hover:text-foreground transition-colors"
+                  >
+                    Şifremi Sıfırla
+                  </button>
                 </div>
               </TabsContent>
               <TabsContent value="signup">
@@ -406,6 +466,109 @@ const Auth = () => {
           </Card>
         </Tabs>
       </div>
+
+      {/* 🔒 Password Reset Modal */}
+      {isResetMode && (
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <Card className="w-full max-w-md">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Mail className="h-5 w-5" />
+                Şifre Sıfırla
+              </CardTitle>
+              <CardDescription>
+                {resetSuccess
+                  ? "E-posta başarıyla gönderildi!"
+                  : "E-posta adresinizi girin, size şifre sıfırlama bağlantısı gönderelim."
+                }
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {!resetSuccess ? (
+                <form onSubmit={handlePasswordReset} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="reset-email">E-posta Adresi</Label>
+                    <Input
+                      id="reset-email"
+                      type="email"
+                      placeholder="ornek@email.com"
+                      value={resetEmail}
+                      onChange={(e) => setResetEmail(e.target.value)}
+                      required
+                      disabled={resetLoading}
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        setIsResetMode(false);
+                        setResetEmail("");
+                        setError("");
+                        setSuccessMessage("");
+                      }}
+                      disabled={resetLoading}
+                      className="flex-1"
+                    >
+                      İptal
+                    </Button>
+                    <Button
+                      type="submit"
+                      disabled={resetLoading || !resetEmail}
+                      className="flex-1"
+                    >
+                      {resetLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      {resetLoading ? 'Gönderiliyor...' : 'Bağlantı Gönder'}
+                    </Button>
+                  </div>
+                </form>
+              ) : (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-center w-12 h-12 rounded-full bg-green-100 mx-auto">
+                    <CheckCircle className="h-6 w-6 text-green-600" />
+                  </div>
+                  <div className="text-center space-y-2">
+                    <p className="text-sm text-muted-foreground">
+                      Şifre sıfırlama bağlantısı <strong>{resetEmail}</strong> adresine gönderildi.
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      E-posta gelmezse spam klasörünüzü kontrol edin.
+                    </p>
+                  </div>
+                  <Button
+                    onClick={() => {
+                      setIsResetMode(false);
+                      setResetSuccess(false);
+                      setResetEmail("");
+                      setSuccessMessage("");
+                    }}
+                    className="w-full"
+                  >
+                    Tamam
+                  </Button>
+                </div>
+              )}
+
+              {error && (
+                <Alert variant="destructive" className="mt-4">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertTitle>Hata</AlertTitle>
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+
+              {successMessage && !resetSuccess && (
+                <Alert className="mt-4 bg-green-50 border-green-200">
+                  <CheckCircle className="h-4 w-4 text-green-600" />
+                  <AlertTitle className="text-green-800">Başarılı</AlertTitle>
+                  <AlertDescription className="text-green-700">{successMessage}</AlertDescription>
+                </Alert>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 };

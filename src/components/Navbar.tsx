@@ -11,6 +11,7 @@ import type { User } from "@supabase/supabase-js";
 import { useCredits } from "../hooks/useCredits";
 import { Badge } from "@/components/ui/badge";
 import { Capacitor } from "@capacitor/core";
+import { Logger } from "@/utils/logger";
 
 // Mobil tarayıcı detection fonksiyonu
 const isMobileBrowser = () => {
@@ -42,11 +43,10 @@ const Navbar = () => {
     return () => window.removeEventListener('resize', checkIfMobile);
   }, []);
 
-  // Debug log'ları
-  console.log('Navbar render:', {
-    session: !!session,
-    user: !!user,
-    userEmail: user?.email,
+  // 🔒 KONTROL NOKTASI: Secure navbar logging
+  Logger.debug('Navbar', 'Navbar render', {
+    hasSession: !!session,
+    hasUser: !!user,
     pathname: location.pathname,
     isMobile,
     isNative: Capacitor.isNativePlatform()
@@ -58,11 +58,11 @@ const Navbar = () => {
   // Admin kontrolü
   const { isAdmin } = useAdminAuth();
 
-  console.log('Credits debug:', {
-    userId: user?.id,
-    credits,
-    loading: creditsLoading,
-    error: creditsError
+  Logger.debug('Navbar', 'Credits status', {
+    hasUserId: !!user?.id,
+    hasCredits: credits !== null,
+    creditsLoading,
+    hasCreditsError: !!creditsError
   });
 
   useEffect(() => {
@@ -76,16 +76,16 @@ const Navbar = () => {
 
   const handleSignOut = async () => {
     try {
-      console.log('Signing out...');
+      Logger.log('Navbar', 'Signing out user');
       const { error } = await supabase.auth.signOut();
       if (error) {
-        console.error("Error signing out:", error);
+        Logger.error('Navbar', 'Error signing out', error);
         return;
       }
-      console.log('Sign out successful, navigating to home');
+      Logger.log('Navbar', 'Sign out successful, navigating to home');
       navigate("/", { replace: true });
     } catch (error) {
-      console.error("Error signing out:", error);
+      Logger.error('Navbar', 'Sign out error', error);
     }
   };
 

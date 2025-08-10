@@ -15,13 +15,23 @@ interface UserStats {
     last_activity: string | null;
 }
 
+interface ProfileUser {
+    id: string;
+    email: string;
+    created_at: string;
+    updated_at: string;
+    full_name?: string;
+    email_confirmed_at?: string;
+    last_sign_in_at?: string;
+}
+
 const AdminUsers = () => {
     const supabase = useSupabaseClient();
-    const [users, setUsers] = useState<User[]>([]);
+    const [users, setUsers] = useState<ProfileUser[]>([]);
     const [userStats, setUserStats] = useState<Record<string, UserStats>>({});
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
-    const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
+    const [filteredUsers, setFilteredUsers] = useState<ProfileUser[]>([]);
 
     useEffect(() => {
         fetchUsers();
@@ -35,7 +45,7 @@ const AdminUsers = () => {
             const filtered = users.filter(
                 (user) =>
                     user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    (user.user_metadata?.full_name || '')
+                    (user.full_name || '')
                         .toLowerCase()
                         .includes(searchTerm.toLowerCase())
             );
@@ -47,19 +57,22 @@ const AdminUsers = () => {
         try {
             setLoading(true);
 
-            // Supabase Admin API kullanarak kullanıcıları getir
-            const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
+            // Profiles tablosundan kullanıcıları getir
+            const { data: profileUsers, error: profileError } = await supabase
+                .from('profiles')
+                .select('*')
+                .order('created_at', { ascending: false });
 
-            if (authError) {
-                console.error('Kullanıcılar getirilirken hata:', authError);
+            if (profileError) {
+                console.error('Kullanıcılar getirilirken hata:', profileError);
                 return;
             }
 
-            setUsers(authUsers.users || []);
+            setUsers(profileUsers || []);
 
             // Her kullanıcı için istatistikleri getir
-            if (authUsers.users) {
-                const statsPromises = authUsers.users.map(async (user) => {
+            if (profileUsers) {
+                const statsPromises = profileUsers.map(async (user) => {
                     const stats = await fetchUserStats(user.id);
                     return { userId: user.id, stats };
                 });
@@ -87,12 +100,12 @@ const AdminUsers = () => {
                 .select('*', { count: 'exact', head: true })
                 .eq('user_id', userId);
 
-            // Kullanıcının kredi kullanımını getir
+            // Kullanıcının kredi kullanımını getir (eğer user_credits tablosu yoksa 0 döndür)
             const { data: creditData } = await supabase
                 .from('user_credits')
                 .select('credits_used')
                 .eq('user_id', userId)
-                .single();
+                .maybeSingle();
 
             // Son aktiviteyi getir (son belge oluşturma tarihi)
             const { data: lastActivity } = await supabase
@@ -129,7 +142,7 @@ const AdminUsers = () => {
         });
     };
 
-    const getUserStatus = (user: User) => {
+    const getUserStatus = (user: ProfileUser) => {
         if (!user.email_confirmed_at) return 'pending';
         if (user.last_sign_in_at) return 'active';
         return 'inactive';
@@ -272,7 +285,7 @@ const AdminUsers = () => {
                                             <TableCell>
                                                 <div>
                                                     <div className="font-medium">
-                                                        {user.user_metadata?.full_name || 'İsimsiz Kullanıcı'}
+                                                        {user.full_name || 'İsimsiz Kullanıcı'}
                                                     </div>
                                                     <div className="text-sm text-muted-foreground">{user.email}</div>
                                                 </div>
