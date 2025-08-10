@@ -5,8 +5,9 @@ import { useAdminAuth } from '../hooks/useAdminAuth';
 import { Button } from "@/components/ui/button";
 import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger } from "@/components/ui/navigation-menu";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import { Scale, ChevronDown, LogIn, User as UserIcon, Archive, LogOut, Sparkles, FileText, BarChart3, Bell, Menu } from "lucide-react";
+import { Scale, ChevronDown, LogIn, User as UserIcon, Archive, LogOut, Sparkles, FileText, BarChart3, Bell, Menu, CreditCard, Coins } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 import { useCredits } from "../hooks/useCredits";
 import { Badge } from "@/components/ui/badge";
@@ -29,6 +30,7 @@ const Navbar = () => {
   const user = session?.user || null;
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [isCreditModalOpen, setIsCreditModalOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -199,6 +201,15 @@ const Navbar = () => {
                           Belgelerim
                         </Button>
                       </Link>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setIsCreditModalOpen(true)}
+                        className="text-sm font-medium flex items-center gap-1 text-primary border-primary"
+                      >
+                        <Coins className="h-4 w-4" />
+                        Kredi Satın Al
+                      </Button>
                     </div>
                   ) : (
                     /* Mobile Navigation - Native mobil VE mobil tarayıcı için dropdown */
@@ -247,6 +258,17 @@ const Navbar = () => {
                           <Archive className="w-4 h-4 mr-2" />
                           Belgelerim
                         </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onSelect={(e) => {
+                            e.preventDefault();
+                            setIsCreditModalOpen(true);
+                          }}
+                          className="cursor-pointer text-primary"
+                        >
+                          <CreditCard className="w-4 h-4 mr-2" />
+                          Kredi Satın Al
+                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   )}
@@ -285,6 +307,17 @@ const Navbar = () => {
                     </div>
                   </div>
                   <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onSelect={(e) => {
+                      e.preventDefault();
+                      setIsCreditModalOpen(true);
+                    }}
+                    className="cursor-pointer text-primary"
+                  >
+                    <CreditCard className="w-4 h-4 mr-2" />
+                    Kredi Satın Al
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
                   {isAdmin && (
                     <DropdownMenuItem onSelect={() => navigate("/admin")} className="cursor-pointer">
                       <Scale className="w-4 h-4 mr-2" /> Admin Panel
@@ -316,8 +349,159 @@ const Navbar = () => {
           )}
         </div>
       </nav>
+
+      {/* Kredi Satın Alma Modal */}
+      <Dialog open={isCreditModalOpen} onOpenChange={setIsCreditModalOpen}>
+        <DialogContent className="max-w-4xl w-[95vw] z-[10001]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-2xl">
+              <Coins className="h-6 w-6 text-primary" />
+              Kredi Satın Al
+            </DialogTitle>
+            <DialogDescription>
+              Artiklo kredileri ile belge sadeleştirme ve oluşturma işlemlerinizi gerçekleştirebilirsiniz.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 py-6">
+            {/* Mini Paket */}
+            <div className="group relative border border-gray-200 rounded-xl p-6 hover:border-primary hover:shadow-lg transition-all duration-300 bg-white">
+              <div className="text-center">
+                <div className="bg-gradient-to-br from-blue-100 to-blue-200 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <Coins className="h-8 w-8 text-blue-600" />
+                </div>
+                <h3 className="text-xl font-bold mb-3 text-gray-800">Mini Paket</h3>
+                <div className="mb-6">
+                  <div className="text-3xl font-bold text-primary mb-1">3 Kredi</div>
+                  <div className="text-2xl font-semibold text-gray-800">₺119</div>
+                </div>
+                <Button
+                  className="w-full py-3 text-base font-medium bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 transition-all duration-300"
+                  onClick={() => {
+                    alert('Ödeme sistemi yakında aktif olacak!');
+                  }}
+                >
+                  Satın Al
+                </Button>
+              </div>
+            </div>
+
+            {/* Küçük Paket */}
+            <div className="group relative border border-gray-200 rounded-xl p-6 hover:border-primary hover:shadow-lg transition-all duration-300 bg-white">
+              <div className="text-center">
+                <div className="bg-gradient-to-br from-green-100 to-green-200 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <Sparkles className="h-8 w-8 text-green-600" />
+                </div>
+                <h3 className="text-xl font-bold mb-3 text-gray-800">Küçük Paket</h3>
+                <div className="mb-6">
+                  <div className="text-3xl font-bold text-primary mb-1">5 Kredi</div>
+                  <div className="text-2xl font-semibold text-gray-800">₺149</div>
+                </div>
+                <Button
+                  className="w-full py-3 text-base font-medium bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 transition-all duration-300"
+                  onClick={() => {
+                    alert('Ödeme sistemi yakında aktif olacak!');
+                  }}
+                >
+                  Satın Al
+                </Button>
+              </div>
+            </div>
+
+            {/* Standart Paket */}
+            <div className="group relative border-2 border-primary rounded-xl p-6 bg-gradient-to-br from-primary/5 via-white to-primary/10 shadow-lg transform hover:scale-105 transition-all duration-300">
+              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                <Badge className="bg-gradient-to-r from-primary to-primary/80 text-white px-4 py-1 text-sm font-semibold shadow-md">
+                  🔥 En Popüler
+                </Badge>
+              </div>
+              <div className="text-center pt-2">
+                <div className="bg-gradient-to-br from-primary/20 to-primary/30 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <FileText className="h-8 w-8 text-primary" />
+                </div>
+                <h3 className="text-xl font-bold mb-3 text-gray-800">Standart Paket</h3>
+                <div className="mb-6">
+                  <div className="text-3xl font-bold text-primary mb-1">10 Kredi</div>
+                  <div className="text-2xl font-semibold text-gray-800">₺249</div>
+                </div>
+                <Button
+                  className="w-full py-3 text-base font-medium bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary shadow-lg transition-all duration-300"
+                  onClick={() => {
+                    alert('Ödeme sistemi yakında aktif olacak!');
+                  }}
+                >
+                  Satın Al
+                </Button>
+              </div>
+            </div>
+
+            {/* Pro Paket */}
+            <div className="group relative border border-gray-200 rounded-xl p-6 hover:border-primary hover:shadow-lg transition-all duration-300 bg-white">
+              <div className="text-center">
+                <div className="bg-gradient-to-br from-purple-100 to-purple-200 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <CreditCard className="h-8 w-8 text-purple-600" />
+                </div>
+                <h3 className="text-xl font-bold mb-3 text-gray-800">Pro Paket</h3>
+                <div className="mb-6">
+                  <div className="text-3xl font-bold text-primary mb-1">25 Kredi</div>
+                  <div className="text-2xl font-semibold text-gray-800">₺500</div>
+                </div>
+                <Button
+                  className="w-full py-3 text-base font-medium bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 transition-all duration-300"
+                  onClick={() => {
+                    alert('Ödeme sistemi yakında aktif olacak!');
+                  }}
+                >
+                  Satın Al
+                </Button>
+              </div>
+            </div>
+
+            {/* Özel Paket */}
+            <div className="group relative border-2 border-dashed border-orange-300 rounded-xl p-6 hover:border-orange-500 hover:shadow-lg transition-all duration-300 bg-gradient-to-br from-orange-50 to-white">
+              <div className="text-center">
+                <div className="bg-gradient-to-br from-orange-100 to-orange-200 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <svg className="h-8 w-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-2-2V10a2 2 0 012-2h2m2-4h6a2 2 0 012 2v6a2 2 0 01-2 2h-6a2 2 0 01-2-2V6a2 2 0 012-2z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold mb-3 text-gray-800">Özel Paket</h3>
+                <div className="mb-6">
+                  <div className="text-3xl font-bold text-orange-600 mb-1">25+ Kredi</div>
+                  <div className="text-lg font-medium text-gray-600">Özel Fiyat</div>
+                </div>
+                <Button
+                  variant="outline"
+                  className="w-full py-3 text-base font-medium border-2 border-orange-500 text-orange-600 hover:bg-orange-50 hover:border-orange-600 transition-all duration-300"
+                  onClick={() => {
+                    window.open('mailto:info@artiklo.com?subject=Özel Kredi Paketi Talebi&body=Merhaba,%0A%0A25+ kredi paketi için özel fiyat almak istiyorum.%0A%0ATeşekkürler.', '_blank');
+                  }}
+                >
+                  İletişime Geç
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-gray-50 p-4 rounded-lg mt-4">
+            <h4 className="font-medium mb-2">💡 Kredi Kullanımı</h4>
+            <div className="text-sm text-gray-600 space-y-1">
+              <p>• Her belge sadeleştirme işlemi 1 kredi harcar</p>
+              <p>• AI ile belge oluşturma işlemi 1 kredi harcar</p>
+              <p>• Şablon ile belge oluşturma işlemi 1 kredi harcar</p>
+              <p>• Krediler hiç süre sonu dolmaz</p>
+            </div>
+          </div>
+
+          <div className="text-center text-sm text-gray-500 mt-4">
+            <p>
+              <strong>Not:</strong> Ödeme sistemi henüz aktif değil. Yakında kullanıma sunulacak!
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
     </header>
   );
 };
 
-export default Navbar; 
+export default Navbar;
