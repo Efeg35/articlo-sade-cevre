@@ -824,8 +824,25 @@ const Dashboard = () => {
     }
   };
 
-  const handleShowDraft = () => {
+  const handleShowDraft = async () => {
     if (analysisResult && analysisResult.generatedDocument) {
+      // Kredi düşürme işlemi
+      if (user) {
+        Logger.log('Dashboard', 'Decrementing credits for document creation');
+        const { error: creditError } = await supabase.rpc('decrement_credit', {
+          user_id_param: user.id
+        });
+
+        if (creditError) {
+          Logger.error('Dashboard', 'Credit decrement error for document creation', creditError);
+          errorToast({
+            title: "Kredi Azaltma Hatası",
+            description: "Krediniz azaltılamadı. Belge oluşturulamıyor.",
+          });
+          return;
+        }
+      }
+
       const doc = analysisResult.generatedDocument;
       const partyDetails = doc.parties.map(p => `${p.role}:\n${p.details}`).join('\n\n');
       const explanationsText = doc.explanations.map((p, i) => `${i + 1}. ${p}`).join('\n\n');
@@ -846,6 +863,12 @@ const Dashboard = () => {
       setDraftedText(formattedText);
       setIsModalOpen(true);
       setEditMode(false);
+
+      // Başarı mesajı kredi düşürme bilgisiyle
+      successToast({
+        title: "Belge Oluşturuldu!",
+        description: "Belge taslağınız başarıyla oluşturuldu. 1 kredi düşüldü."
+      });
     } else {
       errorToast({ title: "Hata", description: "Gösterilecek bir belge taslağı bulunamadı." });
     }
@@ -1180,7 +1203,7 @@ const Dashboard = () => {
         className="mt-6 w-full max-w-4xl text-sm md:text-base"
       >
         {loading === 'flash' ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <Sparkles className="h-5 w-5 mr-2" />}
-        {loading === 'flash' ? 'Sadeleştiriliyor...' : 'Sadeleştir'}
+        {loading === 'flash' ? 'Sadeleştiriliyor...' : 'Sadeleştir (1 Kredi)'}
       </Button>
 
       <Button
@@ -1336,7 +1359,7 @@ const Dashboard = () => {
                           onClick={handleShowDraft}
                           className="mt-2"
                         >
-                          Gerekli Belgeyi Oluştur
+                          Gerekli Belgeyi Oluştur (1 Kredi)
                         </Button>
                       )}
                     </div>
@@ -1555,8 +1578,12 @@ const Dashboard = () => {
       </Dialog>
 
       {/* Document Draft Modal */}
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-5xl w-[95vw] h-[90vh] md:h-[90vh] h-[95vh] flex flex-col p-4 md:p-6">
+      <Dialog open={isModalOpen} onOpenChange={(open) => !open && setIsModalOpen(false)}>
+        <DialogContent
+          className="max-w-5xl w-[95vw] h-[90vh] md:h-[90vh] h-[95vh] flex flex-col p-4 md:p-6"
+          onPointerDownOutside={(e) => e.preventDefault()}
+          onEscapeKeyDown={(e) => e.preventDefault()}
+        >
           <DialogHeader className="flex-shrink-0">
             <DialogTitle className="text-xl font-semibold">Belge Taslağınız Hazır</DialogTitle>
             <DialogDescription>

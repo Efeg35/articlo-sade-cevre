@@ -8,6 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { AlertTriangle, Download, Copy, FileText } from 'lucide-react';
 import { DocumentTemplate, TemplateData, GeneratedDocument } from '@/types/templates';
 import { useToast } from '@/hooks/use-toast';
+import { useCredits } from '@/hooks/useCredits';
+import { useSupabaseClient, useSession } from '@supabase/auth-helpers-react';
 import { validateSecureInput } from '@/lib/validation';
 
 interface TemplateFormProps {
@@ -27,6 +29,10 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [isGenerating, setIsGenerating] = useState(false);
     const { toast } = useToast();
+    const supabase = useSupabaseClient();
+    const session = useSession();
+    const user = session?.user || null;
+    const { credits } = useCredits(user?.id);
 
     const handleInputChange = (fieldId: string, value: string | number | Date) => {
         // Security validation for text inputs
@@ -120,9 +126,36 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({
             return;
         }
 
+        // Kredi kontrolü
+        if (!credits || credits <= 0) {
+            toast({
+                title: "Yetersiz Kredi",
+                description: "Belge oluşturmak için kredi gerekiyor. Lütfen kredi satın alın.",
+                variant: "destructive"
+            });
+            return;
+        }
+
         setIsGenerating(true);
 
         try {
+            // Kredi düşürme işlemi
+            if (user) {
+                const { error: creditError } = await supabase.rpc('decrement_credit', {
+                    user_id_param: user.id
+                });
+
+                if (creditError) {
+                    console.error('Credit decrement error for template generation:', creditError);
+                    toast({
+                        title: "Kredi Azaltma Hatası",
+                        description: "Krediniz azaltılamadı. Belge oluşturulamıyor.",
+                        variant: "destructive"
+                    });
+                    return;
+                }
+            }
+
             const generatedContent = processTemplate(template.template, formData);
 
             const generatedDocument: GeneratedDocument = {
@@ -137,7 +170,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({
 
             toast({
                 title: "Belge Oluşturuldu!",
-                description: "Şablonunuz başarıyla dolduruldu.",
+                description: "Şablonunuz başarıyla oluşturuldu. 1 kredi düşüldü.",
             });
 
             // Reset form
@@ -274,8 +307,12 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({
     if (!template) return null;
 
     return (
-        <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto mt-8 mb-8">
+        <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+            <DialogContent
+                className="max-w-2xl max-h-[85vh] overflow-y-auto mt-8 mb-8"
+                onPointerDownOutside={(e) => e.preventDefault()}
+                onEscapeKeyDown={(e) => e.preventDefault()}
+            >
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <span className="text-xl">{template.icon}</span>
@@ -312,7 +349,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({
                         </Button>
                         <Button
                             onClick={handleGenerate}
-                            disabled={isGenerating}
+                            disabled={isGenerating || !credits || credits <= 0}
                             className="flex items-center gap-2"
                         >
                             {isGenerating ? (
@@ -320,7 +357,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({
                             ) : (
                                 <>
                                     <FileText className="h-4 w-4" />
-                                    Belgeyi Oluştur
+                                    Belgeyi Oluştur (1 Kredi)
                                 </>
                             )}
                         </Button>
