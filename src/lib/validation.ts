@@ -20,7 +20,41 @@ export const nameSchema = z
     .string()
     .min(2, 'İsim en az 2 karakter olmalıdır')
     .max(100, 'İsim çok uzun')
-    .regex(/^[a-zA-ZğüşıöçĞÜŞİÖÇ\s]+$/, 'İsim sadece harf içerebilir');
+    .regex(/^[a-zA-ZğüşıöçĞÜŞİÖÇ\s0-9]+$/, 'İsim sadece harf, sayı ve boşluk içerebilir');
+
+// Phone number validation schema (Turkish format)
+export const phoneSchema = z
+    .string()
+    .min(10, 'Telefon numarası en az 10 haneli olmalıdır')
+    .max(15, 'Telefon numarası çok uzun')
+    .regex(/^(\+90|0)?[5][0-9]{2}[0-9]{3}[0-9]{2}[0-9]{2}$/, 'Geçerli bir Türkiye telefon numarası giriniz (örn: 5xx xxx xx xx)');
+
+// Birth date validation schema
+export const birthDateSchema = z
+    .string()
+    .refine((date) => {
+        const birthDate = new Date(date);
+        const today = new Date();
+        const age = today.getFullYear() - birthDate.getFullYear();
+        const monthDiff = today.getMonth() - birthDate.getMonth();
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+            return age >= 18;
+        }
+        return age >= 18;
+    }, 'En az 18 yaşında olmalısınız')
+    .refine((date) => {
+        const birthDate = new Date(date);
+        const today = new Date();
+        return birthDate <= today;
+    }, 'Doğum tarihi bugünden ileri olamaz');
+
+// Reference code validation schema
+export const referenceCodeSchema = z
+    .string()
+    .min(3, 'Referans kodu en az 3 karakter olmalıdır')
+    .max(20, 'Referans kodu çok uzun')
+    .regex(/^[a-zA-Z0-9]+$/, 'Referans kodu sadece harf ve rakam içerebilir')
+    .optional();
 
 // Text input validation schema
 export const textInputSchema = z
@@ -217,7 +251,23 @@ export const validateFileSecurity = (file: File): { isValid: boolean; error?: st
 export const authFormSchema = z.object({
     email: emailSchema,
     password: passwordSchema,
-    fullName: nameSchema.optional()
+    confirmPassword: z.string().optional(),
+    fullName: nameSchema.optional(),
+    phone: phoneSchema.optional(),
+    birthDate: birthDateSchema.optional(),
+    referenceCode: referenceCodeSchema.optional(),
+    marketingConsent: z.boolean().optional(),
+    emailConsent: z.boolean().optional(),
+    smsConsent: z.boolean().optional()
+}).refine((data) => {
+    // Şifre tekrarı kontrolü (sadece kayıt için)
+    if (data.confirmPassword !== undefined) {
+        return data.password === data.confirmPassword;
+    }
+    return true;
+}, {
+    message: 'Şifreler eşleşmiyor',
+    path: ['confirmPassword']
 });
 
 // Document analysis input schema

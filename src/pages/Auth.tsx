@@ -18,12 +18,20 @@ import { Logger } from "@/utils/logger";
 const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [birthDate, setBirthDate] = useState("");
+  const [referenceCode, setReferenceCode] = useState("");
+  const [marketingConsent, setMarketingConsent] = useState(false);
+  const [emailConsent, setEmailConsent] = useState(false);
+  const [smsConsent, setSmsConsent] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -31,8 +39,6 @@ const Auth = () => {
   const supabase = useSupabaseClient();
   const initialTab = location.pathname === "/signup" ? "signup" : "signin";
   const [activeTab, setActiveTab] = useState(initialTab);
-  const [resendLoading, setResendLoading] = useState(false);
-  const [resendInfo, setResendInfo] = useState<string>("");
 
   // 🔒 Password reset states
   const [isResetMode, setIsResetMode] = useState(false);
@@ -72,7 +78,6 @@ const Auth = () => {
     setError("");
     setSuccessMessage("");
     setValidationErrors({});
-    setResendInfo("");
 
     // Rate limiting check
     const userIdentifier = email || 'anonymous';
@@ -88,13 +93,24 @@ const Auth = () => {
     const sanitizedEmail = validateAndSanitizeInput(email);
     const sanitizedPassword = validateAndSanitizeInput(password);
     const sanitizedFullName = fullName ? validateAndSanitizeInput(fullName) : "";
+    const sanitizedPhone = phone ? validateAndSanitizeInput(phone) : "";
+    const sanitizedReferenceCode = referenceCode ? validateAndSanitizeInput(referenceCode) : "";
 
     try {
       // Validate form data
       const formData = {
         email: sanitizedEmail,
         password: sanitizedPassword,
-        ...(action === 'signUp' && { fullName: sanitizedFullName })
+        ...(action === 'signUp' && {
+          confirmPassword,
+          fullName: sanitizedFullName,
+          phone: sanitizedPhone,
+          birthDate: birthDate || undefined,
+          referenceCode: sanitizedReferenceCode || undefined,
+          marketingConsent,
+          emailConsent,
+          smsConsent
+        })
       };
 
       const validationResult = authFormSchema.safeParse(formData);
@@ -124,7 +140,15 @@ const Auth = () => {
           password: sanitizedPassword,
           options: {
             emailRedirectTo: redirectUrl,
-            data: { full_name: sanitizedFullName },
+            data: {
+              full_name: sanitizedFullName,
+              phone: sanitizedPhone,
+              birth_date: birthDate,
+              reference_code: sanitizedReferenceCode,
+              marketing_consent: marketingConsent,
+              email_consent: emailConsent,
+              sms_consent: smsConsent
+            },
           },
         });
       }
@@ -154,6 +178,14 @@ const Auth = () => {
         });
         setEmail("");
         setPassword("");
+        setConfirmPassword("");
+        setFullName("");
+        setPhone("");
+        setBirthDate("");
+        setReferenceCode("");
+        setMarketingConsent(false);
+        setEmailConsent(false);
+        setSmsConsent(false);
       }
 
       if (data.session) {
@@ -174,30 +206,6 @@ const Auth = () => {
     }
   };
 
-  const handleResendVerification = async () => {
-    setResendInfo("");
-    if (!email) {
-      setResendInfo("Önce e-posta adresinizi girin.");
-      return;
-    }
-    setResendLoading(true);
-    try {
-      const sanitizedEmail = validateAndSanitizeInput(email);
-      const { error: resendError } = await supabase.auth.resend({
-        type: 'signup',
-        email: sanitizedEmail,
-      });
-      if (resendError) {
-        setResendInfo(`Tekrar gönderme hatası: ${resendError.message}`);
-      } else {
-        setResendInfo("Doğrulama e-postası tekrar gönderildi. Lütfen gelen kutunuzu ve spam klasörünü kontrol edin.");
-      }
-    } catch (e) {
-      setResendInfo("Beklenmedik bir hata oluştu. Lütfen daha sonra tekrar deneyin.");
-    } finally {
-      setResendLoading(false);
-    }
-  };
 
   // 🔒 Password reset handler
   const handlePasswordReset = async (e: FormEvent) => {
@@ -399,6 +407,33 @@ const Auth = () => {
                     <span className="text-xs text-muted-foreground">Şifreniz en az 8 karakter olmalı, büyük/küçük harf ve rakam içermelidir.</span>
                   </div>
                   <div className="space-y-2">
+                    <Label htmlFor="signup-confirm-password">Şifre Tekrarı</Label>
+                    <div className="relative">
+                      <Input
+                        id="signup-confirm-password"
+                        type={showConfirmPassword ? "text" : "password"}
+                        placeholder="Şifrenizi tekrar girin"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        required
+                        className={validationErrors.confirmPassword ? "border-red-500 pr-10" : "pr-10"}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      >
+                        {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                    {validationErrors.confirmPassword && (
+                      <p className="text-sm text-red-500 flex items-center gap-1">
+                        <AlertTriangle className="h-3 w-3" />
+                        {validationErrors.confirmPassword}
+                      </p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
                     <Label htmlFor="signup-fullname">Ad Soyad</Label>
                     <Input
                       id="signup-fullname"
@@ -415,6 +450,102 @@ const Auth = () => {
                         {validationErrors.fullName}
                       </p>
                     )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-phone">Telefon Numarası</Label>
+                    <Input
+                      id="signup-phone"
+                      type="tel"
+                      placeholder="5xx xxx xx xx"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      required
+                      className={validationErrors.phone ? "border-red-500" : ""}
+                    />
+                    {validationErrors.phone && (
+                      <p className="text-sm text-red-500 flex items-center gap-1">
+                        <AlertTriangle className="h-3 w-3" />
+                        {validationErrors.phone}
+                      </p>
+                    )}
+                    <span className="text-xs text-muted-foreground">SMS doğrulama ve acil durum iletişimi için gereklidir.</span>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-birthdate">Doğum Tarihi</Label>
+                    <Input
+                      id="signup-birthdate"
+                      type="date"
+                      value={birthDate}
+                      onChange={(e) => setBirthDate(e.target.value)}
+                      required
+                      className={validationErrors.birthDate ? "border-red-500" : ""}
+                      max={new Date(new Date().getFullYear() - 18, new Date().getMonth(), new Date().getDate()).toISOString().split('T')[0]}
+                    />
+                    {validationErrors.birthDate && (
+                      <p className="text-sm text-red-500 flex items-center gap-1">
+                        <AlertTriangle className="h-3 w-3" />
+                        {validationErrors.birthDate}
+                      </p>
+                    )}
+                    <span className="text-xs text-muted-foreground">Yaş doğrulama için gereklidir (18+ yaş sınırı).</span>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-reference">Referans Kodu (İsteğe Bağlı)</Label>
+                    <Input
+                      id="signup-reference"
+                      type="text"
+                      placeholder="Referans kodunuz varsa giriniz"
+                      value={referenceCode}
+                      onChange={(e) => setReferenceCode(e.target.value)}
+                      className={validationErrors.referenceCode ? "border-red-500" : ""}
+                    />
+                    {validationErrors.referenceCode && (
+                      <p className="text-sm text-red-500 flex items-center gap-1">
+                        <AlertTriangle className="h-3 w-3" />
+                        {validationErrors.referenceCode}
+                      </p>
+                    )}
+                  </div>
+                  <div className="space-y-3 p-3 bg-gray-50 rounded-lg">
+                    <div className="text-sm font-medium text-gray-900">İletişim Tercihleri</div>
+                    <div className="space-y-2">
+                      <div className="flex items-start gap-2">
+                        <input
+                          type="checkbox"
+                          id="marketing-consent"
+                          checked={marketingConsent}
+                          onChange={(e) => setMarketingConsent(e.target.checked)}
+                          className="mt-1"
+                        />
+                        <label htmlFor="marketing-consent" className="text-xs text-gray-600">
+                          Pazarlama ve promosyon bilgilerini almak istiyorum.
+                        </label>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <input
+                          type="checkbox"
+                          id="email-consent"
+                          checked={emailConsent}
+                          onChange={(e) => setEmailConsent(e.target.checked)}
+                          className="mt-1"
+                        />
+                        <label htmlFor="email-consent" className="text-xs text-gray-600">
+                          E-posta ile bildirim almak istiyorum.
+                        </label>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <input
+                          type="checkbox"
+                          id="sms-consent"
+                          checked={smsConsent}
+                          onChange={(e) => setSmsConsent(e.target.checked)}
+                          className="mt-1"
+                        />
+                        <label htmlFor="sms-consent" className="text-xs text-gray-600">
+                          SMS ile bildirim almak istiyorum.
+                        </label>
+                      </div>
+                    </div>
                   </div>
                   <div className="text-xs text-muted-foreground flex items-start gap-2">
                     <input type="checkbox" required className="mt-1" />
@@ -433,15 +564,8 @@ const Auth = () => {
                     {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Hesap Oluştur
                   </Button>
-                  <div className="text-xs text-muted-foreground mt-2 space-y-2">
+                  <div className="text-xs text-muted-foreground mt-2">
                     <div>E-posta gelmediyse spam klasörünü kontrol edin.</div>
-                    <div className="flex items-center gap-2">
-                      <Button type="button" variant="outline" size="sm" onClick={handleResendVerification} disabled={resendLoading}>
-                        {resendLoading && <Loader2 className="mr-2 h-3 w-3 animate-spin" />}
-                        Doğrulama e-postasını tekrar gönder
-                      </Button>
-                      {resendInfo && <span className="text-[11px]">{resendInfo}</span>}
-                    </div>
                   </div>
                 </form>
                 <div className="mt-6 bg-muted/50 border rounded-lg p-4 text-xs text-muted-foreground">
