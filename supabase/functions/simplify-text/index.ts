@@ -46,7 +46,45 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Sizin yazdığınız prompt'u oluşturan fonksiyon
+// Optimize edilmiş prompt (Gemini 1.5 Flash için)
+const createOptimizedPrompt = (textToAnalyze: string): string => {
+  const optimizedPrompt = `Sen Türkiye Cumhuriyeti hukuk sisteminin uzmanı bir AI asistanısın. Verilen belgeyi analiz et ve SADECE geçerli JSON döndür.
+
+ÇIKTI FORMATI:
+{
+  "summary": "Belgenin ana konusu ve kritik bilgiler (200 kelime max, kritik bilgileri **kalın** yap)",
+  "simplifiedText": "Bu belge size diyor ki... (vatandaş diline çevrilmiş açıklama)",
+  "documentType": "Belge türü (örn: İcra Takip Ödeme Emri, Kira Sözleşmesi)",
+  "extractedEntities": [{"entity": "Bilgi Türü", "value": "Değer"}],
+  "actionableSteps": [{"step": 1, "description": "Yapılacak işlem", "deadline": "Süre", "actionType": "CREATE_DOCUMENT|INFO_ONLY", "priority": "high|medium|low"}],
+  "riskItems": [{"riskType": "Risk Türü", "description": "Risk açıklaması", "severity": "high|medium|low", "legalReference": "Kanun maddesi"}],
+  "generatedDocument": null
+}
+
+KRİTİK RİSK KATEGORİLERİ:
+• Hak düşürücü süreler (icra, dava süreci)
+• Yasal sınır aşımları (faiz, depozito, ceza)
+• Tek taraflı yetkiler ve haksız şartlar
+• Zamanaşımı ve süre riskleri
+• Finansal riskler (aşırı faiz, gizli maliyet)
+• Sözleşme dengesizlikleri
+
+HUKUKI REFERANSLAR: TBK, İİK, HMK, TCK maddelerini kullan
+
+KURALLAR:
+- Sadece JSON döndür, hiç açıklama ekleme
+- Türkçe hukuk terimlerini doğru kullan
+- Kritik tarihleri ve tutarları **kalın** işaretle
+- CREATE_DOCUMENT gerekiyorsa profesyonel dilekçe hazırla
+
+BELGE ANALİZİ:
+---
+${textToAnalyze}
+---`;
+  return optimizedPrompt;
+};
+
+// Orijinal prompt'u oluşturan fonksiyon (yedek olarak)
 const createMasterPrompt = (textToAnalyze: string): string => {
   const smartPrompt = `
   SENARYO: Sen, Türkiye Cumhuriyeti hukuk sisteminin tüm inceliklerine hakim, özellikle usul hukuku ve dilekçe yazım teknikleri konusunda uzmanlaşmış, kıdemli bir avukat ve hukukçu yapay zekasın. Amacın, hukuki terminolojiye yabancı olan vatandaşların haklarını korumalarına yardımcı olmak. Sana sunulan resmi belgeyi sadece analiz etmekle kalmayacak, aynı zamanda bu analize dayanarak atılması gereken adımları belirleyecek ve gerekirse profesyonel bir dilekçe taslağı hazırlayacaksın. Vatandaşın avukatı gibi düşünmeli, onun lehine olan tüm detayları yakalamalısın.
@@ -360,7 +398,16 @@ serve(async (req) => {
 
     if (!textToAnalyze.trim()) throw new Error('Analiz edilecek metin bulunamadı.');
 
-    const geminiPrompt = createMasterPrompt(textToAnalyze);
+    // A/B Testing: %50 optimized prompt, %50 original prompt
+    const useOptimizedPrompt = Math.random() > 0.5;
+    const promptVersion = useOptimizedPrompt ? 'optimized' : 'original';
+    const startTime = Date.now();
+
+    const geminiPrompt = useOptimizedPrompt ?
+      createOptimizedPrompt(textToAnalyze) :
+      createMasterPrompt(textToAnalyze);
+
+    console.log(`Using ${promptVersion} prompt for analysis`);
 
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${geminiApiKey}`, {
       method: 'POST',
@@ -379,6 +426,19 @@ serve(async (req) => {
     if (startIndex === -1 || endIndex === -1) throw new Error('AI yanıtında JSON bulunamadı.');
     const jsonString = rawContent.substring(startIndex, endIndex + 1);
     const parsedResponse: AnalysisResponse = JSON.parse(jsonString);
+
+    // Performance monitoring
+    const endTime = Date.now();
+    const responseTime = endTime - startTime;
+    const tokenCount = jsonString.length;
+
+    console.log('Prompt Performance Metrics:', {
+      promptVersion,
+      responseTime: `${responseTime}ms`,
+      tokenCount,
+      hasAllRequiredFields: !!(parsedResponse.summary && parsedResponse.simplifiedText && parsedResponse.documentType),
+      timestamp: new Date().toISOString()
+    });
 
     return new Response(JSON.stringify(parsedResponse), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
