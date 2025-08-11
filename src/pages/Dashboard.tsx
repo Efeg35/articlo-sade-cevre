@@ -68,6 +68,7 @@ interface AnalysisResponse {
   simplifiedText: string;
   documentType: string;
   summary: string;
+  criticalFacts?: Array<{ type: string; value: string }>;
   extractedEntities: ExtractedEntity[];
   actionableSteps: ActionableStep[];
   riskItems?: RiskItem[];
@@ -83,6 +84,12 @@ interface AnalysisResponse {
     signatureBlock: string;
   };
 }
+
+// Yüksek kaliteli dilekçe üretimi için draft-document fonksiyonuna istek tipleri
+interface Kisi { ad_soyad: string; tc_kimlik?: string; adres?: string; }
+interface ItirazNedeni { tip: string; aciklama: string; }
+interface KullaniciGirdileri { makam_adi: string; dosya_no?: string; itiraz_eden_kisi: Kisi; alacakli_kurum?: { unvan: string; adres?: string }; itiraz_nedenleri?: ItirazNedeni[]; talep_sonucu: string; ekler?: string[]; }
+interface DraftRequest { belge_turu: string; kullanici_girdileri: KullaniciGirdileri; }
 
 // Legacy entity type for backwards compatibility
 type Entity = {
@@ -612,7 +619,8 @@ const Dashboard = () => {
         body = formData;
         originalTextForDb = `[Files: ${allFiles.map(f => f.name).join(", ")}] ${sanitizedText}`;
       } else {
-        body = { text: sanitizedText, model };
+        const isLocalhost = typeof window !== 'undefined' && /^(localhost|127\.0\.0\.1)/.test(window.location.hostname);
+        body = { text: sanitizedText, model, ...(isLocalhost ? { noCache: true } : {}) };
       }
 
       Logger.log('Dashboard', 'Calling simplify-text function');
@@ -843,12 +851,13 @@ const Dashboard = () => {
         }
       }
 
+      // 1) Yerel taslağı göster (hemen)
       const doc = analysisResult.generatedDocument;
       const partyDetails = doc.parties.map(p => `${p.role}:\n${p.details}`).join('\n\n');
       const explanationsText = doc.explanations.map((p, i) => `${i + 1}. ${p}`).join('\n\n');
-      const attachmentsText = doc.attachments ? `EKLER:\n${doc.attachments.join('\n')}` : "";
+      const attachmentsText = doc.attachments && doc.attachments.length > 0 ? `EKLER:\n${doc.attachments.join('\n')}` : "";
 
-      const formattedText = [
+      const formattedTextLocal = [
         doc.addressee.toUpperCase(),
         `\n${doc.caseReference}`,
         `\n${partyDetails}`,
@@ -856,19 +865,43 @@ const Dashboard = () => {
         `\nAÇIKLAMALAR:\n\n${explanationsText}`,
         `\nHUKUKİ NEDENLER: ${doc.legalGrounds}`,
         `\nSONUÇ VE İSTEM: ${doc.conclusionAndRequest}`,
-        `\n${attachmentsText}`,
+        `${attachmentsText ? `\n${attachmentsText}` : ''}`,
         `\n${doc.signatureBlock}`
       ].join('\n\n');
 
-      setDraftedText(formattedText);
+      setDraftedText(formattedTextLocal);
       setIsModalOpen(true);
       setEditMode(false);
 
-      // Başarı mesajı kredi düşürme bilgisiyle
-      successToast({
-        title: "Belge Oluşturuldu!",
-        description: "Belge taslağınız başarıyla oluşturuldu. 1 kredi düşüldü."
-      });
+      // 2) Kalite arttırma: draft-document fonksiyonunu çağır ve daha iyi bir metinle güncelle
+      try {
+        const guessBelgeTuru = analysisResult.documentType || 'Dilekçe';
+        const makam = doc.addressee?.replace(/’NE|'NE|\s*NE$/i, '').trim() || '[Yetkili Makam]';
+        const dosya = doc.caseReference?.replace(/^(ESAS NO:|DOSYA NO:|TAKİP NO:)\s*/i, '') || undefined;
+        const itirazNedenleri = doc.explanations?.slice(0, 5).map((p, i) => ({ tip: `Gerekçe ${i + 1}`, aciklama: p })) || [];
+        const payload: DraftRequest = {
+          belge_turu: guessBelgeTuru,
+          kullanici_girdileri: {
+            makam_adi: makam,
+            dosya_no: dosya,
+            itiraz_eden_kisi: { ad_soyad: '[Ad Soyad]', tc_kimlik: undefined, adres: undefined },
+            itiraz_nedenleri: itirazNedenleri,
+            talep_sonucu: doc.conclusionAndRequest,
+            ekler: doc.attachments || []
+          }
+        };
+
+        const { data: better, error: draftErr } = await supabase.functions.invoke('draft-document', { body: payload });
+        if (!draftErr && better?.draftedDocument) {
+          setDraftedText(String(better.draftedDocument));
+          successToast({ title: 'Belge İyileştirildi', description: 'Taslak, gelişmiş formatla güncellendi.' });
+        }
+      } catch (e) {
+        Logger.error('Dashboard', 'draft-document enhance error', e);
+      }
+
+      // Başarı mesajı
+      successToast({ title: "Belge Oluşturuldu!", description: "Belge taslağınız hazır." });
     } else {
       errorToast({ title: "Hata", description: "Gösterilecek bir belge taslağı bulunamadı." });
     }
@@ -1239,6 +1272,8 @@ const Dashboard = () => {
             </Badge>
           </div>
 
+
+
           {/* Belge Özeti - Full Width */}
           {analysisResult.summary && (
             <Card className="border shadow-sm mb-6">
@@ -1382,6 +1417,20 @@ const Dashboard = () => {
                       </div>
                     </AccordionTrigger>
                     <AccordionContent>
+                      {/* Kritik Bilgiler */}
+                      {analysisResult.criticalFacts && analysisResult.criticalFacts.length > 0 && (
+                        <div className="mb-6">
+                          <h4 className="text-base font-semibold mb-2">Kritik Bilgiler</h4>
+                          <ul className="list-disc pl-5 space-y-1">
+                            {analysisResult.criticalFacts.map((f, i) => (
+                              <li key={i} className="text-base">
+                                <span className="text-muted-foreground mr-1">{f.type}:</span>
+                                <strong>{f.value}</strong>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
                       {analysisResult.extractedEntities && analysisResult.extractedEntities.length > 0 ? (
                         <Table>
                           <TableHeader>
