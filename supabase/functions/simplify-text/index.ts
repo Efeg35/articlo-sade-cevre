@@ -1144,7 +1144,7 @@ serve(async (req) => {
 
     // Cache the result (isteğe bağlı atla)
     if (!skipCache) {
-      analysisCache.set(cacheKey, parsedResponse);
+    analysisCache.set(cacheKey, parsedResponse);
     }
 
     return new Response(JSON.stringify({

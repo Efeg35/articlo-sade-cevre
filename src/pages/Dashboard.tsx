@@ -72,7 +72,7 @@ interface AnalysisResponse {
   extractedEntities: ExtractedEntity[];
   actionableSteps: ActionableStep[];
   riskItems?: RiskItem[];
-  generatedDocument?: {
+  generatedDocument: {
     addressee: string;
     caseReference: string;
     parties: Array<{ role: string; details: string }>;
@@ -82,14 +82,15 @@ interface AnalysisResponse {
     conclusionAndRequest: string;
     attachments?: string[];
     signatureBlock: string;
-  };
+  } | null;
 }
 
 // Yüksek kaliteli dilekçe üretimi için draft-document fonksiyonuna istek tipleri
 interface Kisi { ad_soyad: string; tc_kimlik?: string; adres?: string; }
 interface ItirazNedeni { tip: string; aciklama: string; }
 interface KullaniciGirdileri { makam_adi: string; dosya_no?: string; itiraz_eden_kisi: Kisi; alacakli_kurum?: { unvan: string; adres?: string }; itiraz_nedenleri?: ItirazNedeni[]; talep_sonucu: string; ekler?: string[]; }
-interface DraftRequest { belge_turu: string; kullanici_girdileri: KullaniciGirdileri; }
+interface AnalysisLite { summary?: string; simplifiedText?: string; documentType?: string; criticalFacts?: Array<{ type: string; value: string }>; extractedEntities?: Array<{ entity: string; value: string | number }>; actionableSteps?: Array<{ description: string; actionType: 'CREATE_DOCUMENT' | 'INFO_ONLY'; documentToCreate?: string }>; riskItems?: Array<{ riskType: string; description: string; severity: 'high' | 'medium' | 'low'; legalReference?: string; recommendation?: string }>; originalText?: string; }
+interface DraftRequest { belge_turu: string; kullanici_girdileri: KullaniciGirdileri; analysis?: AnalysisLite }
 
 // Legacy entity type for backwards compatibility
 type Entity = {
@@ -669,7 +670,8 @@ const Dashboard = () => {
           documentType: data.documentType || "Bilinmeyen",
           summary: data.summary || "",
           extractedEntities: convertedEntities,
-          actionableSteps: []
+          actionableSteps: [],
+          generatedDocument: null
         });
       }
 
@@ -851,30 +853,14 @@ const Dashboard = () => {
         }
       }
 
-      // 1) Yerel taslağı göster (hemen)
-      const doc = analysisResult.generatedDocument;
-      const partyDetails = doc.parties.map(p => `${p.role}:\n${p.details}`).join('\n\n');
-      const explanationsText = doc.explanations.map((p, i) => `${i + 1}. ${p}`).join('\n\n');
-      const attachmentsText = doc.attachments && doc.attachments.length > 0 ? `EKLER:\n${doc.attachments.join('\n')}` : "";
-
-      const formattedTextLocal = [
-        doc.addressee.toUpperCase(),
-        `\n${doc.caseReference}`,
-        `\n${partyDetails}`,
-        `\nKONU: ${doc.subject}`,
-        `\nAÇIKLAMALAR:\n\n${explanationsText}`,
-        `\nHUKUKİ NEDENLER: ${doc.legalGrounds}`,
-        `\nSONUÇ VE İSTEM: ${doc.conclusionAndRequest}`,
-        `${attachmentsText ? `\n${attachmentsText}` : ''}`,
-        `\n${doc.signatureBlock}`
-      ].join('\n\n');
-
-      setDraftedText(formattedTextLocal);
+      // Boş modal ile başla; kaliteli taslağı ürettikten sonra göster
+      setDraftedText('');
       setIsModalOpen(true);
       setEditMode(false);
 
       // 2) Kalite arttırma: draft-document fonksiyonunu çağır ve daha iyi bir metinle güncelle
       try {
+        const doc = analysisResult.generatedDocument;
         const guessBelgeTuru = analysisResult.documentType || 'Dilekçe';
         const makam = doc.addressee?.replace(/’NE|'NE|\s*NE$/i, '').trim() || '[Yetkili Makam]';
         const dosya = doc.caseReference?.replace(/^(ESAS NO:|DOSYA NO:|TAKİP NO:)\s*/i, '') || undefined;
@@ -888,13 +874,22 @@ const Dashboard = () => {
             itiraz_nedenleri: itirazNedenleri,
             talep_sonucu: doc.conclusionAndRequest,
             ekler: doc.attachments || []
+          },
+          analysis: {
+            summary: analysisResult.summary,
+            simplifiedText: analysisResult.simplifiedText,
+            documentType: analysisResult.documentType,
+            criticalFacts: analysisResult.criticalFacts,
+            extractedEntities: analysisResult.extractedEntities,
+            actionableSteps: analysisResult.actionableSteps,
+            riskItems: analysisResult.riskItems,
+            originalText
           }
         };
 
         const { data: better, error: draftErr } = await supabase.functions.invoke('draft-document', { body: payload });
         if (!draftErr && better?.draftedDocument) {
           setDraftedText(String(better.draftedDocument));
-          successToast({ title: 'Belge İyileştirildi', description: 'Taslak, gelişmiş formatla güncellendi.' });
         }
       } catch (e) {
         Logger.error('Dashboard', 'draft-document enhance error', e);
@@ -902,8 +897,72 @@ const Dashboard = () => {
 
       // Başarı mesajı
       successToast({ title: "Belge Oluşturuldu!", description: "Belge taslağınız hazır." });
+    } else if (analysisResult) {
+      // Backend taslak göndermediyse, analiz verileriyle yüksek kaliteli taslağı üret
+      try {
+        const guessBelgeTuru = analysisResult.documentType || 'Dilekçe';
+
+        const addresseeEntity = analysisResult.extractedEntities?.find(e =>
+          String(e.entity).toLowerCase().includes('mahkeme') ||
+          String(e.entity).toLowerCase().includes('daire') ||
+          String(e.entity).toLowerCase().includes('kurum') ||
+          String(e.entity).toLowerCase().includes('müdürlüğü')
+        );
+        const fileEntity = analysisResult.extractedEntities?.find(e =>
+          String(e.entity).toLowerCase().includes('dosya') ||
+          String(e.entity).toLowerCase().includes('esas') ||
+          String(e.entity).toLowerCase().includes('takip')
+        );
+
+        const makam = (addresseeEntity?.value as string) || '[Yetkili Makam]';
+        const dosya = (fileEntity?.value as string) || undefined;
+        const itirazNedenleri = (analysisResult.riskItems || []).map((r, i) => ({ tip: `${r.riskType || 'Gerekçe'} ${i + 1}`, aciklama: r.description })).slice(0, 7);
+        const talep = analysisResult.actionableSteps?.[0]?.description || 'Talebimizin kabulü';
+
+        const payload: DraftRequest = {
+          belge_turu: guessBelgeTuru,
+          kullanici_girdileri: {
+            makam_adi: makam,
+            dosya_no: dosya,
+            itiraz_eden_kisi: { ad_soyad: '[Ad Soyad]' },
+            itiraz_nedenleri: itirazNedenleri,
+            talep_sonucu: talep,
+            ekler: []
+          },
+          analysis: {
+            summary: analysisResult.summary,
+            simplifiedText: analysisResult.simplifiedText,
+            documentType: analysisResult.documentType,
+            criticalFacts: analysisResult.criticalFacts,
+            extractedEntities: analysisResult.extractedEntities,
+            actionableSteps: analysisResult.actionableSteps,
+            riskItems: analysisResult.riskItems,
+            originalText
+          }
+        };
+
+        const { data: better, error: draftErr } = await supabase.functions.invoke('draft-document', { body: payload });
+        if (draftErr || !better?.draftedDocument) throw new Error(draftErr?.message || 'Taslak üretilemedi.');
+
+        setDraftedText(String(better.draftedDocument));
+        setIsModalOpen(true);
+        setEditMode(false);
+
+        // Kredi düşürme (başarı sonrası)
+        if (user) {
+          const { error: creditError } = await supabase.rpc('decrement_credit', { user_id_param: user.id });
+          if (creditError) {
+            errorToast({ title: 'Kredi Azaltma Hatası', description: 'Krediniz azaltılamadı. İşlem tamamlandı.' });
+          }
+        }
+
+        successToast({ title: 'Belge Oluşturuldu!', description: 'Taslak profesyonel formatta hazırlandı.' });
+      } catch (e) {
+        Logger.error('Dashboard', 'on-demand draft error', e);
+        errorToast({ title: 'Hata', description: e instanceof Error ? e.message : 'Belge taslağı oluşturulamadı.' });
+      }
     } else {
-      errorToast({ title: "Hata", description: "Gösterilecek bir belge taslağı bulunamadı." });
+      errorToast({ title: 'Hata', description: 'Gösterilecek bir belge taslağı bulunamadı.' });
     }
   };
 
@@ -1384,17 +1443,40 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {analysisResult.actionableSteps.map((step, index) => (
+                {(() => {
+                  const seenDocKeys = new Set<string>();
+                  const uniqueSteps = analysisResult.actionableSteps.filter((s) => {
+                    if (s.actionType !== 'CREATE_DOCUMENT') return true;
+                    const d = (s.description || '').toLowerCase();
+                    let key = 'generic';
+                    if (d.includes('istinaf')) key = 'istinaf';
+                    else if (d.includes('itiraz')) key = 'itiraz';
+                    else if (d.includes('cevap')) key = 'cevap';
+                    else if (d.includes('başvuru')) key = 'basvuru';
+                    if (seenDocKeys.has(key)) return false;
+                    seenDocKeys.add(key);
+                    return true;
+                  });
+                  return uniqueSteps;
+                })().map((step, index) => (
                   <div key={index} className="flex items-start gap-3 p-4 bg-muted/30 rounded-lg">
                     <CheckCircle className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
                     <div className="flex-1">
                       <p className="text-base leading-relaxed">{step.description}</p>
                       {step.actionType === 'CREATE_DOCUMENT' && (
-                        <Button
-                          onClick={handleShowDraft}
-                          className="mt-2"
-                        >
-                          Gerekli Belgeyi Oluştur (1 Kredi)
+                        <Button onClick={async () => {
+                          const prev = loading;
+                          setLoading('flash'); // loading state reuse
+                          await handleShowDraft();
+                          setLoading(prev);
+                        }} className="mt-2" disabled={loading !== null}>
+                          {loading !== null ? (
+                            <>
+                              <Loader2 className="h-4 w-4 animate-spin mr-2" /> Belge oluşturuluyor...
+                            </>
+                          ) : (
+                            'Gerekli Belgeyi Oluştur (1 Kredi)'
+                          )}
                         </Button>
                       )}
                     </div>
@@ -1640,7 +1722,14 @@ const Dashboard = () => {
             </DialogDescription>
           </DialogHeader>
           <div className="flex-1 p-3 md:p-6 bg-white border rounded-lg shadow-sm overflow-hidden flex flex-col">
-            {editMode ? (
+            {draftedText === '' ? (
+              <div className="flex-1 flex items-center justify-center text-muted-foreground">
+                <div className="flex items-center gap-3">
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <span>Belge oluşturuluyor...</span>
+                </div>
+              </div>
+            ) : editMode ? (
               <div className="flex-1 bg-white border border-gray-200 rounded-md shadow-sm overflow-hidden">
                 <div className="bg-gray-50 border-b border-gray-200 px-4 py-2 flex items-center justify-between">
                   <div className="flex items-center gap-4 text-sm text-gray-600">
