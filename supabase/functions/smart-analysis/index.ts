@@ -40,7 +40,9 @@ serve(async (req: Request): Promise<Response> => {
 
   try {
     const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
-    const modelName = 'gemini-1.5-flash-latest';
+    // Model seçimi: Freemium vs Pro (şu an sadece freemium aktif)
+    const isProActive = false; // TODO: Pro abonelik açıldığında user subscription kontrolü yapılacak
+    const modelName = isProActive ? 'gemini-1.5-pro-latest' : 'gemini-1.5-flash-latest';
     if (!geminiApiKey) throw new Error('Sunucu hatası: GEMINI_API_KEY yapılandırılmamış.');
 
     const body = await req.json();
@@ -87,7 +89,7 @@ serve(async (req: Request): Promise<Response> => {
       if (startIndex === -1 || endIndex === -1) throw new Error("No JSON object found.");
       const jsonString = rawContent.substring(startIndex, endIndex + 1);
       const parsedResponse: AnalysisResponse = JSON.parse(jsonString);
-      
+
       // Başarılı olursa, normal yanıtı dönüyoruz
       return new Response(JSON.stringify(parsedResponse), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -108,8 +110,8 @@ serve(async (req: Request): Promise<Response> => {
 
   } catch (error) {
     console.error('Error in smart-analysis function:', error);
-    return new Response(JSON.stringify({ 
-      error: 'Analiz sırasında hata oluştu', 
+    return new Response(JSON.stringify({
+      error: 'Analiz sırasında hata oluştu',
       details: error instanceof Error ? error.message : 'Bilinmeyen hata'
     }), {
       status: 500,

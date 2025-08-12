@@ -1472,7 +1472,7 @@ const Dashboard = () => {
                         }} className="mt-2" disabled={loading !== null}>
                           {loading !== null ? (
                             <>
-                              <Loader2 className="h-4 w-4 animate-spin mr-2" /> Belge oluşturuluyor...
+                              <Loader2 className="h-4 w-4 animate-spin mr-2" /> Size özel belgeniz oluşturuluyor...
                             </>
                           ) : (
                             'Gerekli Belgeyi Oluştur (1 Kredi)'
@@ -1726,7 +1726,7 @@ const Dashboard = () => {
               <div className="flex-1 flex items-center justify-center text-muted-foreground">
                 <div className="flex items-center gap-3">
                   <Loader2 className="h-5 w-5 animate-spin" />
-                  <span>Belge oluşturuluyor...</span>
+                  <span>Size özel belgeniz oluşturuluyor...</span>
                 </div>
               </div>
             ) : editMode ? (

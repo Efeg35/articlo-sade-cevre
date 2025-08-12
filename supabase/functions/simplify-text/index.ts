@@ -139,13 +139,6 @@ interface ModelConfig {
 }
 
 const availableModels: Record<string, ModelConfig> = {
-  'flash-8b': {
-    name: 'gemini-1.5-flash-8b',
-    costPerToken: 0.000001,
-    maxTokens: 1000000,
-    speed: 'fast',
-    intelligence: 'basic'
-  },
   'flash-latest': {
     name: 'gemini-1.5-flash-latest',
     costPerToken: 0.000002,
@@ -162,24 +155,16 @@ const availableModels: Record<string, ModelConfig> = {
   }
 };
 
-// Optimal model seçimi
-const selectOptimalModel = (textLength: number, sourceText: string): ModelConfig => {
-  // Kısa belgeler için en ucuz model
-  if (textLength < 500) {
-    return availableModels['flash-8b'];
-  }
+// Model seçimi: Freemium vs Pro
+const selectModelBySubscription = (isPro: boolean = false): ModelConfig => {
+  // Pro abonelik kontrolü (şu an kapalı, her zaman false)
+  const isProActive = false; // TODO: Pro abonelik açıldığında burası user subscription kontrolüne bağlanacak
 
-  // Karmaşık hukuki belgeler için pro model
-  const complexDocuments = ['mahkeme kararı', 'sözleşme', 'anlaşma', 'protokol'];
-  const isComplex = complexDocuments.some(doc =>
-    sourceText.toLowerCase().includes(doc)
-  );
-
-  if (isComplex && textLength > 2000) {
+  if (isPro && isProActive) {
     return availableModels['pro-latest'];
   }
 
-  // Varsayılan optimal seçim
+  // Freemium kullanıcılar ve pro abonelik kapalıyken herkes flash-latest
   return availableModels['flash-latest'];
 };
 
@@ -709,8 +694,8 @@ serve(async (req) => {
       throw new Error(`Rate limit exceeded. Please wait ${Math.ceil(waitTime / 1000)} seconds.`);
     }
 
-    // --- PRO Optimizasyon 3: Dynamic model selection ---
-    const selectedModel = selectOptimalModel(textToAnalyze.length, textToAnalyze);
+    // --- Model Selection: Freemium vs Pro ---
+    let selectedModel = selectModelBySubscription(false); // Pro abonelik şu an kapalı
     const promptVersion = 'master-v3';
     const startTime = Date.now();
 
@@ -719,24 +704,28 @@ serve(async (req) => {
     console.log(`Using ${promptVersion} prompt with model: ${selectedModel.name}`);
     console.log(`Text length: ${textToAnalyze.length} chars, Estimated cost: $${(textToAnalyze.length * selectedModel.costPerToken).toFixed(6)}`);
 
-    // --- PRO Optimizasyon 4: Advanced Error Recovery ---
+    // --- Advanced Error Recovery with Model Fallback ---
     let response: Response;
     let attempts = 0;
     const maxAttempts = 3;
+    const modelsToTry = [selectedModel.name, 'gemini-1.5-flash-latest']; // Sadece 2 model
+    let currentModelIndex = 0;
 
     while (attempts < maxAttempts) {
       try {
+        // 503 hatalarında model fallback
+        const currentModel = modelsToTry[currentModelIndex] || selectedModel.name;
+
         // Timeout controller eklendi
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 saniye timeout
 
-        response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${selectedModel.name}:generateContent?key=${geminiApiKey}`, {
+        response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${currentModel}:generateContent?key=${geminiApiKey}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             contents: [{ parts: [{ text: geminiPrompt }] }],
             generationConfig: {
-              response_mime_type: 'application/json',
               temperature: 0.1,
               maxOutputTokens: 4096
             }
@@ -746,16 +735,30 @@ serve(async (req) => {
 
         clearTimeout(timeoutId);
 
-        if (response.ok) break;
+        if (response.ok) {
+          console.log(`Success with model: ${currentModel}`);
+          break;
+        }
 
-        // Retry logic with exponential backoff
-        const delay = Math.pow(2, attempts) * 1000; // 1s, 2s, 4s
-        console.log(`Attempt ${attempts + 1} failed, retrying in ${delay}ms...`);
+        // 503 hatalarında başka modeli dene
+        if (response.status === 503 && currentModelIndex < modelsToTry.length - 1) {
+          currentModelIndex++;
+          console.log(`Model overloaded, trying fallback: ${modelsToTry[currentModelIndex]}`);
+          continue;
+        }
+
+        // Diğer hatalar için exponential backoff
+        const delay = response.status === 503 ? Math.pow(2, attempts) * 2000 : Math.pow(2, attempts) * 1000; // 503 için daha uzun bekleme
+        console.log(`Attempt ${attempts + 1} failed (${response.status}), retrying in ${delay}ms...`);
         await new Promise(resolve => setTimeout(resolve, delay));
 
       } catch (error) {
         console.log(`Request attempt ${attempts + 1} failed:`, error);
         if (attempts === maxAttempts - 1) throw error;
+
+        // Network hatalarında da daha uzun bekle
+        const delay = Math.pow(2, attempts) * 1500;
+        await new Promise(resolve => setTimeout(resolve, delay));
       }
 
       attempts++;
@@ -770,13 +773,28 @@ serve(async (req) => {
     let parsedResponse: AnalysisResponse;
     let jsonString = "";
 
+    // JSON temizleme ve parse
+    const cleanJsonString = (raw: string): string => {
+      let cleaned = raw.substring(raw.indexOf('{'), raw.lastIndexOf('}') + 1);
+
+      // Kontrol karakterlerini temizle
+      cleaned = cleaned
+        .replace(/[\u0000-\u001F\u007F-\u009F]/g, '') // Kontrol karakterleri
+        .replace(/\\/g, '\\\\') // Backslash escape
+        .replace(/\n/g, '\\n') // Newline escape
+        .replace(/\r/g, '\\r') // Carriage return escape
+        .replace(/\t/g, '\\t'); // Tab escape
+
+      return cleaned;
+    };
+
     // JSON parse ile fallback stratejisi
     try {
       const startIndex = rawContent.indexOf('{');
       const endIndex = rawContent.lastIndexOf('}');
       if (startIndex === -1 || endIndex === -1) throw new Error('JSON bulunamadı.');
 
-      jsonString = rawContent.substring(startIndex, endIndex + 1);
+      jsonString = cleanJsonString(rawContent);
       parsedResponse = JSON.parse(jsonString);
 
       // Temel alan kontrolü
@@ -801,7 +819,6 @@ serve(async (req) => {
           body: JSON.stringify({
             contents: [{ parts: [{ text: fallbackPrompt }] }],
             generationConfig: {
-              response_mime_type: 'application/json',
               temperature: 0.1,
               maxOutputTokens: 4096
             }
@@ -822,7 +839,7 @@ serve(async (req) => {
         const fallbackEndIndex = fallbackRawContent.lastIndexOf('}');
         if (fallbackStartIndex === -1 || fallbackEndIndex === -1) throw new Error('Fallback JSON not found');
 
-        jsonString = fallbackRawContent.substring(fallbackStartIndex, fallbackEndIndex + 1);
+        jsonString = cleanJsonString(fallbackRawContent);
         parsedResponse = JSON.parse(jsonString);
 
         console.log('Fallback to master prompt successful');
@@ -1144,7 +1161,7 @@ serve(async (req) => {
 
     // Cache the result (isteğe bağlı atla)
     if (!skipCache) {
-    analysisCache.set(cacheKey, parsedResponse);
+      analysisCache.set(cacheKey, parsedResponse);
     }
 
     return new Response(JSON.stringify({
