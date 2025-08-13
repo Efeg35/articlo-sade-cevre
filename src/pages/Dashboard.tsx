@@ -1661,7 +1661,7 @@ const Dashboard = () => {
   return (
     <ErrorBoundary componentName="Dashboard">
       <SimpleOnboardingTour open={showOnboarding} onFinish={handleOnboardingFinish} />
-      <div className={`${view === 'result' ? 'min-h-screen' : 'h-screen'} bg-background flex flex-col items-center pt-8 md:pt-16 px-2 dashboard-container mobile-scroll-fix ${view === 'result' ? 'overflow-auto' : 'overflow-hidden'}`}>
+      <div className={`${view === 'result' ? 'min-h-screen' : 'h-screen'} bg-background flex flex-col items-center pt-8 md:pt-16 px-2 dashboard-container ${view === 'result' ? 'mobile-scroll-fix overflow-auto' : 'overflow-hidden'} ${Capacitor.isNativePlatform() && view === 'result' ? 'ios-scroll-container' : ''}`}>
         <div className={`w-full max-w-5xl flex flex-col items-center ${Capacitor.isNativePlatform() ? 'mt-12' : 'mt-4'} ${Capacitor.isNativePlatform() ? 'mb-2' : 'mb-6'}`}>
           <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2 text-center">Hukuki Belgeni Sadeleştir</h2>
           <p className={`text-muted-foreground text-center max-w-xl text-sm ${Capacitor.isNativePlatform() ? 'mb-1' : 'mb-4'}`}>

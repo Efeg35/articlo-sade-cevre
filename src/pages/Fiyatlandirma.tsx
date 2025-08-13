@@ -11,6 +11,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { Capacitor } from "@capacitor/core";
 
 interface PricingCardProps {
   title: string;
@@ -52,8 +53,8 @@ const PricingCard = ({ title, description, price, features, buttonText, popular,
         </ul>
       </CardContent>
       <CardFooter className="mt-auto">
-        <Button 
-          className="w-full" 
+        <Button
+          className="w-full"
           variant={popular ? "default" : "outline"}
           onClick={onButtonClick}
         >
@@ -80,7 +81,7 @@ const Fiyatlandirma = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-secondary/20 pt-24">
+    <div className={`min-h-screen bg-gradient-to-b from-background to-secondary/20 pt-24 ${Capacitor.isNativePlatform() ? 'mobile-scroll-fix ios-scroll-container overflow-auto' : ''}`}>
       <div className="container mx-auto px-4 py-12">
         {/* Header Section */}
         <div className="text-center mb-16">
@@ -106,7 +107,7 @@ const Fiyatlandirma = () => {
             buttonText="Hemen Başla"
             onButtonClick={handleStartFree}
           />
-          
+
           <PricingCard
             title="PRO"
             description="Profesyoneller ve sık kullanım için ideal."
@@ -122,7 +123,7 @@ const Fiyatlandirma = () => {
             popular={true}
             onButtonClick={handleUpgradePro}
           />
-          
+
           <PricingCard
             title="Kurumsal"
             description="Ekip ve şirketler için özel çözümler."

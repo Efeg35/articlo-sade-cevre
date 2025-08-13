@@ -174,6 +174,19 @@ const AppContent = () => {
     Logger.log('AppContent', 'Platform info updated', info);
   }, []);
 
+  // Native iOS platform için CSS sınıfı ekle
+  useEffect(() => {
+    if (platformInfo.isNative && platformInfo.platform === 'ios') {
+      document.body.classList.add('native-ios-platform');
+      Logger.log('AppContent', 'Added native-ios-platform class to body');
+
+      return () => {
+        document.body.classList.remove('native-ios-platform');
+        Logger.log('AppContent', 'Removed native-ios-platform class from body');
+      };
+    }
+  }, [platformInfo.isNative, platformInfo.platform]);
+
   // Global StatusBar ayarları
   useEffect(() => {
     if (!platformInfo.isNative) return;

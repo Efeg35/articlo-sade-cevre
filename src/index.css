@@ -289,3 +289,41 @@
   flex: 0 0 100%;
   min-width: 0;
 }
+
+/* Kredi modalı için özel pozisyonlama - en yüksek specificity */
+.credit-modal-center {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  z-index: 99999 !important;
+  margin: 0 !important;
+  max-height: 90vh !important;
+  overflow-y: auto !important;
+}
+
+/* Mobil için özel boyutlar */
+@media (max-width: 768px) {
+  .credit-modal-center {
+    width: 90vw !important;
+    max-width: 350px !important;
+    max-height: 85vh !important;
+  }
+}
+
+/* Desktop için özel boyutlar */
+@media (min-width: 769px) {
+  .credit-modal-center {
+    width: 95vw !important;
+    max-width: 56rem !important;
+  }
+}
+
+/* Radix UI override için ekstra specificity */
+[data-radix-dialog-content].credit-modal-center {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  inset: unset !important;
+}

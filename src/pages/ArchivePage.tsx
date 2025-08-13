@@ -16,6 +16,7 @@ import { format } from "date-fns";
 import { tr } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Capacitor } from "@capacitor/core";
 
 interface Entity {
   tip: string;
@@ -229,7 +230,7 @@ const ArchivePage = () => {
   ].filter(Boolean).length;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-secondary/20 pt-24">
+    <div className={`min-h-screen bg-gradient-to-b from-background to-secondary/20 pt-24 ${Capacitor.isNativePlatform() ? 'mobile-scroll-fix ios-scroll-container overflow-auto' : ''}`}>
       <main className="container mx-auto px-4 py-8">
         <div className="mb-12 text-center">
           <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl mb-4">

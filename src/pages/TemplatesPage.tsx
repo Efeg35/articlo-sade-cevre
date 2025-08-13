@@ -10,6 +10,7 @@ import { DocumentTemplate, TemplateCategory, GeneratedDocument } from '@/types/t
 import { allDocumentTemplates } from '@/data/templates';
 import { useAdvancedSearch } from '@/hooks/useAdvancedSearch';
 import { useToast } from '@/hooks/use-toast';
+import { Capacitor } from '@capacitor/core';
 
 const CATEGORY_LABELS: Record<TemplateCategory, string> = {
     mahkeme: 'Mahkeme',
@@ -112,7 +113,7 @@ export const TemplatesPage: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 pt-16">
+        <div className={`min-h-screen bg-gray-50 pt-16 ${Capacitor.isNativePlatform() ? 'mobile-scroll-fix ios-scroll-container overflow-auto' : ''}`}>
             {/* Header */}
             <div className="bg-white border-b border-gray-200">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
