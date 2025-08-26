@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Capacitor } from '@capacitor/core';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -307,63 +308,79 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({
     if (!template) return null;
 
     return (
-        <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-            <DialogContent
-                className="max-w-2xl max-h-[85vh] overflow-y-auto mt-8 mb-8"
-                onPointerDownOutside={(e) => e.preventDefault()}
-                onEscapeKeyDown={(e) => e.preventDefault()}
-            >
-                <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2">
-                        <span className="text-xl">{template.icon}</span>
-                        {template.title}
-                    </DialogTitle>
-                    <DialogDescription>
-                        {template.description}
-                    </DialogDescription>
-                </DialogHeader>
+        <div className={Capacitor.isNativePlatform() ? 'mobile-template-form' : ''}>
+            <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+                <DialogContent
+                    className={`${Capacitor.isNativePlatform()
+                        ? "mobile-template-form w-[98vw] h-[95vh] max-w-none max-h-none overflow-y-auto"
+                        : "max-w-2xl max-h-[85vh] overflow-y-auto mt-8 mb-8"
+                        } p-3 md:p-6`}
+                    onPointerDownOutside={(e) => e.preventDefault()}
+                    onEscapeKeyDown={(e) => e.preventDefault()}
+                >
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <span className="text-xl">{template.icon}</span>
+                            {template.title}
+                        </DialogTitle>
+                        <DialogDescription>
+                            {template.description}
+                        </DialogDescription>
+                    </DialogHeader>
 
-                <div className="space-y-6 py-4">
-                    {/* Legal Notice */}
-                    {template.legalNote && (
-                        <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                            <div className="flex items-start gap-2">
-                                <AlertTriangle className="h-5 w-5 text-yellow-600 mt-0.5" />
-                                <div>
-                                    <h4 className="font-medium text-yellow-800">Yasal Uyarı</h4>
-                                    <p className="text-sm text-yellow-700 mt-1">{template.legalNote}</p>
+                    <div className={`space-y-4 ${Capacitor.isNativePlatform() ? 'py-2' : 'py-4'}`}>
+                        {/* Legal Notice */}
+                        {template.legalNote && (
+                            <div className={`${Capacitor.isNativePlatform() ? 'p-2' : 'p-4'} bg-yellow-50 border border-yellow-200 rounded-lg`}>
+                                <div className="flex items-start gap-2">
+                                    <AlertTriangle className={`${Capacitor.isNativePlatform() ? 'h-4 w-4' : 'h-5 w-5'} text-yellow-600 mt-0.5`} />
+                                    <div>
+                                        <h4 className={`font-medium text-red-800 ${Capacitor.isNativePlatform() ? 'text-sm' : ''}`}>⚠️ Önemli Yasal Uyarı</h4>
+                                        <p className={`${Capacitor.isNativePlatform() ? 'text-xs' : 'text-sm'} text-red-700 mt-1`}>
+                                            <strong>Bu şablon hiçbir şekilde hukuki tavsiye değildir.</strong> Yalnızca bilgilendirme amaçlıdır.
+                                            Bu belgeyi kullanmadan, imzalamadan veya göndermeden önce MUTLAKA kalifiye bir avukata danışın.
+                                            {template.legalNote && ` ${template.legalNote}`}
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
+                        )}
+
+                        {/* Form Fields */}
+                        <div className="space-y-4">
+                            {template.fields.map(renderField)}
                         </div>
-                    )}
 
-                    {/* Form Fields */}
-                    <div className="space-y-4">
-                        {template.fields.map(renderField)}
+                        {/* Action Buttons */}
+                        <div className={`${Capacitor.isNativePlatform()
+                            ? 'flex flex-col gap-2 pt-2 border-t'
+                            : 'flex justify-between pt-4 border-t'
+                            }`}>
+                            <Button
+                                variant="outline"
+                                onClick={onClose}
+                                className={Capacitor.isNativePlatform() ? 'w-full' : ''}
+                            >
+                                İptal
+                            </Button>
+                            <Button
+                                onClick={handleGenerate}
+                                disabled={isGenerating || !credits || credits <= 0}
+                                className={`flex items-center gap-2 ${Capacitor.isNativePlatform() ? 'w-full' : ''}`}
+                            >
+                                {isGenerating ? (
+                                    <>Oluşturuluyor...</>
+                                ) : (
+                                    <>
+                                        <FileText className="h-4 w-4" />
+                                        {Capacitor.isNativePlatform() ? 'Belgeyi Oluştur (1 Kredi)' : 'Belgeyi Oluştur (1 Kredi)'}
+                                    </>
+                                )}
+                            </Button>
+                        </div>
                     </div>
-
-                    {/* Action Buttons */}
-                    <div className="flex justify-between pt-4 border-t">
-                        <Button variant="outline" onClick={onClose}>
-                            İptal
-                        </Button>
-                        <Button
-                            onClick={handleGenerate}
-                            disabled={isGenerating || !credits || credits <= 0}
-                            className="flex items-center gap-2"
-                        >
-                            {isGenerating ? (
-                                <>Oluşturuluyor...</>
-                            ) : (
-                                <>
-                                    <FileText className="h-4 w-4" />
-                                    Belgeyi Oluştur (1 Kredi)
-                                </>
-                            )}
-                        </Button>
-                    </div>
-                </div>
-            </DialogContent>
-        </Dialog>
+                </DialogContent>
+            </Dialog>
+        </div>
     );
 };

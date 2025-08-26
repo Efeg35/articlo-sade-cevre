@@ -107,8 +107,8 @@ const onboardingSteps = [
         icon: <Sparkles className="h-12 w-12 text-primary" />,
         benefits: [
             {
-                title: "Avukat Masrafından Kurtulun",
-                desc: "Basit belgeler için binlerce lira ödemek zorunda değilsiniz",
+                title: "Avukat Masrafına Alternatif",
+                desc: "Basit belgeler için önce Artiklo ile anlayın, sonra uzman desteği alın",
                 saving: "₺2,000-5,000 tasarruf"
             },
             {

@@ -327,3 +327,244 @@
   transform: translate(-50%, -50%) !important;
   inset: unset !important;
 }
+
+/* ULTRA AGGRESSIVE Mobile Modal Overrides for Radix UI */
+
+/* EN YÜKSEK SPECIFICITY İLE RADIX UI OVERRIDE */
+html body .mobile-template-form [data-radix-dialog-content],
+html body .mobile-document-viewer [data-radix-dialog-content],
+html body .mobile-dashboard-modal [data-radix-dialog-content],
+html body .native-mobile-modal [data-radix-dialog-content] {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: none !important;
+  max-height: none !important;
+  min-width: 100vw !important;
+  min-height: 100vh !important;
+  margin: 0 !important;
+  padding: 0.5rem !important;
+  border-radius: 0 !important;
+  transform: none !important;
+  inset: 0 !important;
+  overflow-y: auto !important;
+  z-index: 99999 !important;
+}
+
+/* RADIX UI INTERNAL CLASS OVERRIDES */
+html body [data-radix-dialog-content].mobile-template-form,
+html body [data-radix-dialog-content].mobile-document-viewer,
+html body [data-radix-dialog-content].mobile-dashboard-modal {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: none !important;
+  max-height: none !important;
+  margin: 0 !important;
+  padding: 0.5rem !important;
+  border-radius: 0 !important;
+  transform: none !important;
+  inset: 0 !important;
+  overflow-y: auto !important;
+}
+
+/* MOBILE MEDIA QUERY ile EKSTRA OVERRIDE */
+@media screen and (max-width: 768px) {
+
+  .mobile-template-form [data-radix-dialog-content],
+  .mobile-document-viewer [data-radix-dialog-content],
+  .mobile-dashboard-modal [data-radix-dialog-content] {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: none !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 0.5rem !important;
+    border-radius: 0 !important;
+    transform: none !important;
+    inset: 0 !important;
+    overflow-y: auto !important;
+  }
+}
+
+/* CAPACITOR NATIVE PLATFORM DETECTION */
+@media screen and (max-width: 768px) {
+
+  /* Capacitor detected - force full screen modals */
+  .capacitor-native .mobile-template-form [data-radix-dialog-content],
+  .capacitor-native .mobile-document-viewer [data-radix-dialog-content],
+  .capacitor-native .mobile-dashboard-modal [data-radix-dialog-content] {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: none !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 0.5rem !important;
+    border-radius: 0 !important;
+    transform: none !important;
+    inset: 0 !important;
+    overflow-y: auto !important;
+    z-index: 99999 !important;
+  }
+}
+
+/* FALLBACK - TÜM MODAL'LAR İÇİN ULTRA AGGRESSIVE */
+[data-radix-dialog-content][class*="mobile"] {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: none !important;
+  max-height: none !important;
+  margin: 0 !important;
+  padding: 0.5rem !important;
+  border-radius: 0 !important;
+  transform: none !important;
+  inset: 0 !important;
+  overflow-y: auto !important;
+}
+
+/* EXTRA AGGRESSIVE FALLBACKS - TÜM OLASI KOMBINASYONLAR */
+html body div[data-radix-dialog-content],
+html body [data-radix-dialog-content],
+html.capacitor body [data-radix-dialog-content],
+html.ios body [data-radix-dialog-content],
+body.capacitor [data-radix-dialog-content],
+body.ios [data-radix-dialog-content] {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: none !important;
+  max-height: none !important;
+  min-width: 100vw !important;
+  min-height: 100vh !important;
+  margin: 0 !important;
+  padding: 0.5rem !important;
+  border-radius: 0 !important;
+  transform: none !important;
+  inset: 0 !important;
+  overflow-y: auto !important;
+  z-index: 99999 !important;
+}
+
+/* CAPACITOR/NATIVE PLATFORM OVERRIDE - EN YÜKSEK SPECIFICITY */
+html.capacitor body div[data-radix-dialog-content],
+html.ios body div[data-radix-dialog-content],
+body.capacitor div[data-radix-dialog-content],
+body.ios div[data-radix-dialog-content],
+.capacitor-app [data-radix-dialog-content],
+.ios-app [data-radix-dialog-content] {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: none !important;
+  max-height: none !important;
+  min-width: 100vw !important;
+  min-height: 100vh !important;
+  margin: 0 !important;
+  padding: 0.5rem !important;
+  border-radius: 0 !important;
+  transform: none !important;
+  inset: 0 !important;
+  overflow-y: auto !important;
+  z-index: 99999 !important;
+}
+
+/* MOBILE DEVICE DETECTION - VIEWPORT WIDTH BASED */
+@media screen and (max-width: 768px) {
+
+  html body [data-radix-dialog-content],
+  html body div[data-radix-dialog-content],
+  body [data-radix-dialog-content],
+  body div[data-radix-dialog-content],
+  [data-radix-dialog-content],
+  div[data-radix-dialog-content] {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: none !important;
+    max-height: none !important;
+    min-width: 100vw !important;
+    min-height: 100vh !important;
+    margin: 0 !important;
+    padding: 0.5rem !important;
+    border-radius: 0 !important;
+    transform: none !important;
+    inset: 0 !important;
+    overflow-y: auto !important;
+    z-index: 99999 !important;
+  }
+}
+
+/* TOUCH DEVICE DETECTION */
+@media (pointer: coarse) {
+
+  [data-radix-dialog-content],
+  div[data-radix-dialog-content] {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: none !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 0.5rem !important;
+    border-radius: 0 !important;
+    transform: none !important;
+    inset: 0 !important;
+    overflow-y: auto !important;
+    z-index: 99999 !important;
+  }
+}
+
+/* iOS Safe Area desteği için mobile modal'lar */
+@supports (padding: env(safe-area-inset-top)) {
+  @media (max-width: 768px) {
+
+    .native-mobile-modal [data-radix-dialog-content],
+    .mobile-template-form [data-radix-dialog-content],
+    .mobile-document-viewer [data-radix-dialog-content],
+    .mobile-dashboard-modal [data-radix-dialog-content] {
+      padding-top: calc(0.5rem + env(safe-area-inset-top)) !important;
+      padding-bottom: calc(0.5rem + env(safe-area-inset-bottom)) !important;
+      padding-left: calc(0.5rem + env(safe-area-inset-left)) !important;
+      padding-right: calc(0.5rem + env(safe-area-inset-right)) !important;
+    }
+  }
+}

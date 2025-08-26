@@ -9,6 +9,7 @@ import { saveAs } from 'file-saver';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useEffect } from 'react';
+import { Capacitor } from '@capacitor/core';
 
 interface DocumentViewerProps {
     document: GeneratedDocument | null;
@@ -77,11 +78,24 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-🚨 YASAL UYARI:
-Bu belge yalnızca genel bilgilendirme amaçlıdır ve hukuki tavsiye niteliği taşımaz.
-Bu şablonun kullanımından doğabilecek her türlü sorumluluk kullanıcıya aittir.
-Önemli hukuki işlemler için mutlaka kalifiye bir avukattan danışmanlık alınız.
-ARTIKLO bu şablonun içeriğinden sorumlu değildir.`;
+⚠️ ÖNEMLİ YASAL UYARI VE SORUMLULUK REDDİ
+
+🚨 BU BELGE HİÇBİR ŞEKİLDE HUKUKİ TAVSİYE DEĞİLDİR
+• Bu şablon yalnızca genel bilgilendirme amaçlıdır
+• Hiçbir hukuki danışmanlık, tavsiye veya görüş niteliği taşımaz
+• Yapay Zeka tarafından üretilmiştir ve hata içerebilir
+
+⛔ KULLANIM KISITLAMALARI:
+• Mahkeme, icra, vergi dairesi gibi resmi işlemlerde kullanmayın
+• Bu belgeyi imzalamadan veya göndermeden önce MUTLAKA avukata danışın
+• Her durumun kendine özgü yasal gereksinimleri vardır
+
+💼 PROFESYONEL DESTEK GEREKLİ:
+• Herhangi bir yasal işlem yapmadan önce kalifiye hukuk uzmanına başvurun
+• Bu şablonun kullanımından doğacak BÜTÜN riskler kullanıcıya aittir
+• ARTIKLO hiçbir yasal sorumluluk kabul etmez
+
+📞 Acil hukuki yardım için yerel barodan avukat bulabilirsiniz.`;
 
         const contentWithDisclaimer = content + legalDisclaimer;
 
@@ -195,7 +209,7 @@ ARTIKLO bu şablonun içeriğinden sorumlu değildir.`;
                 new Paragraph({
                     children: [
                         new TextRun({
-                            text: "Bu belge yalnızca genel bilgilendirme amaçlıdır ve hukuki tavsiye niteliği taşımaz. Bu şablonun kullanımından doğabilecek her türlü sorumluluk kullanıcıya aittir. Önemli hukuki işlemler için mutlaka kalifiye bir avukattan danışmanlık alınız. ARTIKLO bu şablonun içeriğinden sorumlu değildir.",
+                            text: "⚠️ ÖNEMLİ YASAL UYARI: Bu belge hiçbir şekilde hukuki tavsiye değildir. Yalnızca bilgilendirme amaçlıdır ve AI tarafından üretilmiştir, hata içerebilir. Bu şablonu kullanmadan, imzalamadan veya göndermeden önce MUTLAKA kalifiye bir hukuk uzmanına (avukata) danışın. Mahkeme, icra, vergi dairesi gibi resmi işlemlerde kullanmayın. Bu belgenin kullanımından doğacak BÜTÜN riskler ve sorumluluk tamamen kullanıcıya aittir. ARTIKLO hiçbir yasal sorumluluk kabul etmez.",
                             size: 18,
                             color: "666666",
                         }),
@@ -273,11 +287,24 @@ ARTIKLO bu şablonun içeriğinden sorumlu değildir.`;
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-🚨 YASAL UYARI:
-Bu belge yalnızca genel bilgilendirme amaçlıdır ve hukuki tavsiye niteliği taşımaz.
-Bu şablonun kullanımından doğabilecek her türlü sorumluluk kullanıcıya aittir.
-Önemli hukuki işlemler için mutlaka kalifiye bir avukattan danışmanlık alınız.
-ARTIKLO bu şablonun içeriğinden sorumlu değildir.`;
+⚠️ ÖNEMLİ YASAL UYARI VE SORUMLULUK REDDİ
+
+🚨 BU BELGE HİÇBİR ŞEKİLDE HUKUKİ TAVSİYE DEĞİLDİR
+• Bu şablon yalnızca genel bilgilendirme amaçlıdır
+• Hiçbir hukuki danışmanlık, tavsiye veya görüş niteliği taşımaz
+• Yapay Zeka tarafından üretilmiştir ve hata içerebilir
+
+⛔ KULLANIM KISITLAMALARI:
+• Mahkeme, icra, vergi dairesi gibi resmi işlemlerde kullanmayın
+• Bu belgeyi imzalamadan veya göndermeden önce MUTLAKA avukata danışın
+• Her durumun kendine özgü yasal gereksinimleri vardır
+
+💼 PROFESYONEL DESTEK GEREKLİ:
+• Herhangi bir yasal işlem yapmadan önce kalifiye hukuk uzmanına başvurun
+• Bu şablonun kullanımından doğacak BÜTÜN riskler kullanıcıya aittir
+• ARTIKLO hiçbir yasal sorumluluk kabul etmez
+
+📞 Acil hukuki yardım için yerel barodan avukat bulabilirsiniz.`;
 
             const contentWithDisclaimer = document.content + legalDisclaimer;
 
@@ -480,92 +507,105 @@ ARTIKLO bu şablonun içeriğinden sorumlu değildir.`;
     if (!document) return null;
 
     return (
-        <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-4xl max-h-[85vh] overflow-hidden flex flex-col mt-8 mb-8">
-                <DialogHeader className="flex-shrink-0">
-                    <DialogTitle className="flex items-center justify-between">
-                        <span>{document.title}</span>
-                        <Button variant="ghost" size="sm" onClick={onClose}>
-                            <X className="h-4 w-4" />
-                        </Button>
-                    </DialogTitle>
-                </DialogHeader>
+        <div className={Capacitor.isNativePlatform() ? 'mobile-document-viewer' : ''}>
+            <Dialog open={isOpen} onOpenChange={onClose}>
+                <DialogContent className={`${Capacitor.isNativePlatform()
+                    ? "mobile-document-viewer w-[98vw] h-[95vh] max-w-none max-h-none"
+                    : "max-w-4xl max-h-[85vh] mt-8 mb-8"
+                    } overflow-hidden flex flex-col p-2 md:p-6`}>
+                    <DialogHeader className="flex-shrink-0">
+                        <DialogTitle className="flex items-center justify-between">
+                            <span className={Capacitor.isNativePlatform() ? 'text-base' : ''}>{document.title}</span>
+                            <Button variant="ghost" size="sm" onClick={onClose}>
+                                <X className="h-4 w-4" />
+                            </Button>
+                        </DialogTitle>
+                    </DialogHeader>
 
-                {/* Document Content */}
-                <div className="flex-1 overflow-y-auto bg-white border border-gray-200 rounded-lg p-8 my-4">
-                    <div className="prose max-w-none">
-                        <div
-                            className="font-serif text-base leading-loose text-gray-900"
-                            dangerouslySetInnerHTML={{ __html: formatDocumentContent(document.content) }}
-                            style={{
-                                fontFamily: 'Times New Roman, serif',
-                                lineHeight: '1.8',
-                                textAlign: 'justify'
-                            }}
-                        />
+                    {/* Document Content */}
+                    <div className={`flex-1 overflow-y-auto bg-white border border-gray-200 rounded-lg ${Capacitor.isNativePlatform() ? 'p-3 my-2' : 'p-8 my-4'
+                        }`}>
+                        <div className="prose max-w-none">
+                            <div
+                                className="font-serif text-base leading-loose text-gray-900"
+                                dangerouslySetInnerHTML={{ __html: formatDocumentContent(document.content) }}
+                                style={{
+                                    fontFamily: 'Times New Roman, serif',
+                                    lineHeight: '1.8',
+                                    textAlign: 'justify'
+                                }}
+                            />
+                        </div>
                     </div>
-                </div>
 
-                {/* Action Buttons */}
-                <div className="flex-shrink-0 flex justify-between items-center pt-4 border-t">
-                    <div className="text-sm text-gray-500">
-                        Oluşturulma: {document.generatedAt.toLocaleString('tr-TR')}
+                    {/* Action Buttons */}
+                    <div className={`flex-shrink-0 pt-2 border-t ${Capacitor.isNativePlatform()
+                        ? 'flex flex-col gap-2'
+                        : 'flex justify-between items-center pt-4'
+                        }`}>
+                        <div className={`${Capacitor.isNativePlatform() ? 'text-xs' : 'text-sm'} text-gray-500 ${Capacitor.isNativePlatform() ? 'text-center mb-2' : ''
+                            }`}>
+                            Oluşturulma: {document.generatedAt.toLocaleString('tr-TR')}
+                        </div>
+
+                        <div className={`${Capacitor.isNativePlatform()
+                            ? 'grid grid-cols-2 gap-2 w-full'
+                            : 'flex gap-2'
+                            }`}>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={handleCopyToClipboard}
+                                disabled={isCopying}
+                                className={`flex items-center gap-2 ${Capacitor.isNativePlatform() ? 'w-full' : ''}`}
+                            >
+                                <Copy className="h-4 w-4" />
+                                {isCopying ? 'Kopyalanıyor...' : 'Kopyala'}
+                            </Button>
+
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={handlePrint}
+                                className={`flex items-center gap-2 ${Capacitor.isNativePlatform() ? 'w-full' : ''}`}
+                            >
+                                <Printer className="h-4 w-4" />
+                                Yazdır
+                            </Button>
+
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={handleShare}
+                                className={`flex items-center gap-2 ${Capacitor.isNativePlatform() ? 'w-full' : ''}`}
+                            >
+                                <Share2 className="h-4 w-4" />
+                                Paylaş
+                            </Button>
+
+                            <Button
+                                onClick={handleDownloadDocx}
+                                disabled={isDownloading}
+                                size="sm"
+                                className={`flex items-center gap-2 ${Capacitor.isNativePlatform() ? 'w-full' : ''}`}
+                            >
+                                <Download className="h-4 w-4" />
+                                {isDownloading ? 'İndiriliyor...' : 'DOCX İndir'}
+                            </Button>
+
+                            <Button
+                                variant="outline"
+                                onClick={handleDownloadTxt}
+                                size="sm"
+                                className={`flex items-center gap-2 ${Capacitor.isNativePlatform() ? 'w-full col-span-2' : ''}`}
+                            >
+                                <FileText className="h-4 w-4" />
+                                TXT İndir
+                            </Button>
+                        </div>
                     </div>
-
-                    <div className="flex gap-2">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={handleCopyToClipboard}
-                            disabled={isCopying}
-                            className="flex items-center gap-2"
-                        >
-                            <Copy className="h-4 w-4" />
-                            {isCopying ? 'Kopyalanıyor...' : 'Kopyala'}
-                        </Button>
-
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={handlePrint}
-                            className="flex items-center gap-2"
-                        >
-                            <Printer className="h-4 w-4" />
-                            Yazdır
-                        </Button>
-
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={handleShare}
-                            className="flex items-center gap-2"
-                        >
-                            <Share2 className="h-4 w-4" />
-                            Paylaş
-                        </Button>
-
-                        <Button
-                            onClick={handleDownloadDocx}
-                            disabled={isDownloading}
-                            size="sm"
-                            className="flex items-center gap-2"
-                        >
-                            <Download className="h-4 w-4" />
-                            {isDownloading ? 'İndiriliyor...' : 'DOCX İndir'}
-                        </Button>
-
-                        <Button
-                            variant="outline"
-                            onClick={handleDownloadTxt}
-                            size="sm"
-                            className="flex items-center gap-2"
-                        >
-                            <FileText className="h-4 w-4" />
-                            TXT İndir
-                        </Button>
-                    </div>
-                </div>
-            </DialogContent>
-        </Dialog>
+                </DialogContent>
+            </Dialog>
+        </div>
     );
 };

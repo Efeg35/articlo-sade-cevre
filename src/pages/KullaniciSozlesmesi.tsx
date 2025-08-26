@@ -23,12 +23,28 @@ const KullaniciSozlesmesi = () => (
 
         <div>
           <h2 className="text-xl font-bold mb-2 text-gray-800">3. Sorumluluğun Reddi ve Hukuki Uyarı</h2>
-          <p className="font-semibold text-red-600">
-            Artiklo tarafından üretilen içerikler, yalnızca bilgilendirme amaçlıdır ve hiçbir şekilde hukuki danışmanlık, tavsiye veya görüş niteliği taşımaz.
-          </p>
-          <p>
-            Yapay zeka modelleri hata yapabilir, yanlış veya eksik bilgi üretebilir. Platformun sağladığı sadeleştirilmiş metinler, orijinal belgenin yasal geçerliliğini veya tam anlamını yansıtmayabilir. Kullanıcılar, herhangi bir yasal, finansal veya önemli bir karar almadan veya işlem yapmadan önce mutlaka yetkin bir hukuk danışmanına (avukata) başvurmalıdır. Platformun kullanımından kaynaklanan veya üretilen bilgilere dayanarak alınan kararlardan doğabilecek hiçbir doğrudan veya dolaylı zarardan Hizmet Sağlayıcı sorumlu tutulamaz.
-          </p>
+          <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4">
+            <p className="font-bold text-red-800 text-lg">
+              ⚠️ ÖNEMLİ: Bu uygulama hiçbir şekilde hukuki danışmanlık hizmeti sağlamaz.
+            </p>
+            <ul className="list-disc list-inside space-y-2 mt-3 text-red-700">
+              <li><strong>Yapay Zeka Sınırlamaları:</strong> Bu platform AI teknolojisi kullanır ve hata yapabilir, yanlış veya eksik bilgi üretebilir.</li>
+              <li><strong>Hukuki Geçerlik Yok:</strong> Üretilen içerikler hiçbir şekilde yasal belge niteliği taşımaz.</li>
+              <li><strong>Profesyonel Destek Gerekli:</strong> Herhangi bir yasal işlem yapmadan önce MUTLAKA avukata danışın.</li>
+              <li><strong>Resmi İşlemler:</strong> Mahkeme, icra, vergi dairesi gibi resmi işlemlerde kullanmayın.</li>
+              <li><strong>Tam Sorumluluk Reddi:</strong> Bu uygulamanın kullanımından doğacak tüm riskler kullanıcıya aittir.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div>
+          <h2 className="text-xl font-bold mb-2 text-gray-800">3.1. Mobil Uygulama Özel Koşulları</h2>
+          <ul className="list-disc list-inside space-y-2">
+            <li><strong>Yaş Sınırı:</strong> Bu uygulama 18 yaş ve üzeri kullanıcılar içindir.</li>
+            <li><strong>Cihaz İzinleri:</strong> Kamera, dosya erişimi gibi izinler yalnızca belge yükleme için kullanılır.</li>
+            <li><strong>İnternets Bağlantısı:</strong> Uygulama internet bağlantısı gerektirir, çevrimdışı çalışmaz.</li>
+            <li><strong>App Store Uyumluluğu:</strong> Apple App Store kurallarına uygun olarak geliştirilmiştir.</li>
+          </ul>
         </div>
 
         <div>
@@ -40,7 +56,7 @@ const KullaniciSozlesmesi = () => (
             <li>Kullanıcı, 18 yaşından büyük olduğunu veya yasal vasisinin onayını aldığını beyan eder.</li>
           </ul>
         </div>
-        
+
         <div>
           <h2 className="text-xl font-bold mb-2 text-gray-800">5. Gizlilik ve Veri Güvenliği</h2>
           <p>

@@ -1543,6 +1543,23 @@ const Dashboard = () => {
               </CardContent>
             </Card>
           )}
+
+          {/* ÖNEMLİ YASAL UYARI - Ana Dashboard Sonuçları İçin */}
+          <Card className="border-yellow-300 shadow-sm bg-yellow-50">
+            <CardContent className="p-4">
+              <div className="text-xs text-yellow-800">
+                <div className="font-semibold text-yellow-900 mb-2 flex items-center gap-1">
+                  ⚠️ ÖNEMLİ YASAL UYARI
+                </div>
+                <div className="space-y-1 text-yellow-700">
+                  <p>• Bu analiz <strong>yalnızca bilgilendirme amaçlıdır</strong> ve hiçbir şekilde hukuki danışmanlık, tavsiye veya görüş niteliği taşımaz.</p>
+                  <p>• <strong>Yapay Zeka hata yapabilir:</strong> Bu içerik AI tarafından üretilmiştir ve yanlış, eksik veya güncel olmayan bilgiler içerebilir.</p>
+                  <p>• <strong>Profesyonel Destek Gerekli:</strong> Herhangi bir yasal karar almadan, işlem yapmadan veya bu analizi kullanmadan önce mutlaka kalifiye bir hukuk uzmanına (avukata) danışın.</p>
+                  <p>• <strong>Sorumluluk Reddi:</strong> Bu analizin kullanımından doğabilecek her türlü zarar, kayıp veya sorumluluk tamamen kullanıcıya aittir.</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       );
     }
@@ -1711,7 +1728,10 @@ const Dashboard = () => {
       {/* Document Draft Modal */}
       <Dialog open={isModalOpen} onOpenChange={(open) => !open && setIsModalOpen(false)}>
         <DialogContent
-          className="max-w-5xl w-[95vw] h-[90vh] md:h-[90vh] h-[95vh] flex flex-col p-4 md:p-6"
+          className={`${Capacitor.isNativePlatform()
+            ? "mobile-dashboard-modal w-[98vw] h-[95vh] max-w-none max-h-none"
+            : "max-w-5xl w-[95vw] h-[90vh] md:h-[90vh]"
+            } flex flex-col p-2 md:p-4`}
           onPointerDownOutside={(e) => e.preventDefault()}
           onEscapeKeyDown={(e) => e.preventDefault()}
         >
@@ -1721,7 +1741,7 @@ const Dashboard = () => {
               Aşağıdaki metni inceleyebilir, düzenleyebilir, kopyalayabilir veya indirebilirsiniz.
             </DialogDescription>
           </DialogHeader>
-          <div className="flex-1 p-3 md:p-6 bg-white border rounded-lg shadow-sm overflow-hidden flex flex-col">
+          <div className={`flex-1 ${Capacitor.isNativePlatform() ? 'p-2 md:p-3' : 'p-3 md:p-6'} bg-white border rounded-lg shadow-sm overflow-hidden flex flex-col`}>
             {draftedText === '' ? (
               <div className="flex-1 flex items-center justify-center text-muted-foreground">
                 <div className="flex items-center gap-3">
@@ -1731,22 +1751,22 @@ const Dashboard = () => {
               </div>
             ) : editMode ? (
               <div className="flex-1 bg-white border border-gray-200 rounded-md shadow-sm overflow-hidden">
-                <div className="bg-gray-50 border-b border-gray-200 px-4 py-2 flex items-center justify-between">
-                  <div className="flex items-center gap-4 text-sm text-gray-600">
+                <div className={`bg-gray-50 border-b border-gray-200 ${Capacitor.isNativePlatform() ? 'px-2 py-1' : 'px-4 py-2'} flex items-center justify-between`}>
+                  <div className="flex items-center gap-2 text-xs md:text-sm text-gray-600">
                     <span className="font-medium">Düzenleme Modu</span>
                   </div>
-                  <div className="flex items-center gap-2 text-xs text-gray-500">
-                    <span>Times New Roman, 12pt</span>
+                  <div className="flex items-center gap-1 text-xs text-gray-500">
+                    <span>Times New Roman</span>
                   </div>
                 </div>
                 <Textarea
                   value={draftedText}
                   onChange={(e) => setDraftedText(e.target.value)}
-                  className="flex-1 resize-none border-0 focus:ring-0 focus:outline-none p-3 md:p-6 bg-white"
+                  className={`flex-1 resize-none border-0 focus:ring-0 focus:outline-none ${Capacitor.isNativePlatform() ? 'p-2' : 'p-3 md:p-6'} bg-white`}
                   style={{
-                    minHeight: 'calc(60vh - 40px)',
+                    minHeight: Capacitor.isNativePlatform() ? 'calc(70vh - 60px)' : 'calc(60vh - 40px)',
                     fontFamily: 'Times New Roman, serif',
-                    fontSize: 'clamp(10pt, 2.5vw, 12pt)',
+                    fontSize: Capacitor.isNativePlatform() ? '14px' : 'clamp(10pt, 2.5vw, 12pt)',
                     lineHeight: '1.5',
                     color: '#1f2937'
                   }}
@@ -1755,11 +1775,11 @@ const Dashboard = () => {
               </div>
             ) : (
               <div
-                className="flex-1 overflow-y-auto p-3 md:p-6 bg-white leading-relaxed text-gray-800 whitespace-pre-wrap border border-gray-200 rounded-md"
+                className={`flex-1 overflow-y-auto ${Capacitor.isNativePlatform() ? 'p-2' : 'p-3 md:p-6'} bg-white leading-relaxed text-gray-800 whitespace-pre-wrap border border-gray-200 rounded-md`}
                 style={{
-                  maxHeight: 'calc(60vh - 40px)',
+                  maxHeight: Capacitor.isNativePlatform() ? 'calc(70vh - 60px)' : 'calc(60vh - 40px)',
                   fontFamily: 'Times New Roman, serif',
-                  fontSize: 'clamp(10pt, 2.5vw, 12pt)',
+                  fontSize: Capacitor.isNativePlatform() ? '14px' : 'clamp(10pt, 2.5vw, 12pt)',
                   lineHeight: '1.5',
                   color: '#1f2937'
                 }}
@@ -1770,29 +1790,37 @@ const Dashboard = () => {
           </div>
 
           <div className="flex-shrink-0 space-y-4">
-            <p className="text-xs text-muted-foreground px-2">
-              *** Yasal Uyarı: Bu belge, Artiklo yazılımı tarafından kullanıcı tarafından sağlanan bilgilere göre oluşturulmuş bir taslaktır. Hukuki bir tavsiye niteliği taşımaz. Bu belgeyi kullanmadan önce mutlaka bir avukata danışmanız önerilir.
-            </p>
+            <div className={`text-xs text-muted-foreground ${Capacitor.isNativePlatform() ? 'px-1 py-2' : 'px-2 py-3'} bg-yellow-50 border border-yellow-200 rounded-lg`}>
+              <div className="font-semibold text-yellow-800 mb-2 flex items-center gap-1">
+                ⚠️ ÖNEMLİ YASAL UYARI
+              </div>
+              <div className="space-y-1 text-yellow-700">
+                <p>• Bu belge <strong>yalnızca bilgilendirme amaçlıdır</strong> ve hiçbir şekilde hukuki danışmanlık, tavsiye veya görüş niteliği taşımaz.</p>
+                <p>• <strong>Yapay Zeka hata yapabilir:</strong> Bu içerik AI tarafından üretilmiştir ve yanlış, eksik veya güncel olmayan bilgiler içerebilir.</p>
+                <p>• <strong>Profesyonel Destek Gerekli:</strong> Herhangi bir yasal karar almadan, işlem yapmadan veya bu belgeyi kullanmadan önce mutlaka kalifiye bir hukuk uzmanına (avukata) danışın.</p>
+                <p>• <strong>Sorumluluk Reddi:</strong> Bu belgenin kullanımından doğabilecek her türlü zarar, kayıp veya sorumluluk tamamen kullanıcıya aittir.</p>
+              </div>
+            </div>
 
-            <DialogFooter className="flex flex-col sm:flex-row justify-between items-start sm:items-center pt-4 border-t gap-3">
-              <div>
+            <DialogFooter className={`flex flex-col justify-between pt-2 border-t gap-2 ${Capacitor.isNativePlatform() ? 'space-y-2' : 'sm:flex-row items-start sm:items-center pt-4 gap-3'}`}>
+              <div className="w-full">
                 {editMode ? (
-                  <Button onClick={() => setEditMode(false)} size="sm" className="bg-green-600 hover:bg-green-700 w-full sm:w-auto">
+                  <Button onClick={() => setEditMode(false)} size="sm" className="bg-green-600 hover:bg-green-700 w-full">
                     ✓ Görünümü Kaydet
                   </Button>
                 ) : (
-                  <Button onClick={() => setEditMode(true)} size="sm" variant="outline" className="w-full sm:w-auto">
+                  <Button onClick={() => setEditMode(true)} size="sm" variant="outline" className="w-full">
                     ✏️ Düzenle
                   </Button>
                 )}
               </div>
-              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+              <div className={`flex gap-2 w-full ${Capacitor.isNativePlatform() ? 'flex-col' : 'flex-col sm:flex-row'}`}>
                 <Button variant="outline" size="sm" onClick={() => {
                   navigator.clipboard.writeText(draftedText);
                   successToast({ title: "Başarılı!", description: "Metin panoya kopyalandı." });
-                }} className="w-full sm:w-auto">📋 Panoya Kopyala</Button>
-                <Button variant="secondary" size="sm" onClick={handleDownload} className="w-full sm:w-auto">📥 İndir (.docx)</Button>
-                <Button onClick={() => setIsModalOpen(false)} size="sm" className="w-full sm:w-auto">Kapat</Button>
+                }} className="w-full">📋 Panoya Kopyala</Button>
+                <Button variant="secondary" size="sm" onClick={handleDownload} className="w-full">📥 İndir (.docx)</Button>
+                <Button onClick={() => setIsModalOpen(false)} size="sm" className="w-full">Kapat</Button>
               </div>
             </DialogFooter>
           </div>

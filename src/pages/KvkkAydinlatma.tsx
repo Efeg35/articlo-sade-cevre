@@ -23,7 +23,23 @@ const KvkkAydinlatma = () => (
             <li>Platformun performansını ve güvenliğini sağlamak, iyileştirmek.</li>
             <li>Gerekli durumlarda sizinle iletişim kurmak (hesap doğrulama vb.).</li>
             <li>Yasal yükümlülüklerimizi yerine getirmek.</li>
+            <li><strong>Mobil Uygulama Özel:</strong> Cihaz kamerası ve dosya sistemi erişimi (yalnızca belge yükleme için).</li>
+            <li><strong>Mobil Uygulama Özel:</strong> Push notification gönderebilmek (opsiyonel, kullanıcı onayı ile).</li>
           </ul>
+        </div>
+
+        <div>
+          <h2 className="text-xl font-bold mb-2 text-gray-800">2.1. Mobil Uygulama Veri İşleme Politikası</h2>
+          <div className="bg-blue-50 border-l-4 border-blue-500 p-4">
+            <h3 className="font-semibold text-blue-800 mb-2">📱 iOS/Android Uygulama Özel Koşulları:</h3>
+            <ul className="list-disc list-inside space-y-2 text-blue-700">
+              <li><strong>Cihaz İzinleri:</strong> Kamera ve dosya erişimi izinleri yalnızca belge yükleme işlemi için kullanılır.</li>
+              <li><strong>Veri Yerelliği:</strong> Hiçbir kişisel veri cihazda kalıcı olarak saklanmaz.</li>
+              <li><strong>Anlık İşleme:</strong> Yüklenen belgeler anlık olarak işlenir ve hemen silinir.</li>
+              <li><strong>Ağ Güvenliği:</strong> Tüm veri transferleri HTTPS ile şifrelenir.</li>
+              <li><strong>Üçüncü Taraf Entegrasyonu:</strong> Apple/Google hizmetleri dışında veri paylaşımı yapılmaz.</li>
+            </ul>
+          </div>
         </div>
 
         <div>
@@ -45,8 +61,18 @@ const KvkkAydinlatma = () => (
         <div>
           <h2 className="text-xl font-bold mb-2 text-gray-800">5. Kişisel Verilerin Aktarılması</h2>
           <p>
-            Kişisel verileriniz, yasal zorunluluklar dışında hiçbir şekilde üçüncü kişi veya kurumlarla paylaşılmaz. Yüklediğiniz belgeler, analiz edilmesi için yalnızca altyapı sağlayıcımızın (örn: Google Gemini API) yapay zeka sistemine güvenli bir bağlantı üzerinden gönderilir ve bu sağlayıcıların da verileri saklamadığı taahhüt edilmektedir.
+            Kişisel verileriniz, yasal zorunluluklar dışında hiçbir şekilde üçüncü kişi veya kurumlarla paylaşılmaz. Yüklediğiniz belgeler, analiz edilmesi için yalnızca altyapı sağlayıcımızın (Google Gemini API) yapay zeka sistemine güvenli bir bağlantı üzerinden gönderilir.
           </p>
+          <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded">
+            <h3 className="font-semibold text-green-800 mb-2">🔒 Veri Güvenliği Taahhütlerimiz:</h3>
+            <ul className="list-disc list-inside space-y-1 text-green-700 text-sm">
+              <li>Google Gemini API ile veri paylaşımı yalnızca analiz için geçicidir</li>
+              <li>API sağlayıcısı verilerinizi saklamaz (Google taahhüdü)</li>
+              <li>Veri transferi AES-256 şifreleme ile korunur</li>
+              <li>AB GDPR ve Türkiye KVKK standartlarına uygunluk</li>
+              <li>Sıfır veri saklama politikası (Zero data retention)</li>
+            </ul>
+          </div>
         </div>
 
         <div>
@@ -67,7 +93,7 @@ const KvkkAydinlatma = () => (
             Bu haklarınızı kullanmak için <a href="mailto:destek@artiklo.legal" className="text-blue-600 hover:underline">destek@artiklo.legal</a> adresinden bizimle iletişime geçebilirsiniz.
           </p>
         </div>
-        
+
         <div>
           <h2 className="text-xl font-bold mb-2 text-gray-800">7. Çerez Politikası</h2>
           <p>

@@ -20,7 +20,7 @@ const SSS = () => {
       icon: HelpCircle
     },
     {
-      id: "2", 
+      id: "2",
       question: "Hangi belge türlerini destekliyorsunuz?",
       answer: "Kira sözleşmeleri, mahkeme kararları, tebligatlar, veraset ilamları, icra takip belgeleri, sigorta poliçeleri ve diğer hukuki metinleri analiz edebiliyoruz.",
       icon: FileText
@@ -64,7 +64,7 @@ const SSS = () => {
     {
       id: "9",
       question: "Hukuki tavsiye veriyor musunuz?",
-      answer: "Hayır, Artiklo hukuki tavsiye vermez. Amacımız belgeleri anlaşılır hale getirmektir. Hukuki kararlar için mutlaka avukata danışın.",
+      answer: "⚠️ KESİNLİKLE HAYIR! Artiklo hiçbir şekilde hukuki tavsiye, danışmanlık veya görüş vermez. Amacımız yalnızca karmaşık belgeleri anlaşılır hale getirmektir. Bu platform yapay zeka teknolojisi kullanır ve hata yapabilir. Herhangi bir yasal karar almadan, belge imzalamadan veya resmi işlem yapmadan önce MUTLAKA kalifiye bir hukuk uzmanına (avukata) danışmanız zorunludur.",
       icon: HelpCircle
     },
     {
@@ -130,7 +130,7 @@ const SSS = () => {
                   Aradığınız cevabı bulamadınız mı? Size yardımcı olmaktan memnuniyet duyarız. Destek ekibimiz size 24 saat içinde yanıt verecektir.
                 </p>
               </div>
-              
+
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button size="lg" asChild>
                   <a href="mailto:info@artiklo.com">
