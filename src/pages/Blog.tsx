@@ -31,10 +31,14 @@ export const blogPosts: BlogPost[] = [
     metaDescription: "İcra takibine itiraz dilekçesi nedir, nasıl hazırlanır? 7 gün içinde adım adım rehberimizi okuyun, hemen harekete geçin.",
     canonical: "https://artiklo.legal/blog/icra-takibine-itiraz-dilekcesi",
     faq: [
-      { question: "İtiraz süresi kaç gündür?", answer: "Tebligat tarihinden itibaren 7 gün içinde itiraz etmelisiniz (İİK m.62)." },
-      { question: "E-devlet’ten itiraz yapılır mı?", answer: "Uygulamaya göre değişir; çoğunlukla fiziki teslim esastır, dairenizle teyit edin." }
+      { question: "İcra takibine itiraz süresi kaç gündür?", answer: "Ödeme emrinin tebliği tarihinden itibaren 7 gün içinde icra dairesine itiraz dilekçenizi vermelisiniz (İcra ve İflas Kanunu m.62). Bu süre kesin ve uzatılamaz." },
+      { question: "E-devlet'ten icra itirazı yapılabilir mi?", answer: "İcra dairesinin dijital alt yapısına ve dosya türüne göre değişir. Çoğu durumda fiziki teslim tercih edilir. Kesin bilgi için ilgili icra dairesini arayın." },
+      { question: "İcra itiraz dilekçesi hangi bilgileri içermeli?", answer: "İcra dairesi adı, dosya numarası, taraf bilgileri, itiraz gerekçeleri ve hukuki dayanaklar. Artiklo ile otomatik olarak eksiksiz dilekçe oluşturabilirsiniz." },
+      { question: "İcra inkar tazminatı ne zaman ödenir?", answer: "Haksız ve kötü niyetli itirazlarda %20'ye varan tazminat ödenebilir. Haklı ve delile dayalı itirazlarda bu risk yoktur." },
+      { question: "İcra takibine itiraz dilekçesi ücreti ne kadar?", answer: "2025 yılı için harç ücreti güncel tarife üzerinden hesaplanır. Dilekçe hazırlama maliyeti Artiklo ile sıfıra iner." }
     ],
-    tags: ["İcra", "Dilekçe", "Rehber"],
+    tags: ["İcra Takibi", "İtiraz Dilekçesi", "Hukuk Rehberi", "İcra Hukuku", "Ödeme Emri"],
+    coverImage: "/icra-kapak.png",
     content: `<p>Elinize bir ödeme emri ulaştı ve acilen bir <strong>icra takibine itiraz dilekçesi</strong> hazırlamanız gerekiyor. Hukuki konulara yabancıysanız, bu durum sizi strese sokabilir. Çünkü elinizdeki resmi belgenin dili karmaşık ve daha da önemlisi, itiraz etmek için <strong>sadece 7 gününüz</strong> var. Bu kısa sürede yapacağınız bir hata, haklarınızı kaybetmenize neden olabilir; ayrıca ciddi para kaybı yaşanabilir.</p>
 
 <p>Neyse ki bu süreçle tek başınıza başa çıkmak zorunda değilsiniz. Bu rehber, <strong>icra takibine itiraz dilekçesi</strong> yazarken tüm endişelerinizi gidermek için hazırlandı. Amacımız, konuyu sizin için basitleştirmek ve bu 7 günü lehinize çevirmenize yardım etmektir.</p>
@@ -42,11 +46,13 @@ export const blogPosts: BlogPost[] = [
 <h2>Ödeme Emri Aldınız: Şimdi Ne Olacak?</h2>
 <p>Öncelikle, elinizdeki belgenin ne anlama geldiğini basitçe anlayalım. Ödeme emri, birinin sizden borcunu almak için başlattığı yasal bir işlemdir. Bu belge size ulaştığı andan itibaren, itiraz etmek için <strong>sadece 7 gününüz</strong> olduğunu unutmayın.</p>
 
+<p><strong>Not:</strong> Eğer bu durumu ilk kez <a href="/blog/enforcement-file-edvlet">E-Devlet'te icra takibi bildirimi</a> olarak gördüyseniz, panik yapmadan önce bu rehberi okuyun ve doğru adımları öğrenin.</p>
+
 <img src="/icra-7-süre.png" alt="7 günlük icra itiraz süresi takvimi" className="my-6 w-full max-w-md mx-auto rounded-lg shadow-sm" />
 
 <h3>Süreyi kaçırırsanız ne olur?</h3>
 <ul>
-<li><strong>Takip kesinleşir:</strong> Borcu kabul etmiş sayılırsınız ve alacaklı kişi maaş haczi gibi yasal işlemlere başlayabilir.</li>
+<li><strong>Takip kesinleşir:</strong> Borcu kabul etmiş sayılırsınız ve alacaklı kişi <a href="/blog/maas-haczi-nedir-nasil-uygulanir">maaş haczi</a> gibi yasal işlemlere başlayabilir.</li>
 <li><strong>İtiraz hakkı büyük ölçüde kaybolur:</strong> Bu aşamadan sonra borca itiraz etmeniz neredeyse imkansız hale gelir.</li>
 <li>Bu nedenle, belgeyi alır almaz harekete geçmek zorundasınız.</li>
 </ul>
@@ -56,8 +62,8 @@ export const blogPosts: BlogPost[] = [
 
 <h3>1. Adım: Önce Anlayın, Sonra Harekete Geçin (Artiklo ile Dakikalar İçinde)</h3>
 <ul>
-<li><strong>Belgenizi yükleyin:</strong> Size gelen ödeme emrinin fotoğrafını çekin veya PDF halini Artiklo platformuna yükleyin.</li>
-<li><strong>Yapay zeka sadeleştirsin:</strong> Yüklediğiniz belge, yapay zeka tarafından anında taranır; karmaşık resmi dil sade Türkçeye çevrilir. Tüm kritik detaylar (tarih, icra dairesi, dosya no, taraflar) netleşir.</li>
+<li><strong>Belgenizi yükleyin:</strong> Size gelen ödeme emrinin fotoğrafını çekin veya PDF halini Artiklo platformuna yükleyin. <a href="/blog/belge-yukleme-ve-analiz-nasil-calisir">Belge yükleme süreci nasıl çalışır?</a></li>
+<li><strong>Yapay zeka sadeleştirsin:</strong> Yüklediğiniz belge, yapay zeka tarafından anında taranır; karmaşık resmi dil sade Türkçeye çevrilir. Tüm kritik detaylar (tarih, icra dairesi, dosya no, taraflar) netleşir. <em>(Artiklo, <a href="/blog/veraset-ilami-nasil-okunur">veraset ilamı</a> ve <a href="/blog/kira-kontrati-7-kritik-madde-2025">kira kontratları</a> gibi diğer hukuki belgeler için de aynı hizmeti verir)</em></li>
 <li><strong>Yol haritası alın:</strong> Sistem, borca hangi yasal nedenlerle itiraz edebileceğinizi basit seçenekler halinde sunar.</li>
 <li><strong>Size özel dilekçe oluşturulsun:</strong> İnternetteki riskli şablonları unutun. Artiklo, durumunuza özel, hukuken geçerli ve eksiksiz bir icra takibine itiraz dilekçesi taslağını saniyeler içinde oluşturur.</li>
 </ul>
@@ -80,7 +86,7 @@ export const blogPosts: BlogPost[] = [
 <li><strong>Hakkaniyet:</strong> Dürüst ve gerçek bir uyuşmazlık varsa tazminat gündeme gelmeyebilir.</li>
 </ul>
 
-<p>Detaylı bilgi için şu yazımıza göz atın: <a href="/blog/icra-inkar-tazminati-nedir">İcra İnkar Tazminatı Nedir?</a></p>
+<p><strong>Önemli:</strong> %20 icra inkar tazminatının hangi koşullarda uygulandığını, nasıl önlenebileceğini ve tüm detaylarını <a href="/blog/icra-inkar-tazminati-nedir">İcra İnkar Tazminatı Nedir?</a> rehberimizden öğrenebilirsiniz.</p>
 
 <h2>Dilekçeyi Teslim Etme: Süreci Tamamlamak</h2>
 <ul>
@@ -110,6 +116,8 @@ export const blogPosts: BlogPost[] = [
 <h2>Sonuç: Endişeyi Güvene Dönüştürün</h2>
 <p>Bir <strong>icra takibine itiraz dilekçesi</strong> hazırlamak, doğru araçlarla korkutucu olmak zorunda değildir. Artık 7 günlük sürenin stresi ve hukuki dilin karmaşıklığı karşısında çaresiz değilsiniz. Artiklo gibi modern bir çözüm sayesinde, süreci hızla anlayabilir ve haklarınızı etkili biçimde koruyabilirsiniz.</p>
 
+<p><strong>İlgili Rehberlerimiz:</strong> İcra süreci hakkında daha fazla bilgi için <a href="/blog/maas-haczi-nedir-nasil-uygulanir">maaş haczi</a> ve <a href="/blog/icra-inkar-tazminati-nedir">icra inkar tazminatı</a> rehberlerimizi de inceleyebilirsiniz. Ayrıca, <a href="/blog/belge-yukleme-ve-analiz-nasil-calisir">belge analiz sürecimiz</a> hakkında detaylı bilgiye sahip olun.</p>
+
 <p>Kısacası, bilgi ve doğru araçlar bu süreçteki en büyük gücünüzdür. İlk adımı şimdi atın: <a href="https://artiklo.com" target="_blank" rel="noopener">Artiklo'yu ücretsiz deneyin</a>.</p>`,
     publishedAt: "2025-08-26",
   },
@@ -117,62 +125,141 @@ export const blogPosts: BlogPost[] = [
     id: "veraset-ilami-nasil-okunur",
     title: "Veraset İlamı Nedir ve Nasıl Okunur? (Adım Adım Anlama Rehberi)",
     summary: "Veraset ilamı (mirasçılık belgesi) karmaşık görünebilir, ancak bu rehber size belgeyi adım adım anlamanız için yardımcı olacak. Hukuki terimlerin anlamından, sonraki adımlara kadar her şey bu yazıda.",
-    content: `Yakınınızı kaybettikten sonraki zorlu süreçte elinize Noter veya Mahkeme'den "Veraset İlamı" ya da yeni adıyla "Mirasçılık Belgesi" başlıklı bir evrak ulaştıysa, ne anlama geldiğini merak etmeniz çok doğal.
+    seoTitle: "Veraset İlamı Nedir? Nasıl Okunur? | Mirasçılık Belgesi Rehberi 2025",
+    metaDescription: "Veraset ilamı (mirasçılık belgesi) nasıl okunur? Hukuki terimler, pay hesaplamaları ve sonraki adımlar. Adım adım rehber.",
+    canonical: "https://artiklo.legal/blog/veraset-ilami-nasil-okunur",
+    faq: [
+      { question: "Veraset ilamı nedir?", answer: "Vefat eden kişinin (muris) yasal mirasçılarının kimler olduğunu ve her birinin mirastan ne kadar pay alacağını gösteren resmi belgedir. Bu belge olmadan miras işlemleri yapılamaz." },
+      { question: "8/24 hisse ne demek?", answer: "8/24 hisse, mirasın 24 birimlik bütününden 8 biriminin size ait olduğu, yani mirasın 1/3'ünü aldığınız anlamına gelir." },
+      { question: "İzale-i şuyu nedir?", answer: "Mirasçılar arasında paylaşılamayan malın (örneğin ev) mahkeme yoluyla satılarak parasının mirasçılar arasında paylaştırılması davasıdır." },
+      { question: "Veraset vergisi ne zaman ödenir?", answer: "Veraset ilamını aldıktan sonra 4 ay içinde vergi dairesine giderek Veraset ve İntikal Vergisi Beyannamesi vermeniz gerekir." },
+      { question: "Miras payımı nasıl hesaplarım?", answer: "Belgede yazan hisse oranınızı (örn: 8/24) basitleştirerek bulabilirsiniz. 8/24 = 1/3 demektir. Artiklo ile otomatik hesaplama yapılabilir." }
+    ],
+    tags: ["Veraset İlamı", "Miras Hukuku", "Mirasçılık Belgesi", "Miras Payı", "Tereke"],
+    coverImage: "/veraset-ilami.jpg",
+    content: `<p>Sevdiklerinizi kaybettikten sonraki zorlu süreçte elinize Noter veya Mahkeme'den <strong>"Veraset İlamı"</strong> ya da yeni adıyla <strong>"Mirasçılık Belgesi"</strong> başlıklı bir evrak ulaştıysa, ne anlama geldiğini merak etmeniz çok doğal.</p>
 
-İlk bakışta karmaşık ve eski kelimelerle dolu bu belge, aslında mirasçı olarak haklarınızı gösteren resmi bir yol haritasıdır. Çoğu zaman kafa karıştırıcı olsa da, içeriğini anladığınızda tüm süreç sizin için daha net hale gelecektir.
+<p>İlk bakışta karmaşık ve eski kelimelerle dolu bu belge, aslında mirasçı olarak haklarınızı gösteren resmi bir yol haritasıdır. Çoğu zaman kafa karıştırıcı olsa da, içeriğini anladığınızda tüm süreç sizin için daha net hale gelecektir.</p>
 
-Bu rehber, o haritayı sizin için adım adım okuyacak ve anlaşılır hale getirecek.
+<p>Bu rehber, o haritayı sizin için adım adım okuyacak ve anlaşılır hale getirecek.</p>
 
-Veraset İlamı (Mirasçılık Belgesi) Tam Olarak Nedir?
-Kısaca bu belge, vefat eden bir kişinin (hukuki adıyla 'muris') geride bıraktığı yasal mirasçılarının kimler olduğunu ve bu mirasçıların her birinin mirastan ne kadar pay ('hisse') alacağını kanıtlayan resmi bir kimlik kartı gibidir.
+<h2>Veraset İlamı (Mirasçılık Belgesi) Tam Olarak Nedir?</h2>
+<p>Kısaca bu belge, vefat eden bir kişinin (hukuki adıyla <strong>'muris'</strong>) geride bıraktığı yasal mirasçılarının kimler olduğunu ve bu mirasçıların her birinin mirastan ne kadar pay (<strong>'hisse'</strong>) alacağını kanıtlayan resmi bir kimlik kartı gibidir.</p>
 
-Bu belge olmadan, vefat eden yakınınızın bankadaki parası, evi, arabası veya diğer mal varlıkları üzerinde hiçbir yasal işlem yapamazsınız. Tapuda ev devri, bankadan para çekme veya araba satışı gibi tüm işlemler için bu belgenin ibraz edilmesi zorunludur. Kısacası, bu belge sizin mirastaki haklarınızın resmi anahtarıdır.
+<p>Bu belge olmadan, vefat eden yakınınızın bankadaki parası, evi, arabası veya diğer mal varlıkları üzerinde hiçbir yasal işlem yapamazsınız. Tapuda ev devri, bankadan para çekme veya araba satışı gibi tüm işlemler için bu belgenin ibraz edilmesi zorunludur. Kısacası, bu belge sizin mirastaki haklarınızın resmi anahtarıdır.</p>
 
-Belgedeki Yaygın Hukuki Terimler İçin Sade Bir Sözlük
-Belgeyi okumanızı kolaylaştıracak en temel kelimelerin anlamları şunlardır:
+<h2>Belgedeki Yaygın Hukuki Terimler İçin Sade Bir Sözlük</h2>
+<p>Belgeyi okumanızı kolaylaştıracak en temel kelimelerin anlamları şunlardır:</p>
 
-Muris: Vefat eden ve mirası kalan kişi.
+<h3>Temel Miras Terimleri:</h3>
+<ul>
+  <li><strong>Muris:</strong> Vefat eden ve mirası kalan kişi</li>
+  <li><strong>Mirasçı (Varis):</strong> Murisin mirası üzerinde yasal hak sahibi olan kişi veya kişiler</li>
+  <li><strong>Tereke:</strong> Murisin geride bıraktığı her şey (varlıklar VE borçlar dahil)</li>
+  <li><strong>Hisse (Pay):</strong> Her mirasçının terekeden alacağı pay (1/4, 8/24 gibi)</li>
+  <li><strong>İzale-i Şuyu:</strong> Paylaşılamayan malın mahkeme yoluyla satılması davası</li>
+</ul>
 
-Mirasçı (Varis): Murisin mirası üzerinde yasal hak sahibi olan kişi veya kişiler.
+<h2>Pay Oranları (Örn: 8/24) Nasıl Anlaşılır?</h2>
+<p>Belgede genellikle <strong>"8/24 payın Ayşe Yılmaz'a ait olduğu..."</strong> gibi ifadeler görürsünüz ve bu kesirler kafa karıştırabilir. Mantığı aslında basittir:</p>
 
-Tereke: Murisin geride bıraktığı her şey: Ev, araba, bankadaki para gibi tüm varlıkları VE varsa tüm borçları. Miras, sadece mal varlıklarından değil, borçlardan da oluşabilen bir bütündür.
+<h3>Pratik Hesaplama:</h3>
+<ul>
+  <li><strong>Payda (alt sayı):</strong> Mirasın toplam birim sayısı (24)</li>
+  <li><strong>Pay (üst sayı):</strong> Sizin aldığınız birim sayısı (8)</li>
+  <li><strong>Sonuç:</strong> 8/24 = 1/3 (mirasın üçte biri)</li>
+</ul>
 
-Hisse (Pay): Her mirasçının bu bütünden alacağı pay. Genellikle 1/4 veya 8/24 gibi kesirli sayılarla gösterilir.
+<p>Yani, payınız 8/24 ise, bu 24 birimlik mirasın 8 biriminin, yani <strong>üçte birinin (1/3)</strong> size ait olduğu anlamına gelir. Diğer mirasçıların payları da toplandığında bütünün tamamını (24/24) oluşturmalıdır.</p>
 
-İzale-i Şuyu: Mirasçılar arasında paylaşılamayan (örneğin tek bir ev gibi) bir malın, mahkeme yoluyla satılarak parasının mirasçılar arasında paylaştırılması. Kısaca "ortaklığın sonlandırılması" davası demektir.
+<h2>Veraset İlamını Aldıktan Sonra Atılacak Adımlar</h2>
 
-Pay Oranları (Örn: 8/24) Nasıl Anlaşılır?
-Belgede genellikle "8/24 payın Ayşe Yılmaz'a ait olduğu..." gibi ifadeler görürsünüz ve bu kesirler kafa karıştırabilir. Mantığı aslında basittir:
+<h3>1. Adım: Belgeyi Doğru Anlamak ve Yorumlamak</h3>
+<p>Her şeyden önce, elinizdeki belgedeki tüm tarafları, pay oranlarını ve özel durumları net bir şekilde anladığınızdan emin olun. Belgenin bir fotoğrafını çekip <a href="/blog/belge-yukleme-ve-analiz-nasil-calisir">Artiklo'ya yükleyerek</a>, kimin "muris", kimin "mirasçı" olduğunu ve size düşen payın ne anlama geldiğini saniyeler içinde, sade bir Türkçe ile görebilirsiniz.</p>
 
-Mirasın tamamı (tereke), kesrin altındaki sayı (payda) olarak kabul edilir. Örneğimizde miras 24 birimdir. Kesrin üstündeki sayı (pay) ise sizin o bütünden aldığınız payı gösterir.
+<h3>2. Adım: Veraset ve İntikal Vergisini Beyan Etmek</h3>
+<p>Mirasçılık belgesini aldıktan sonra <strong>4 ay içinde</strong> ilgili vergi dairesine giderek <strong>"Veraset ve İntikal Vergisi Beyannamesi"</strong> vermeniz gerekir. Bu, miras kalan malların devlete bildirilmesi işlemidir.</p>
 
-Yani, payınız 8/24 ise, bu 24 birimlik mirasın 8 biriminin, yani üçte birinin (1/3) size ait olduğu anlamına gelir. Diğer mirasçıların payları da toplandığında bütünün tamamını (24/24) oluşturmalıdır.
+<h4>Vergi Beyan Süreci:</h4>
+<ul>
+  <li>Veraset ilamınızı alın</li>
+  <li>Tereke değerini belirleyin</li>
+  <li>4 ay içinde vergi dairesine başvurun</li>
+  <li>Beyanname verin ve vergi ödeyin</li>
+</ul>
 
-Veraset İlamını Aldıktan Sonra Atılacak Adımlar
-Belgeyi Doğru Anlamak ve Yorumlamak (İlk Adım): Her şeyden önce, elinizdeki belgedeki tüm tarafları, pay oranlarını ve özel durumları net bir şekilde anladığınızdan emin olun. Belgenin bir fotoğrafını çekip Artiklo'ya yükleyerek, kimin "muris", kimin "mirasçı" olduğunu ve size düşen payın ne anlama geldiğini saniyeler içinde, sade bir Türkçe ile görebilirsiniz.
+<h3>3. Adım: Mirasın İntikal İşlemlerini Başlatmak</h3>
+<p>Vergi dairesinden alacağınız <strong>"ilişiği yoktur"</strong> yazısı ve veraset ilamı ile birlikte, vefat eden kişinin üzerine kayıtlı olan mülkleri kendi adınıza geçirebilirsiniz.</p>
 
-Veraset ve İntikal Vergisini Beyan Etmek: Mirasçılık belgesini aldıktan sonra 4 ay içinde ilgili vergi dairesine giderek "Veraset ve İntikal Vergisi Beyannamesi" vermeniz gerekir. Bu, miras kalan malların devlete bildirilmesi işlemidir.
+<h4>Yapılacak İşlemler:</h4>
+<ul>
+  <li><strong>Tapu işlemleri:</strong> Ev, arsa gibi gayrimenkullerin devri</li>
+  <li><strong>Banka işlemleri:</strong> Hesaplardaki paranın payınız oranında çekilmesi</li>
+  <li><strong>Araç devri:</strong> Motorlu taşıtların adınıza geçirilmesi</li>
+  <li><strong>Hisse senedi devri:</strong> Finansal varlıkların transferi</li>
+</ul>
 
-Mirasın İntikal İşlemlerini Başlatmak (Tapu, Banka vb.): Vergi dairesinden alacağınız "ilişiği yoktur" yazısı ve veraset ilamı ile birlikte, vefat eden kişinin üzerine kayıtlı olan ev, arsa gibi mülkleri tapu dairesinde kendi adınıza işletebilir, banka hesaplarındaki parayı payınız oranında çekebilirsiniz.
+<h3>4. Adım: Anlaşmazlık Durumunda Hukuki Destek</h3>
+<p>Eğer mirasçılar arasında mal paylaşımı konusunda bir anlaşmazlık varsa (örneğin biri evi satmak isterken diğeri istemiyorsa), bu noktada bir <strong>"izale-i şuyu"</strong> davası gündeme gelebilir.</p>
 
-Anlaşmazlık Durumunda Hukuki Destek Almak: Eğer mirasçılar arasında mal paylaşımı konusunda bir anlaşmazlık varsa (örneğin biri evi satmak isterken diğeri istemiyorsa), bu noktada bir "izale-i şuyu" davası gündeme gelebilir. Bu tür karmaşık ve çekişmeli durumlarda mutlaka bir avukattan profesyonel destek almalısınız.
+<h4>İzale-i Şuyu Davası Ne Zaman Açılır:</h4>
+<ul>
+  <li>Mirasçılar arasında anlaşmazlık varsa</li>
+  <li>Mülk fiziken bölünemiyorsa (ev, arsa gibi)</li>
+  <li>Satış konusunda fikir birliği yoksa</li>
+</ul>
 
-Artiklo, Miras Belgenizi Nasıl "Tercüme" Eder?
-Artiklo'ya veraset ilamınızı yüklediğinizde, yapay zeka saniyeler içinde:
+<h2>Artiklo, Miras Belgenizi Nasıl "Tercüme" Eder?</h2>
+<p>Artiklo'ya veraset ilamınızı yüklediğinizde, yapay zeka saniyeler içinde:</p>
 
-Belgedeki "muris" ve tüm "mirasçıları" isim isim listeler.
+<h3>Otomatik Analiz Özellikleri:</h3>
+<ul>
+  <li>Belgedeki "muris" ve tüm "mirasçıları" isim isim listeler</li>
+  <li>Her mirasçıya düşen hisse oranını (8/24 gibi) tespit eder ve "Mirasın üçte biri" gibi anlaşılır bir ifadeye çevirir</li>
+  <li>"İzale-i şuyu" gibi karmaşık hukuki terimleri sizin için sade bir dille açıklar</li>
+  <li>Size, bir sonraki adımda ne yapmanız gerektiğine dair basit bir eylem planı sunar</li>
+</ul>
 
-Her bir mirasçıya düşen hisse oranını (8/24 gibi) tespit eder ve "Mirasın üçte biri" gibi anlaşılır bir ifadeye çevirir.
+<h2>Yaygın Karışıklıklar ve Çözümleri</h2>
 
-"İzale-i şuyu" gibi karmaşık hukuki terimleri sizin için sade bir dille açıklar.
+<h3>1. "Neden Payım Bu Kadar Küçük?"</h3>
+<p>Yasal miras oranları, Türk Medeni Kanunu'na göre belirlenir. Çocuklar, eş ve anne-baba arasında belirli oranlar vardır. Bu normal bir durumdur.</p>
 
-Size, bir sonraki adımda ne yapmanız gerektiğine dair basit bir eylem planı sunar.
+<h3>2. "Borçlar da Miras mı?"</h3>
+<p>Evet, miras sadece varlıklardan değil, borçlardan da oluşur. Ancak mirasçı borçlara karşı payı oranında sorumludur.</p>
 
-Sonuç: Anlamak, Haklarınızı Korumanın İlk Adımıdır
-Miras süreci, duygusal olarak zorlayıcı bir dönemde atılması gereken hukuki adımlarla dolu olabilir. Bu sürecin ilk ve en önemli adımı, haklarınızın ne olduğunu gösteren mirasçılık belgesini doğru anlamaktır. Belgeyi anladığınızda, süreci daha sakin ve bilinçli yönetebilir, haklarınızı koruyabilir ve olası anlaşmazlıkları en aza indirebilirsiniz.
+<h3>3. "Mirasımı Nasıl Reddederim?"</h3>
+<p>3 ay içinde mahkemeye başvurarak mirastan feragat edebilirsiniz. Bu durumda varlık alamazsınız ama borçtan da sorumlu olmazsınız.</p>
 
-Önemli Yasal Uyarı
-Artiklo ve bu blog yazısı, karmaşık hukuki metinleri anlamanız için tasarlanmış güçlü bir yardımcıdır. Ancak, içeriğimiz hiçbir şekilde hukuki tavsiye niteliği taşımaz. Miras intikal işlemleri, vergi beyannamesi veya miras paylaşım davası gibi yasal bir eylemde bulunmadan önce mutlaka alanında uzman bir avukata danışmanız kritik önem taşımaktadır. Artiklo'yu en iyi yol arkadaşınız, avukatınızı ise en güvenilir rehberiniz olarak görün.`,
+<h2>Pratik İpuçları ve Öneriler</h2>
+
+<h3>Miras Sürecinde Dikkat Edilecekler:</h3>
+<ul>
+  <li><strong>Belgeleri saklayın:</strong> Tüm miras belgelerini güvenli yerde saklayın</li>
+  <li><strong>Sürelere uyun:</strong> Vergi beyanı için 4 aylık süreyi kaçırmayın</li>
+  <li><strong>Uzlaşmaya çalışın:</strong> Mirasçılar arasında anlaşmaya çalışın</li>
+  <li><strong>Uzman desteği alın:</strong> Karmaşık durumlarda avukat desteği alın</li>
+</ul>
+
+<h2>Sonuç: Anlamak, Haklarınızı Korumanın İlk Adımıdır</h2>
+<p>Miras süreci, duygusal olarak zorlayıcı bir dönemde atılması gereken hukuki adımlarla dolu olabilir. Bu sürecin ilk ve en önemli adımı, haklarınızın ne olduğunu gösteren mirasçılık belgesini doğru anlamaktır.</p>
+
+<p>Belgeyi anladığınızda, süreci daha sakin ve bilinçli yönetebilir, haklarınızı koruyabilir ve olası anlaşmazlıkları en aza indirebilirsiniz.</p>
+
+<p><strong>Hemen başlayın:</strong> Veraset ilamınızı <a href="https://artiklo.com/" rel="noopener" target="_blank">Artiklo'ya yükleyin</a> ve sade Türkçe analizini alın.</p>
+
+<h2>İlgili Rehberler</h2>
+<p>Miras süreci hakkında daha fazla bilgi için şu rehberlerimizi de inceleyebilirsiniz:</p>
+
+<ul>
+  <li><a href="/blog/belge-yukleme-ve-analiz-nasil-calisir">Belge Yükleme ve Analiz Süreci</a></li>
+  <li><a href="/blog/kira-kontrati-7-kritik-madde-2025">Kira kontratı analizi</a> için benzer sistem</li>
+</ul>
+
+<h2>Önemli Yasal Uyarı</h2>
+<p>Artiklo ve bu blog yazısı, karmaşık hukuki metinleri anlamanız için tasarlanmış güçlü bir yardımcıdır. Ancak, içeriğimiz hiçbir şekilde hukuki tavsiye niteliği taşımaz.</p>
+
+<p>Miras intikal işlemleri, vergi beyannamesi veya miras paylaşım davası gibi yasal bir eylemde bulunmadan önce mutlaka alanında uzman bir avukata danışmanız kritik önem taşımaktadır. Artiklo'yu en iyi yol arkadaşınız, avukatınızı ise en güvenilir rehberiniz olarak görün.</p>`,
     publishedAt: "2024-01-20",
   },
   {
@@ -282,7 +369,89 @@ Artiklo'yu en iyi yol arkadaşınız, avukatınızı ise en güvenilir rehberini
     id: "rental-clauses",
     title: "Kira Sözleşmesi İmzalamadan Önce Bilmeniz Gereken 5 Kritik Madde",
     summary: "Yeni bir eve taşınırken, sözleşmenizdeki kritik maddeleri biliyor musunuz? Detayları bu yazıda bulabilirsiniz.",
-    content: `Kira sözleşmeleri, hem kiracı hem de ev sahibi için bağlayıcıdır. Bu yazıda, imzalamadan önce dikkat etmeniz gereken 5 önemli maddeyi açıklıyoruz...\n\n1. Kira Bedeli ve Artış Şartları...\n2. Depozito Koşulları...\n3. Tahliye Şartları...\n4. Aidat ve Ek Masraflar...\n5. Sözleşmenin Süresi ve Yenilenmesi...\n\nHer maddeyi detaylıca inceleyerek, haklarınızı ve yükümlülüklerinizi öğrenin.`,
+    seoTitle: "Kira Sözleşmesi: İmzalamadan Önce Bilmeniz Gereken 5 Kritik Madde",
+    metaDescription: "Kira sözleşmesi imzalamadan önce bilmeniz gereken 5 kritik maddeyi öğrenin. Haklarınızı koruyun, sorun yaşamayın.",
+    canonical: "https://artiklo.legal/blog/rental-clauses",
+    faq: [
+      { question: "Kira sözleşmesinde hangi maddelere dikkat etmeliyim?", answer: "Kira bedeli artış oranı, depozito iade koşulları, tahliye şartları, aidat sorumluluğu ve sözleşme süresi en kritik maddelerdir." },
+      { question: "Kira artış oranı nasıl belirlenir?", answer: "Kira artış oranı genellikle TÜFE (Tüketici Fiyat Endeksi) oranına göre belirlenir ve sözleşmede açıkça belirtilmelidir." },
+      { question: "Depozito ne zaman iade edilir?", answer: "Depozito, kira sözleşmesi sona erdiğinde ve eve hasar verilmemişse, genellikle 30 gün içinde iade edilir." }
+    ],
+    tags: ["Kira Sözleşmesi", "Ev Kiralama", "Hukuk Rehberi", "Kiracı Hakları"],
+    coverImage: "/kira-sozlesme.jpg",
+    content: `<p>Hayalinizdeki evi buldunuz ve artık kira sözleşmesi imzalama vakti geldi. Ancak bu heyecan verici anın ardında gizlenen önemli hukuki detaylar var. <strong>Kira sözleşmesi</strong> imzalamadan önce bilmeniz gereken kritik maddeleri gözden kaçırmak, ileride büyük sorunlara yol açabilir.</p>
+
+<p>Bu rehber, kira sözleşmenizdeki en önemli 5 maddeyi detaylı şekilde açıklayarak sizi muhtemel risklerden koruyacak.</p>
+
+<h2>1. Kira Bedeli ve Artış Koşulları: Paranızın Güvenliği</h2>
+<p><strong>Kira bedeli</strong> ve artış oranları, sözleşmenizin en kritik kısmıdır. Türk hukukunda kira artışları TÜFE (Tüketici Fiyat Endeksi) ile sınırlıdır.</p>
+
+<h3>Dikkat Edilmesi Gerekenler:</h3>
+<ul>
+  <li>Kira bedelinin rakam ve yazı ile açık belirtilmesi</li>
+  <li>Artış oranının TÜFE'ye bağlı olması gerektiği</li>
+  <li>Ödeme tarihinin net belirlenmesi</li>
+  <li>Gecikme faizi oranının makul olması</li>
+</ul>
+
+<p><strong>Önemli:</strong> <a href="/blog/kira-kontrati-7-kritik-madde-2025">Kira kontratında dikkat edilecek diğer kritik maddeleri</a> de mutlaka inceleyin.</p>
+
+<h2>2. Depozito ve İade Koşulları</h2>
+<p>Depozito, ev sahibinin güvencesi olsa da, kiracı için de önemli bir finansal yüktür. Yasal olarak depozito en fazla 3 aylık kira bedeli kadar olabilir.</p>
+
+<h3>Depozito İade Koşulları:</h3>
+<ul>
+  <li>Eve zarar verilmemesi durumunda tam iade</li>
+  <li>Normal kullanım aşınması için kesinti yapılamayacağı</li>
+  <li>İade süresinin net belirtilmesi (genellikle 30 gün)</li>
+  <li>Kesinti yapılacak durumların önceden belirlenmesi</li>
+</ul>
+
+<h2>3. Tahliye Şartları ve Süreci</h2>
+<p>Tahliye koşulları hem kiracı hem de ev sahibi açısından kritiktir. Bu madde, hangi durumlarda sözleşmenin feshedilebileceğini belirler.</p>
+
+<h3>Yasal Tahliye Sebepleri:</h3>
+<ul>
+  <li>Kira ödememezlik (yasal süreler dahilinde)</li>
+  <li>Eve zarar verme</li>
+  <li>Sözleşme şartlarını ihlal etme</li>
+  <li>Ev sahibinin yasal ihtiyacı (kendisi için kullanım)</li>
+</ul>
+
+<h2>4. Aidat ve Ek Masrafların Dağılımı</h2>
+<p>Aidat, elektrik, su, doğalgaz gibi giderlerin kim tarafından ödeneceği açıkça belirtilmelidir.</p>
+
+<h3>Genel Kural:</h3>
+<ul>
+  <li><strong>Kiracı:</strong> Elektrik, su, doğalgaz, internet</li>
+  <li><strong>Ev Sahibi:</strong> Emlak vergisi, bina sigortası</li>
+  <li><strong>Aidat:</strong> Sözleşmede kararlaştırılan tarafa göre</li>
+</ul>
+
+<h2>5. Sözleşme Süresi ve Yenileme Koşulları</h2>
+<p>Kira sözleşmesinin süresi ve yenileme koşulları, her iki tarafın da hak ve yükümlülüklerini belirler.</p>
+
+<h3>Süre Çeşitleri:</h3>
+<ul>
+  <li><strong>Belirli süreli:</strong> 1 yıl gibi kesin süre</li>
+  <li><strong>Belirsiz süreli:</strong> Süre belirtilmeyen</li>
+  <li><strong>Otomatik yenileme:</strong> Şartlar devam ettiği sürece</li>
+</ul>
+
+<h2>Artiklo ile Sözleşme Analizi</h2>
+<p>Kira sözleşmenizin tüm maddelerini tek tek incelemek zaman alabilir. <a href="/blog/belge-yukleme-ve-analiz-nasil-calisir">Artiklo'nun belge analiz özelliği</a> ile sözleşmenizi yükleyerek:</p>
+
+<ul>
+  <li>Riskli maddeleri tespit edebilir</li>
+  <li>Eksik kısımları görebilir</li>
+  <li>Haklarınızı öğrenebilir</li>
+  <li>Yapmanız gerekenleri listeleyebilirsiniz</li>
+</ul>
+
+<h2>Sonuç: Bilinçli Kiracılık</h2>
+<p>Kira sözleşmesi imzalamak, sadece bir imza atmak değildir. Bu belge, yaşamınızın önemli bir bölümünü etkileyecek hukuki bir anlaşmadır. Yukarıdaki 5 kritik maddeyi dikkatle inceleyerek, geleceğinizi güvence altına alabilirsiniz.</p>
+
+<p><strong>Unutmayın:</strong> Her sözleşme farklıdır ve özel durumlar için mutlaka uzman görüşü alın.</p>`,
     publishedAt: "2024-07-15",
   },
   {
@@ -300,6 +469,8 @@ Artiklo'yu en iyi yol arkadaşınız, avukatınızı ise en güvenilir rehberini
     tags: ["İcra", "Maaş Haczi"],
     content: `
 <p><strong>Maaş haczi nedir?</strong> Maaş haczi, kesinleşmiş veya icra takibi aşamasına gelen alacakların tahsili için çalışanın maaşının bir kısmının yasal olarak kesilmesidir. Bu uygulama, borçlunun geçimini tamamen ortadan kaldırmayacak şekilde sınırlara tabidir.</p>
+
+<p><strong>Not:</strong> Eğer icra takibine itiraz etmeyi düşünüyorsanız, <a href="/blog/icra-takibine-itiraz-dilekcesi">icra takibine itiraz dilekçesi rehberimizi</a> mutlaka okuyun. 7 günlük süre çok kritiktir!</p>
 
 <img src="/lawyer.jpg" alt="Maaş haczi nedir ve oranı kaçtır?" width="1200" height="628" loading="lazy" />
 
@@ -406,19 +577,181 @@ Artiklo'yu en iyi yol arkadaşınız, avukatınızı ise en güvenilir rehberini
     content: `
 <h2>3 Adımda Süreç</h2>
 <ol>
-  <li><strong>Belge Yükle:</strong> Fotoğraf veya PDF’i güvenli şekilde yükleyin.</li>
+  <li><strong>Belge Yükle:</strong> Fotoğraf veya PDF'i güvenli şekilde yükleyin.</li>
   <li><strong>Analiz Et:</strong> Sistem resmi dili sadeleştirir; kritik alanları öne çıkarır.</li>
   <li><strong>Taslak Oluştur:</strong> Duruma özel dilekçe veya yanıt taslakları üretin.</li>
   </ol>
+
+<p><strong>Örnek Kullanım Senaryoları:</strong></p>
+<ul>
+  <li><a href="/blog/icra-takibine-itiraz-dilekcesi">İcra takibine itiraz dilekçesi</a> hazırlama</li>
+  <li><a href="/blog/veraset-ilami-nasil-okunur">Veraset ilamı</a> analizi ve anlama</li>
+  <li><a href="/blog/kira-kontrati-7-kritik-madde-2025">Kira kontratı</a> inceleme ve risk analizi</li>
+  <li>Diğer hukuki belge analizleri</li>
+</ul>
+
 <p>Hemen <a href="https://artiklo.com/" rel="noopener" target="_blank">ücretsiz deneyin</a>.</p>
 `,
     publishedAt: "2025-08-26",
   },
   {
     id: "enforcement-file-edvlet",
-    title: "E-Devlet'te 'İcra Takibi' Bildirimi Ne Anlama Geliyor?",
-    summary: "E-devlet hesabınızda bir 'icra takibi' bildirimi görmek endişe verici olabilir. Panik yapmadan önce atmanız gereken adımları öğrenin.",
-    content: `E-devlet'te karşınıza çıkan 'icra takibi' bildirimi, bir alacaklının hakkını yasal yollardan talep ettiğini gösterir. Bu yazıda, bildirimi gördüğünüzde neler yapmanız gerektiğini adım adım anlatıyoruz...\n\n1. Bildirimin Kaynağını Kontrol Edin...\n2. Borcun Gerçekliğini Sorgulayın...\n3. Yasal Süreçleri ve Haklarınızı Öğrenin...\n4. Gerekirse Uzman Desteği Alın...\n\nUnutmayın, zamanında ve doğru adım atmak çok önemli!`,
+    title: "E-Devlet İcra Takibi Bildirimi: Panik Yapmadan Atılacak 7 Adım",
+    summary: "E-devlet hesabınızda 'icra takibi' bildirimi gördünüz mü? Panik yapmayın! Bu rehber size 7 gün içinde yapmanız gerekenleri adım adım anlatıyor.",
+    seoTitle: "E-Devlet İcra Takibi Bildirimi: 7 Günde Yapılacaklar | 2025 Rehberi",
+    metaDescription: "E-devlet'te icra takibi bildirimi gördünüz mü? 7 gün içinde yapmanız gerekenler, itiraz süreci ve haklarınız. Adım adım rehber.",
+    canonical: "https://artiklo.legal/blog/enforcement-file-edvlet",
+    faq: [
+      { question: "E-devlet'te icra takibi bildirimi ne anlama gelir?", answer: "Birileri sizden alacağı olduğunu iddia ederek icra dairesine başvurmuş ve size ödeme emri gönderilmiş demektir. 7 gün içinde itiraz etme hakkınız var." },
+      { question: "İcra takibi bildirimini gördükten sonra ne kadar sürem var?", answer: "Ödeme emrinin tebliği tarihinden itibaren 7 gün içinde icra dairesine itiraz etme hakkınız bulunur. Bu süre kesindir ve uzatılamaz." },
+      { question: "E-devlet'teki bildirimi görmezden gelsem ne olur?", answer: "7 günlük süreyi kaçırırsanız takip kesinleşir ve maaş haczi, mal haczi gibi zorla tahsilat işlemleri başlatılabilir." },
+      { question: "İcra takibine nasıl itiraz edebilirim?", answer: "İlgili icra dairesine giderek yazılı itiraz dilekçesi vermeniz gerekir. Artiklo ile otomatik dilekçe oluşturabilirsiniz." }
+    ],
+    tags: ["E-Devlet", "İcra Takibi", "Ödeme Emri", "İcra Hukuku", "Dijital Tebligat"],
+    coverImage: "/e-devlet-icra.jpg",
+    content: `<p>E-devlet hesabınızı kontrol ettiğinizde <strong>"İcra Takibi"</strong> başlıklı bir bildirim görmek, ilk anda oldukça korkutucu olabilir. Ancak panik yapmadan önce bu bildirimin ne anlama geldiğini ve yapmanız gerekenleri öğrenmek çok önemli.</p>
+
+<p>Bu rehber, E-devlet'teki icra takibi bildirimi ile karşılaştığınızda atmanız gereken adımları detayıyla açıklayacak.</p>
+
+<h2>E-Devlet İcra Takibi Bildirimi Nedir?</h2>
+<p>E-devlet'te gördüğünüz <strong>icra takibi bildirimi</strong>, birinin sizden alacağı olduğunu iddia ederek icra dairesine başvurduğunu ve size bir ödeme emri gönderildiğini gösterir.</p>
+
+<h3>Bildirimin İçerdiği Bilgiler:</h3>
+<ul>
+  <li><strong>Alacaklı bilgisi:</strong> Sizden parayı talep eden kişi/kurum</li>
+  <li><strong>Alacak miktarı:</strong> İddia edilen borç tutarı</li>
+  <li><strong>İcra dairesi:</strong> Hangi icra dairesinden geldiği</li>
+  <li><strong>Dosya numarası:</strong> Takip için verilen numara</li>
+  <li><strong>Tebliğ tarihi:</strong> Size ulaştığı tarih (çok önemli!)</li>
+</ul>
+
+<h2>Adım 1: Sakin Kalın ve Bilgileri Kaydedin</h2>
+<p>İlk şok geçtikten sonra, bildirimdeki tüm bilgileri not alın. Özellikle şu detaylar kritiktir:</p>
+
+<ul>
+  <li>İcra dairesinin adı ve iletişim bilgileri</li>
+  <li>Dosya numarası</li>
+  <li>Alacaklının kim olduğu</li>
+  <li>İddia edilen borç miktarı</li>
+  <li><strong>En önemli:</strong> Tebliğ tarihi</li>
+</ul>
+
+<p><strong>Kritik Uyarı:</strong> Tebliğ tarihinden itibaren sadece <strong>7 gününüz</strong> var!</p>
+
+<h2>Adım 2: Borcun Gerçekliğini Değerlendirin</h2>
+<p>Bu aşamada kendinize şu soruları sormanız gerekir:</p>
+
+<h3>Kontrol Edilecek Durumlar:</h3>
+<ul>
+  <li><strong>Borcu tanıyor musunuz?</strong> Gerçekten böyle bir borcunuz var mı?</li>
+  <li><strong>Miktar doğru mu?</strong> Varsa borcunuz, iddia edilen tutar doğru mu?</li>
+  <li><strong>Ödenmiş mi?</strong> Bu borcu daha önce ödediniz mi?</li>
+  <li><strong>Zamanaşımı?</strong> Borç çok eski mi, zamanaşımına uğramış olabilir mi?</li>
+</ul>
+
+<h3>Delil Toplayın:</h3>
+<ul>
+  <li>Ödeme makbuzları</li>
+  <li>Banka ekstreleri</li>
+  <li>İlgili sözleşmeler</li>
+  <li>Yazışma kayıtları</li>
+</ul>
+
+<h2>Adım 3: 7 Günlük Süreyi Kaçırmayın</h2>
+<p>E-devlet'teki tebliğ tarihinden itibaren <strong>7 gün içinde</strong> ilgili icra dairesine gidip itiraz etmeniz gerekir.</p>
+
+<h3>Süre Kaçırılırsa Ne Olur:</h3>
+<ul>
+  <li>İcra takibi kesinleşir</li>
+  <li><a href="/blog/maas-haczi-nedir-nasil-uygulanir">Maaş haczi</a> uygulanabilir</li>
+  <li>Mal haczi yapılabilir</li>
+  <li>Banka hesapları bloke edilebilir</li>
+  <li>İtiraz hakkınız büyük ölçüde sona erer</li>
+</ul>
+
+<h2>Adım 4: İcra Dairesine Gitmeye Hazırlanın</h2>
+<p>İcra dairesine gitmeden önce hazırlamanız gerekenler:</p>
+
+<h3>Gerekli Belgeler:</h3>
+<ul>
+  <li>Kimlik kartı (asıl)</li>
+  <li>E-devlet'teki bildirimin çıktısı</li>
+  <li>Varsa ilgili deliller</li>
+  <li>İtiraz dilekçesi (önceden hazırlayın)</li>
+</ul>
+
+<h2>Adım 5: İtiraz Dilekçesi Hazırlayın</h2>
+<p>İcra takibine itiraz için yazılı dilekçe vermeniz şarttır. <a href="/blog/icra-takibine-itiraz-dilekcesi">İcra takibine itiraz dilekçesi nasıl hazırlanır</a> rehberimizden detayları öğrenebilirsiniz.</p>
+
+<h3>Dilekçede Bulunması Gerekenler:</h3>
+<ul>
+  <li>İcra dairesinin adı</li>
+  <li>Dosya numarası</li>
+  <li>Taraf bilgileri</li>
+  <li>İtiraz gerekçeleriniz</li>
+  <li>Hukuki dayanaklar</li>
+</ul>
+
+<h2>Adım 6: Artiklo ile Hızlı Analiz</h2>
+<p>Zaman kısa olduğu için hızlı hareket etmeniz gerekir. <a href="/blog/belge-yukleme-ve-analiz-nasil-calisir">Artiklo'nun belge analiz sistemi</a> ile:</p>
+
+<ul>
+  <li>Ödeme emrinizi yükleyin</li>
+  <li>Durumunuzu analiz edin</li>
+  <li>Size özel itiraz dilekçesi oluşturun</li>
+  <li>Yapmanız gerekenleri öğrenin</li>
+</ul>
+
+<h2>Adım 7: İtirazınızı Teslim Edin</h2>
+<p>Hazırladığınız itiraz dilekçesini 7 gün içinde icra dairesine teslim etmelisiniz.</p>
+
+<h3>Teslim Sırasında Dikkat Edilecekler:</h3>
+<ul>
+  <li>En az 2 kopya hazırlayın</li>
+  <li>Bir kopyayı size iade etmelerini isteyin</li>
+  <li>Tarih ve kaşe içeren alındı belgesi alın</li>
+  <li>Teslim tarihini kaydetmeyi unutmayın</li>
+</ul>
+
+<h2>İtiraz Sonrası Süreç</h2>
+<p>İtirazınızı verdikten sonra ne olacak:</p>
+
+<ol>
+  <li><strong>Takip durur:</strong> İcra işlemleri geçici olarak durdurulur</li>
+  <li><strong>Alacaklıya bildirilir:</strong> İtirazınız karşı tarafa tebliğ edilir</li>
+  <li><strong>İtirazın iptali davası:</strong> Alacaklı, itirazınızın iptal edilmesi için dava açabilir</li>
+  <li><strong>Mahkeme süreci:</strong> Hakim, itirazınızın haklı olup olmadığını değerlendirir</li>
+</ol>
+
+<h2>İnkar Tazminatı Riski</h2>
+<p>Haksız ve kötü niyetli itirazlarda <a href="/blog/icra-inkar-tazminati-nedir">%20 icra inkar tazminatı</a> riski vardır. Ancak haklı gerekçeleriniz varsa bu riskten korkmayın.</p>
+
+<h2>E-Devlet Dijital Tebligat Avantajları</h2>
+<p>E-devlet üzerinden tebligat almanın faydaları:</p>
+
+<ul>
+  <li><strong>Hızlı ulaşım:</strong> Anında haberdar olursunuz</li>
+  <li><strong>Kayıt altında:</strong> Tebliğ tarihi kesin olarak belirlenir</li>
+  <li><strong>7/24 erişim:</strong> İstediğiniz zaman kontrol edebilirsiniz</li>
+  <li><strong>Belge güvenliği:</strong> Kaybetme riski yoktur</li>
+</ul>
+
+<h2>Yaygın Hatalar ve Tuzaklar</h2>
+
+<h3>Yapılmaması Gerekenler:</h3>
+<ul>
+  <li><strong>Görmezden gelmek:</strong> Umduğunuz gibi kendiliğinden çözülmez</li>
+  <li><strong>Süreyi kaçırmak:</strong> 7 gün kesin süre, uzatılmaz</li>
+  <li><strong>Sadece telefon etmek:</strong> Yazılı itiraz şart</li>
+  <li><strong>Genel itiraz yazmak:</strong> Spesifik gerekçeler sunmak gerekir</li>
+</ul>
+
+<h2>Sonuç: Bilinçli Hareket Edin</h2>
+<p>E-devlet'te icra takibi bildirimi görmek korkutucu olabilir, ancak doğru adımlarla başa çıkılabilir bir durumdur. En önemli nokta <strong>7 günlük süreyi kaçırmamak</strong> ve yazılı itirazınızı zamanında teslim etmektir.</p>
+
+<p><strong>Unutmayın:</strong> Bu rehber size genel bilgi verir, ancak özel durumunuz için mutlaka uzman desteği alın.</p>
+
+<p>Hemen <a href="https://artiklo.com/" rel="noopener" target="_blank">Artiklo ile belgenizi analiz edin</a> ve durumunuza özel çözüm alın.</p>`,
     publishedAt: "2024-07-10",
   },
 ];
@@ -441,46 +774,67 @@ const calculateReadTime = (content: string) => {
 
 const BlogPreviewCard = ({ post }: { post: BlogPost }) => {
   return (
-    <Card className="group overflow-hidden border-muted/40">
-      {post.coverImage && (
-        <div className="aspect-[16/9] overflow-hidden">
-          <img
-            src={post.coverImage}
-            alt={post.title}
-            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-            loading="lazy"
-          />
-        </div>
-      )}
-      <CardHeader className="pb-3">
-        <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
-          <Calendar className="h-3.5 w-3.5" />
-          <span>{formatDate(post.publishedAt)}</span>
-          <span>•</span>
-          <Clock className="h-3.5 w-3.5" />
-          <span>{calculateReadTime(post.content)} dk</span>
-        </div>
-        <CardTitle className="text-xl font-semibold leading-tight group-hover:text-primary transition-colors">
-          {post.title}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="pt-0">
-        {post.tags && post.tags.length > 0 && (
-          <div className="mb-3 flex flex-wrap gap-2">
-            {post.tags.map((t) => (
-              <Badge key={t} variant="secondary" className="rounded-full">{t}</Badge>
-            ))}
+    <Link to={`/blog/${post.id}`} className="group block h-full">
+      <Card className="h-full overflow-hidden border-0 bg-card/50 backdrop-blur-sm shadow-lg hover:shadow-2xl transition-all duration-500 group-hover:-translate-y-2 group-hover:scale-[1.02]">
+        {post.coverImage && (
+          <div className="relative aspect-[4/3] sm:aspect-[16/10] overflow-hidden">
+            <img
+              src={post.coverImage}
+              alt={post.title}
+              className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+              loading="lazy"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:scale-110">
+              <ArrowRight className="h-3 w-3 text-primary" />
+            </div>
           </div>
         )}
-        <p className="text-muted-foreground leading-relaxed mb-4">
-          {post.summary}
-        </p>
-        <Link to={`/blog/${post.id}`} className="inline-flex items-center font-semibold text-primary">
-          Devamını Oku
-          <ArrowRight className="h-4 w-4 ml-1 transition-transform group-hover:translate-x-1" />
-        </Link>
-      </CardContent>
-    </Card>
+        <div className="p-6 flex flex-col h-full">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground mb-4">
+            <div className="flex items-center gap-1">
+              <Calendar className="h-3.5 w-3.5" />
+              <span>{formatDate(post.publishedAt)}</span>
+            </div>
+            <span className="text-muted-foreground/60">•</span>
+            <div className="flex items-center gap-1">
+              <Clock className="h-3.5 w-3.5" />
+              <span>{calculateReadTime(post.content)} dk okuma</span>
+            </div>
+          </div>
+
+          {post.tags && post.tags.length > 0 && (
+            <div className="mb-4 flex flex-wrap gap-2">
+              {post.tags.slice(0, 2).map((tag) => (
+                <Badge key={tag} variant="secondary" className="rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors text-xs">
+                  {tag}
+                </Badge>
+              ))}
+              {post.tags.length > 2 && (
+                <Badge variant="outline" className="rounded-full text-xs">
+                  +{post.tags.length - 2}
+                </Badge>
+              )}
+            </div>
+          )}
+
+          <h3 className="text-lg font-bold leading-tight mb-3 group-hover:text-primary transition-colors duration-300 line-clamp-3 flex-grow">
+            {post.title}
+          </h3>
+
+          <p className="text-muted-foreground text-sm leading-relaxed mb-4 line-clamp-3">
+            {post.summary}
+          </p>
+
+          <div className="mt-auto pt-2">
+            <div className="inline-flex items-center text-sm font-semibold text-primary group-hover:gap-2 transition-all duration-300">
+              Devamını Oku
+              <ArrowRight className="h-4 w-4 ml-1 transition-transform duration-300 group-hover:translate-x-1" />
+            </div>
+          </div>
+        </div>
+      </Card>
+    </Link>
   );
 };
 
@@ -489,64 +843,215 @@ const Blog = () => {
 
   const filteredPosts = blogPosts.filter(post =>
     post.title.toLowerCase().includes(search.toLowerCase()) ||
-    post.summary.toLowerCase().includes(search.toLowerCase())
+    post.summary.toLowerCase().includes(search.toLowerCase()) ||
+    (post.tags && post.tags.some(tag => tag.toLowerCase().includes(search.toLowerCase())))
   );
 
+  const featuredPost = filteredPosts[0];
+  const otherPosts = filteredPosts.slice(1);
+
   return (
-    <div className="min-h-screen bg-background pt-20 md:pt-24">
-      <section className="container mx-auto px-4">
-        <div className="mx-auto max-w-3xl text-center">
-          <div className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs mb-3 text-muted-foreground">
-            <span>Blog</span>
-          </div>
-          <h1 className="text-3xl md:text-4xl font-bold tracking-tight">Hukuk ve Belgeler Üzerine Güncel Rehberler</h1>
-          <p className="mt-3 text-muted-foreground">Resmi belgeleri anlamanız ve doğru adımları atmanız için pratik anlatımlar.</p>
-        </div>
-
-        <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <div className="sm:col-span-2 lg:col-span-2">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              <Input
-                type="text"
-                placeholder="Makalelerde ara..."
-                className="pl-10"
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-              />
+    <div className="min-h-screen bg-background">
+      {/* Modern Hero Section */}
+      <section className="relative bg-gradient-to-b from-muted/30 to-background pt-24 pb-16 md:pt-32 md:pb-24">
+        <div className="absolute inset-0 bg-grid-pattern opacity-[0.02]"></div>
+        <div className="container relative mx-auto px-4">
+          <div className="mx-auto max-w-4xl text-center">
+            <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-sm font-medium text-primary mb-6">
+              <span className="h-2 w-2 bg-primary rounded-full animate-pulse"></span>
+              Artiklo Blog
             </div>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6">
+              Hukuk ve Belgeler Üzerine{" "}
+              <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+                Güncel Rehberler
+              </span>
+            </h1>
+            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+              Resmi belgeleri anlamanız ve doğru adımları atmanız için uzmanlarımızdan pratik anlatımlar.
+            </p>
           </div>
-          <div className="hidden sm:block" />
-        </div>
 
-        <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {filteredPosts.length === 0 ? (
-            <Card className="sm:col-span-2 lg:col-span-3 text-center py-12">
-              <CardContent>
-                <p className="text-muted-foreground text-lg">Aradığınız kriterlere uygun makale bulunamadı.</p>
-                <Button variant="outline" className="mt-4" onClick={() => setSearch("")}>Tüm Makaleleri Göster</Button>
-              </CardContent>
-            </Card>
-          ) : (
-            filteredPosts.map(post => (
-              <BlogPreviewCard key={post.id} post={post} />
-            ))
-          )}
-        </div>
-
-        <div className="mt-16 text-center">
-          <div className="bg-muted/40 border rounded-xl p-6 md:p-8 max-w-3xl mx-auto">
-            <h2 className="text-2xl md:text-3xl font-bold mb-3 text-foreground">Kendi Belgelerinizi Analiz Edin</h2>
-            <p className="text-muted-foreground mb-6 max-w-xl mx-auto">Blog yazılarımızdan ilham aldınız mı? Belgelerinizi Artiklo ile analiz ederek net cevaplar alın.</p>
-            <Link to="/auth" className="inline-flex">
-              <Button size="lg" className="font-semibold">
-                Ücretsiz Analiz Başlat
-                <ArrowRight className="h-4 w-4 ml-2" />
-              </Button>
-            </Link>
+          {/* Advanced Search Section */}
+          <div className="mt-12 max-w-2xl mx-auto">
+            <div className="relative group">
+              <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-primary/10 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
+              <div className="relative bg-card border border-border/50 rounded-2xl p-2 shadow-lg">
+                <div className="flex items-center gap-3">
+                  <Search className="text-muted-foreground h-5 w-5 ml-4" />
+                  <Input
+                    type="text"
+                    placeholder="Hangi konuda rehber arıyorsunuz?"
+                    className="border-0 bg-transparent text-lg placeholder:text-muted-foreground/60 focus-visible:ring-0 flex-1"
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                  />
+                  {search && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSearch("")}
+                      className="mr-2 h-8 w-8 p-0 hover:bg-muted/50"
+                    >
+                      <span className="sr-only">Temizle</span>
+                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+            {search && (
+              <div className="mt-4 text-center">
+                <span className="text-sm text-muted-foreground">
+                  "{search}" için {filteredPosts.length} makale bulundu
+                </span>
+              </div>
+            )}
           </div>
         </div>
       </section>
+
+      <div className="container mx-auto px-4 pb-24">
+        {filteredPosts.length === 0 ? (
+          <div className="text-center py-24">
+            <div className="mx-auto max-w-md">
+              <div className="h-24 w-24 bg-muted rounded-full flex items-center justify-center mx-auto mb-6">
+                <Search className="h-12 w-12 text-muted-foreground" />
+              </div>
+              <h3 className="text-2xl font-bold mb-4">Sonuç Bulunamadı</h3>
+              <p className="text-muted-foreground mb-8 leading-relaxed">
+                Aradığınız "{search}" terimiyle ilgili makale bulunamadı. Farklı terimler deneyebilir veya tüm makaleleri görüntüleyebilirsiniz.
+              </p>
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={() => setSearch("")}
+                className="font-semibold"
+              >
+                Tüm Makaleleri Göster
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* Featured Article */}
+            {featuredPost && (
+              <section className="mb-16">
+                <div className="flex items-center gap-2 mb-8">
+                  <div className="h-px bg-gradient-to-r from-primary/60 to-transparent flex-1"></div>
+                  <h2 className="text-sm font-semibold text-primary uppercase tracking-wider px-4">
+                    Öne Çıkan Makale
+                  </h2>
+                  <div className="h-px bg-gradient-to-l from-primary/60 to-transparent flex-1"></div>
+                </div>
+
+                <Link to={`/blog/${featuredPost.id}`} className="group block">
+                  <Card className="overflow-hidden border-0 shadow-xl bg-card/50 backdrop-blur-sm hover:shadow-2xl transition-all duration-500 group-hover:-translate-y-1">
+                    <div className="md:grid md:grid-cols-2 md:gap-8">
+                      {featuredPost.coverImage && (
+                        <div className="relative overflow-hidden aspect-[4/3] md:aspect-[5/4]">
+                          <img
+                            src={featuredPost.coverImage}
+                            alt={featuredPost.title}
+                            className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        </div>
+                      )}
+                      <CardContent className="p-8 md:p-12 flex flex-col justify-center">
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
+                          <Calendar className="h-4 w-4" />
+                          <span>{formatDate(featuredPost.publishedAt)}</span>
+                          <span>•</span>
+                          <Clock className="h-4 w-4" />
+                          <span>{calculateReadTime(featuredPost.content)} dk okuma</span>
+                        </div>
+
+                        {featuredPost.tags && featuredPost.tags.length > 0 && (
+                          <div className="mb-6 flex flex-wrap gap-2">
+                            {featuredPost.tags.slice(0, 3).map((tag) => (
+                              <Badge key={tag} variant="secondary" className="rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors">
+                                {tag}
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
+
+                        <h3 className="text-2xl md:text-3xl font-bold leading-tight mb-4 group-hover:text-primary transition-colors">
+                          {featuredPost.title}
+                        </h3>
+                        <p className="text-muted-foreground leading-relaxed mb-6 line-clamp-3">
+                          {featuredPost.summary}
+                        </p>
+                        <div className="inline-flex items-center font-semibold text-primary group-hover:gap-3 transition-all duration-300">
+                          Detaylı İncele
+                          <ArrowRight className="h-5 w-5 ml-2 transition-transform group-hover:translate-x-1" />
+                        </div>
+                      </CardContent>
+                    </div>
+                  </Card>
+                </Link>
+              </section>
+            )}
+
+            {/* Other Articles Grid */}
+            {otherPosts.length > 0 && (
+              <section>
+                <div className="flex items-center gap-2 mb-8">
+                  <div className="h-px bg-gradient-to-r from-primary/60 to-transparent flex-1"></div>
+                  <h2 className="text-sm font-semibold text-primary uppercase tracking-wider px-4">
+                    Diğer Makaleler
+                  </h2>
+                  <div className="h-px bg-gradient-to-l from-primary/60 to-transparent flex-1"></div>
+                </div>
+
+                <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+                  {otherPosts.map(post => (
+                    <BlogPreviewCard key={post.id} post={post} />
+                  ))}
+                </div>
+              </section>
+            )}
+          </>
+        )}
+
+        {/* CTA Section */}
+        <section className="mt-24">
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 rounded-3xl"></div>
+            <div className="relative bg-card/80 backdrop-blur-sm border border-border/50 rounded-3xl p-8 md:p-12 text-center shadow-xl">
+              <div className="mx-auto max-w-2xl">
+                <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
+                  <span className="h-2 w-2 bg-primary rounded-full animate-pulse"></span>
+                  Artiklo'yu Deneyin
+                </div>
+                <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
+                  Kendi Belgelerinizi Analiz Edin
+                </h2>
+                <p className="text-muted-foreground text-lg leading-relaxed mb-8">
+                  Blog yazılarımızdan ilham aldınız mı? Artık kendi belgelerinizi Artiklo ile analiz ederek
+                  kişiselleştirilmiş rehber ve çözümler alabilirsiniz.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                  <Link to="/auth" className="inline-flex">
+                    <Button size="lg" className="font-semibold group">
+                      Ücretsiz Analiz Başlat
+                      <ArrowRight className="h-5 w-5 ml-2 transition-transform group-hover:translate-x-1" />
+                    </Button>
+                  </Link>
+                  <Link to="/nasil-calisir" className="inline-flex">
+                    <Button variant="outline" size="lg" className="font-semibold">
+                      Nasıl Çalışır?
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
     </div>
   );
 };
