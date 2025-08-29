@@ -10,6 +10,7 @@ import { SessionContextProvider, useSession } from '@supabase/auth-helpers-react
 import { useAnalytics } from "./hooks/useAnalytics";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { Logger } from "@/utils/logger";
+import { PageLoader } from "./components/LoadingStates";
 
 // Critical pages - immediate load
 import Index from "./pages/Index";
@@ -17,6 +18,7 @@ import SplashScreen from "./pages/SplashScreen";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
 
 // Lazy loaded pages - route-based code splitting
 const Dashboard = lazy(() => import("./pages/Dashboard"));
@@ -46,6 +48,7 @@ const KullaniciSozlesmesi = lazy(() => import("./pages/KullaniciSozlesmesi"));
 const KvkkAydinlatma = lazy(() => import("./pages/KvkkAydinlatma"));
 const Blog = lazy(() => import("./pages/Blog"));
 const BlogPost = lazy(() => import("./pages/BlogPost"));
+const Iletisim = lazy(() => import("./pages/Iletisim"));
 
 // Mobile specific pages
 const MobileOnboarding = lazy(() => import("./pages/MobileOnboarding"));
@@ -62,15 +65,7 @@ const ProfilePage = lazy(() => import("./pages/partner/ProfilePage"));
 const DashboardPage = lazy(() => import("./pages/partner/DashboardPage"));
 const ApplicationPage = lazy(() => import("./pages/partner/ApplicationPage"));
 
-// Loading fallback component
-const PageLoader = () => (
-  <div className="min-h-screen bg-background flex items-center justify-center">
-    <div className="text-center">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-      <p className="text-muted-foreground">Sayfa yükleniyor...</p>
-    </div>
-  </div>
-);
+// Loading fallback component now imported from LoadingStates
 
 const queryClient = new QueryClient();
 
@@ -94,7 +89,9 @@ const getPlatformInfo = () => {
 const MainLayout = () => {
   const location = useLocation();
   const hideNavbarOnPages = ['/splash', '/onboarding-mobil', '/auth', '/login', '/signup'];
+  const hideFooterOnPages = ['/splash', '/onboarding-mobil', '/auth', '/login', '/signup', '/dashboard', '/archive', '/templates', '/notifications', '/admin'];
   const shouldHideNavbar = hideNavbarOnPages.includes(location.pathname);
+  const shouldHideFooter = hideFooterOnPages.some(page => location.pathname.startsWith(page));
 
   useEffect(() => {
     Logger.debug('MainLayout', 'Route changed', { pathname: location.pathname });
@@ -106,6 +103,7 @@ const MainLayout = () => {
       <main>
         <Outlet />
       </main>
+      {!shouldHideFooter && <Footer />}
     </>
   );
 };
@@ -300,6 +298,7 @@ const AppContent = () => {
           <Route path="/kvkk-aydinlatma" element={<KvkkAydinlatma />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/blog/:id" element={<BlogPost />} />
+          <Route path="/iletisim" element={<Iletisim />} />
 
           {/* Protected Routes with ErrorBoundary and Lazy Loading */}
           <Route path="/dashboard" element={

@@ -18,6 +18,7 @@ import {
 import type { User } from "@supabase/supabase-js";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { cn, addIntersectionObserver } from "@/lib/utils";
+import SEO from "@/components/SEO";
 
 interface FeatureCardProps {
   icon: LucideIcon;
@@ -92,6 +93,12 @@ const Index = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-background pt-20 md:pt-16 mobile-scroll-fix">
+      <SEO
+        title="Hukuki Belgeleri Anında Sadeleştirin"
+        description="Karmaşık hukuki belgeleri yapay zeka teknolojisi ile anında anlaşılır Türkçeye çeviren platform. Kira sözleşmeleri, mahkeme kararları ve tebligatları kolayca anlayın. Ücretsiz deneyin!"
+        keywords="hukuki belge analizi, yapay zeka, belge sadeleştirme, kira sözleşmesi, mahkeme kararı, tebligat, hukuki danışmanlık, türkçe çeviri, legal tech, belge çevirisi"
+        type="website"
+      />
       {/* Progress Bar */}
       <div
         className="fixed top-0 left-0 h-1 bg-primary z-50 transition-all duration-300"
