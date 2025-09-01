@@ -80,11 +80,7 @@ const Index = () => {
   }, []);
 
   const handleNavigate = () => {
-    if (user) {
-      navigate("/dashboard");
-    } else {
-      navigate("/auth");
-    }
+    navigate("/fiyatlandirma");
   };
 
   const handleScrollToFeatures = () => {
