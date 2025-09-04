@@ -100,12 +100,8 @@ const AdminUsers = () => {
                 .select('*', { count: 'exact', head: true })
                 .eq('user_id', userId);
 
-            // Kullanıcının kredi kullanımını getir (eğer user_credits tablosu yoksa 0 döndür)
-            const { data: creditData } = await supabase
-                .from('user_credits')
-                .select('credits_used')
-                .eq('user_id', userId)
-                .maybeSingle();
+            // Kullanıcının kredi kullanımını getir (user_credits tablosu yok, 0 döndür)
+            const creditData = null;
 
             // Son aktiviteyi getir (son belge oluşturma tarihi)
             const { data: lastActivity } = await supabase
@@ -114,7 +110,7 @@ const AdminUsers = () => {
                 .eq('user_id', userId)
                 .order('created_at', { ascending: false })
                 .limit(1)
-                .single();
+                .maybeSingle();
 
             return {
                 total_documents: documentCount || 0,
