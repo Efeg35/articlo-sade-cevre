@@ -7,7 +7,7 @@ import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMe
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 
 import { cn } from "@/lib/utils";
-import { Scale, ChevronDown, LogIn, User as UserIcon, Archive, LogOut, Sparkles, FileText, BarChart3, Bell, Menu } from "lucide-react";
+import { Scale, ChevronDown, LogIn, User as UserIcon, Archive, LogOut, Sparkles, FileText, BarChart3, Bell, Menu, TrendingUp } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 import { useCredits } from "../hooks/useCredits";
 import { Badge } from "@/components/ui/badge";
@@ -282,6 +282,9 @@ const Navbar = () => {
                       <Scale className="w-4 h-4 mr-2" /> Admin Panel
                     </DropdownMenuItem>
                   )}
+                  <DropdownMenuItem onSelect={() => navigate("/kisisel-basarilarim")} className="cursor-pointer">
+                    <TrendingUp className="w-4 h-4 mr-2" /> Kişisel Başarılarım
+                  </DropdownMenuItem>
                   <DropdownMenuItem onSelect={() => navigate("/notifications")} className="cursor-pointer">
                     <Bell className="w-4 h-4 mr-2" /> Bildirim Ayarları
                   </DropdownMenuItem>

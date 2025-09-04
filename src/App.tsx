@@ -58,6 +58,9 @@ const MobileWelcome = lazy(() => import("./pages/MobileWelcome"));
 const RehberPage = lazy(() => import("./pages/RehberPage"));
 const RehberDetayPage = lazy(() => import("./pages/RehberDetayPage"));
 
+// Personal insights page
+const PersonalInsights = lazy(() => import("./pages/PersonalInsights"));
+
 // Partner pages
 const PartnerSignUpPage = lazy(() => import("./pages/partner/PartnerSignUpPage"));
 const PartnerLoginPage = lazy(() => import("./pages/partner/PartnerLoginPage"));
@@ -333,6 +336,15 @@ const AppContent = () => {
               <ProtectedRoute>
                 <Suspense fallback={<PageLoader />}>
                   <NotificationSettingsPage />
+                </Suspense>
+              </ProtectedRoute>
+            </ErrorBoundary>
+          } />
+          <Route path="/kisisel-basarilarim" element={
+            <ErrorBoundary componentName="PersonalInsights">
+              <ProtectedRoute>
+                <Suspense fallback={<PageLoader />}>
+                  <PersonalInsights />
                 </Suspense>
               </ProtectedRoute>
             </ErrorBoundary>
