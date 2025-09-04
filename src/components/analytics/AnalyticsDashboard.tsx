@@ -334,19 +334,16 @@ export const AnalyticsDashboard: React.FC = () => {
                     bounceRate: sessions.filter(s => s.page_views === 1).length / sessions.length * 100 || 0
                 });
             } else {
-                // Analytics yok, belgelerden tahmin et
-                const estimatedPageViews = (recentDocumentsCount || 0) * 3; // Her analiz için ~3 sayfa görüntüleme
-                const estimatedSessions = uniqueActiveUsers;
-
+                // Tahmin yok: veri yoksa 0 döndür
                 setStats({
                     totalUsers: totalUsersCount || 0,
-                    totalSessions: estimatedSessions,
-                    totalPageViews: estimatedPageViews,
-                    totalTemplateViews: Math.floor((recentDocumentsCount || 0) * 0.6), // %60'ı şablon kullanır
-                    totalDownloads: Math.floor((recentDocumentsCount || 0) * 0.8), // %80'i PDF indirir
-                    totalSearches: Math.floor(uniqueActiveUsers * 2), // Her aktif kullanıcı ~2 arama
-                    avgSessionDuration: 8.5, // Ortalama 8.5 dakika (dokuman analiz süresi)
-                    bounceRate: 25 // %25 bounce rate (makul)
+                    totalSessions: 0,
+                    totalPageViews: 0,
+                    totalTemplateViews: 0,
+                    totalDownloads: 0,
+                    totalSearches: 0,
+                    avgSessionDuration: 0,
+                    bounceRate: 0
                 });
             }
         } catch (error) {
