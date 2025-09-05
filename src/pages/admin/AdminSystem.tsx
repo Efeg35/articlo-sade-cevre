@@ -74,9 +74,9 @@ const AdminSystem = () => {
         }, 30000);
 
         return () => clearInterval(interval);
-    }, []);
+    }, [loadSystemMetrics, checkSystemHealth]);
 
-    const loadSystemMetrics = async () => {
+    const loadSystemMetrics = useCallback(async () => {
         try {
             setLoading(true);
 
@@ -123,9 +123,9 @@ const AdminSystem = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [supabase]);
 
-    const checkSystemHealth = async () => {
+    const checkSystemHealth = useCallback(async () => {
         try {
             // Database health check
             const dbStart = Date.now();
@@ -172,7 +172,7 @@ const AdminSystem = () => {
                 auth: 'error'
             });
         }
-    };
+    }, [supabase]);
 
     const getStatusIcon = (status: string) => {
         switch (status) {

@@ -216,7 +216,7 @@ const SEO: React.FC<SEOProps> = ({
         }
         jsonLdScript.textContent = JSON.stringify(structuredData, null, 2);
 
-    }, [finalTitle, finalDescription, finalKeywords, finalImage, finalUrl, type, author, publishedTime, modifiedTime, noIndex]);
+    }, [finalTitle, finalDescription, finalKeywords, finalImage, finalUrl, finalImageUrl, type, author, publishedTime, modifiedTime, noIndex, description?.length]);
 
     return null; // This component doesn't render anything
 };

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -142,24 +142,24 @@ export default function SimpleOnboardingTour({ open, onFinish }: SimpleOnboardin
     const progress = ((currentStep + 1) / onboardingSteps.length) * 100;
     const step = onboardingSteps[currentStep];
 
-    const handleNext = () => {
+    const handleNext = useCallback(() => {
         if (currentStep < onboardingSteps.length - 1) {
             setCurrentStep(prev => prev + 1);
         }
-    };
+    }, [currentStep]);
 
-    const handlePrevious = () => {
+    const handlePrevious = useCallback(() => {
         if (currentStep > 0) {
             setCurrentStep(prev => prev - 1);
         }
-    };
+    }, [currentStep]);
 
-    const handleFinish = () => {
+    const handleFinish = useCallback(() => {
         onFinish();
         setCurrentStep(0);
         // Redirect to auth
         navigate('/auth');
-    };
+    }, [onFinish, navigate]);
 
     // Touch/Swipe handlers
     const handleTouchStart = (e: React.TouchEvent) => {
@@ -243,7 +243,7 @@ export default function SimpleOnboardingTour({ open, onFinish }: SimpleOnboardin
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [open, currentStep]);
+    }, [open, currentStep, handleFinish, handleNext, handlePrevious]);
 
     return (
         <Dialog open={open} onOpenChange={() => { }}>

@@ -60,7 +60,7 @@ const Auth = () => {
       initialTab,
       hasTimeout: new URLSearchParams(location.search).get('timeout') === 'true'
     });
-  }, []);
+  }, [initialTab, location.search]);
 
   useEffect(() => {
     const checkUser = async () => {

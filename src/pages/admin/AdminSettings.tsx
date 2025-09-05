@@ -68,7 +68,7 @@ const AdminSettings = () => {
     useEffect(() => {
         loadSettings();
         checkSystemStatus();
-    }, []);
+    }, [checkSystemStatus]);
 
     const loadSettings = async () => {
         try {
@@ -82,7 +82,7 @@ const AdminSettings = () => {
         }
     };
 
-    const checkSystemStatus = async () => {
+    const checkSystemStatus = useCallback(async () => {
         try {
             // Database bağlantısını kontrol et - profiles tablosunu kullan
             const { error: dbError } = await supabase.from('profiles').select('count').limit(1);
@@ -99,7 +99,7 @@ const AdminSettings = () => {
         } catch (error) {
             console.error('Sistem durumu kontrol edilirken hata:', error);
         }
-    };
+    }, [supabase, settings.smtp_enabled, settings.analytics_enabled]);
 
     const saveSettings = async () => {
         try {

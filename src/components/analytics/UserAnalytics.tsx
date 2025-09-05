@@ -23,7 +23,7 @@ interface Document {
     created_at: string;
     summary?: string | null;
     action_plan?: string | null;
-    entities?: any[] | null;
+    entities?: Record<string, unknown>[] | null;
 }
 
 interface UserAnalyticsData {

@@ -43,7 +43,7 @@ interface Document {
     created_at: string;
     summary?: string | null;
     action_plan?: string | null;
-    entities?: any[] | null;
+    entities?: Record<string, unknown>[] | null;
 }
 
 interface PersonalInsightsData {
@@ -510,7 +510,7 @@ const PersonalInsights: React.FC = () => {
                                     <XAxis dataKey="month" />
                                     <YAxis />
                                     <Tooltip
-                                        formatter={(value: any, name: string) => [
+                                        formatter={(value: string | number, name: string) => [
                                             name === 'savings' ? `₺${value.toLocaleString()}` : value,
                                             name === 'savings' ? 'Tasarruf' : name === 'documents' ? 'Belge' : 'Zaman (dk)'
                                         ]}

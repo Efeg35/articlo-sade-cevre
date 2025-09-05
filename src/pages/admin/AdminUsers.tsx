@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSupabaseClient } from '@supabase/auth-helpers-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -35,7 +35,7 @@ const AdminUsers = () => {
 
     useEffect(() => {
         fetchUsers();
-    }, []);
+    }, [fetchUsers]);
 
     useEffect(() => {
         // Kullanıcıları filtrele
@@ -53,7 +53,7 @@ const AdminUsers = () => {
         }
     }, [users, searchTerm]);
 
-    const fetchUsers = async () => {
+    const fetchUsers = useCallback(async () => {
         try {
             setLoading(true);
 
@@ -90,9 +90,9 @@ const AdminUsers = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [supabase, fetchUserStats]);
 
-    const fetchUserStats = async (userId: string): Promise<UserStats> => {
+    const fetchUserStats = useCallback(async (userId: string): Promise<UserStats> => {
         try {
             // Kullanıcının belgelerini say
             const { count: documentCount } = await supabase
@@ -125,7 +125,7 @@ const AdminUsers = () => {
                 last_activity: null,
             };
         }
-    };
+    }, [supabase]);
 
     const formatDate = (dateString: string | null) => {
         if (!dateString) return 'Hiç';

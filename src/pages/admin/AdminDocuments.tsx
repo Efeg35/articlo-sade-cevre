@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSupabaseClient } from '@supabase/auth-helpers-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -43,7 +43,7 @@ const AdminDocuments = () => {
     useEffect(() => {
         fetchDocuments();
         fetchStats();
-    }, []);
+    }, [fetchDocuments, fetchStats]);
 
     useEffect(() => {
         // Belgeleri filtrele
@@ -60,7 +60,7 @@ const AdminDocuments = () => {
         }
     }, [documents, searchTerm]);
 
-    const fetchDocuments = async () => {
+    const fetchDocuments = useCallback(async () => {
         try {
             setLoading(true);
             const { data, error } = await supabase
@@ -90,9 +90,9 @@ const AdminDocuments = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [supabase]);
 
-    const fetchStats = async () => {
+    const fetchStats = useCallback(async () => {
         try {
             const today = new Date();
             today.setHours(0, 0, 0, 0);
@@ -135,7 +135,7 @@ const AdminDocuments = () => {
         } catch (error) {
             console.error('İstatistikler alınırken hata:', error);
         }
-    };
+    }, [supabase]);
 
     const formatDate = (dateString: string) => {
         return new Date(dateString).toLocaleDateString('tr-TR', {
