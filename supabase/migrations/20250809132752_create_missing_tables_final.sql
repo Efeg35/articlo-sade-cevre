@@ -82,15 +82,7 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
--- Triggers
-CREATE TRIGGER update_user_sessions_updated_at BEFORE UPDATE ON user_sessions
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
-CREATE TRIGGER update_push_subscriptions_updated_at BEFORE UPDATE ON push_subscriptions
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
-CREATE TRIGGER update_user_notification_preferences_updated_at BEFORE UPDATE ON user_notification_preferences
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+-- Triggers are created in 20250810152000_cleanup_duplicates.sql to avoid conflicts
 
 -- RLS policies
 ALTER TABLE user_sessions ENABLE ROW LEVEL SECURITY;
@@ -98,45 +90,8 @@ ALTER TABLE analytics_events ENABLE ROW LEVEL SECURITY;
 ALTER TABLE push_subscriptions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_notification_preferences ENABLE ROW LEVEL SECURITY;
 
--- User sessions policies
-CREATE POLICY "Users can view own sessions" ON user_sessions
-    FOR SELECT USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can insert own sessions" ON user_sessions
-    FOR INSERT WITH CHECK (auth.uid() = user_id OR user_id IS NULL);
-
-CREATE POLICY "Users can update own sessions" ON user_sessions
-    FOR UPDATE USING (auth.uid() = user_id OR user_id IS NULL);
-
--- Analytics events policies
-CREATE POLICY "Users can view own events" ON analytics_events
-    FOR SELECT USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can insert own events" ON analytics_events
-    FOR INSERT WITH CHECK (auth.uid() = user_id OR user_id IS NULL);
-
--- Push subscriptions policies
-CREATE POLICY "Users can view own subscriptions" ON push_subscriptions
-    FOR SELECT USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can insert own subscriptions" ON push_subscriptions
-    FOR INSERT WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "Users can update own subscriptions" ON push_subscriptions
-    FOR UPDATE USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can delete own subscriptions" ON push_subscriptions
-    FOR DELETE USING (auth.uid() = user_id);
-
--- Notification preferences policies
-CREATE POLICY "Users can view own preferences" ON user_notification_preferences
-    FOR SELECT USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can insert own preferences" ON user_notification_preferences
-    FOR INSERT WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "Users can update own preferences" ON user_notification_preferences
-    FOR UPDATE USING (auth.uid() = user_id);
+-- Policies are created in first analytics migration to avoid conflicts
+-- This migration only creates tables if they don't exist
 
 -- Function to create default notification preferences for new users
 CREATE OR REPLACE FUNCTION create_default_notification_preferences()
