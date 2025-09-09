@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
+import { useHapticFeedback } from "@/hooks/useHapticFeedback";
 import { Loader2, ArrowLeft, FileText, Eye, EyeOff, Mail, CheckCircle } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 import { Capacitor } from '@capacitor/core';
@@ -35,6 +36,7 @@ const Auth = () => {
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const navigate = useNavigate();
   const { toast } = useToast();
+  const hapticFeedback = useHapticFeedback();
   const location = useLocation();
   const supabase = useSupabaseClient();
   const initialTab = location.pathname === "/signup" ? "signup" : "signin";
@@ -342,7 +344,12 @@ const Auth = () => {
                       </p>
                     )}
                   </div>
-                  <Button type="submit" className="w-full" disabled={loading}>
+                  <Button
+                    type="submit"
+                    className="w-full"
+                    disabled={loading}
+                    onClick={() => hapticFeedback.medium()}
+                  >
                     {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Giriş Yap
                   </Button>
@@ -560,7 +567,12 @@ const Auth = () => {
                       'ni okudum, kabul ediyorum.
                     </span>
                   </div>
-                  <Button type="submit" className="w-full" disabled={loading}>
+                  <Button
+                    type="submit"
+                    className="w-full"
+                    disabled={loading}
+                    onClick={() => hapticFeedback.medium()}
+                  >
                     {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Hesap Oluştur
                   </Button>

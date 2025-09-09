@@ -28,6 +28,40 @@ interface AnalysisResponse {
   actionableSteps: ActionableStep[];
 }
 
+// Rate limiting sınıfı
+class RateLimiter {
+  private requests: number[] = [];
+  private readonly maxRequests: number;
+  private readonly timeWindow: number;
+
+  constructor(maxRequests = 20, timeWindowMs = 60000) { // 20 requests per minute
+    this.maxRequests = maxRequests;
+    this.timeWindow = timeWindowMs;
+  }
+
+  canMakeRequest(): boolean {
+    const now = Date.now();
+    // Eski istekleri temizle
+    this.requests = this.requests.filter(time => now - time < this.timeWindow);
+
+    if (this.requests.length >= this.maxRequests) {
+      return false;
+    }
+
+    this.requests.push(now);
+    return true;
+  }
+
+  getWaitTime(): number {
+    if (this.requests.length === 0) return 0;
+    const oldestRequest = Math.min(...this.requests);
+    return Math.max(0, this.timeWindow - (Date.now() - oldestRequest));
+  }
+}
+
+// Global rate limiter
+const rateLimiter = new RateLimiter(20, 60000); // 20 requests per minute
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -39,6 +73,12 @@ serve(async (req: Request): Promise<Response> => {
   }
 
   try {
+    // Rate limiting kontrolü
+    if (!rateLimiter.canMakeRequest()) {
+      const waitTime = rateLimiter.getWaitTime();
+      throw new Error(`Çok fazla istek. ${Math.ceil(waitTime / 1000)} saniye sonra tekrar deneyin.`);
+    }
+
     const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
     // Model seçimi: Freemium vs Pro (şu an sadece freemium aktif)
     const isProActive = false; // TODO: Pro abonelik açıldığında user subscription kontrolü yapılacak

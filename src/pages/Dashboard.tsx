@@ -36,6 +36,7 @@ import SimpleOnboardingTour from "@/components/SimpleOnboardingTour";
 import ReactMarkdown from 'react-markdown';
 import { Document, Packer, Paragraph, TextRun } from 'docx';
 import { useCredits } from "@/hooks/useCredits";
+import { useHapticFeedback } from "@/hooks/useHapticFeedback";
 import { documentAnalysisSchema, validateAndSanitizeInput, rateLimiter, validateFileSecurity, validateFileSecurityAsync, validateSecureInput } from "@/lib/validation";
 import { useSessionSecurity } from "@/lib/sessionSecurity";
 import { useNativeFileUpload } from "@/hooks/useNativeFileUpload";
@@ -104,6 +105,9 @@ const Dashboard = () => {
   const session = useSession();
   const supabase = useSupabaseClient();
   const user = session?.user || null;
+
+  // Haptic feedback hook'u
+  const hapticFeedback = useHapticFeedback();
 
   // 🔒 KONTROL NOKTASI: Production-safe logging
   useEffect(() => {
@@ -234,19 +238,10 @@ const Dashboard = () => {
   const [nativeFeatureFallback, setNativeFeatureFallback] = useState(false);
   const [isRecovering, setIsRecovering] = useState(false);
 
-  // 🔧 BUTON ÇALIŞMA TESTİ İÇİN DEBUG FONKSIYONLARI
-  const safeTakePhoto = async () => {
-    Logger.debug('Dashboard', 'safeTakePhoto called');
-    Logger.debug('Dashboard', 'takePhoto function type', { type: typeof takePhoto });
-
+  // File upload handlers - cleaned up for production
+  const handleTakePhoto = async () => {
     try {
-      if (typeof takePhoto !== 'function') {
-        throw new Error('takePhoto fonksiyonu tanımlanmamış');
-      }
-
-      Logger.log('Dashboard', 'takePhoto calling...');
       await takePhoto();
-      Logger.log('Dashboard', 'Photo capture successful');
       successToast({
         title: 'Başarılı!',
         description: 'Fotoğraf çekme işlemi tamamlandı.'
@@ -260,18 +255,9 @@ const Dashboard = () => {
     }
   };
 
-  const safeSelectFromGallery = async () => {
-    Logger.debug('Dashboard', 'safeSelectFromGallery called');
-    Logger.debug('Dashboard', 'selectFromGallery function type', { type: typeof selectFromGallery });
-
+  const handleSelectFromGallery = async () => {
     try {
-      if (typeof selectFromGallery !== 'function') {
-        throw new Error('selectFromGallery fonksiyonu tanımlanmamış');
-      }
-
-      Logger.log('Dashboard', 'selectFromGallery calling...');
       await selectFromGallery();
-      Logger.log('Dashboard', 'Gallery selection successful');
       successToast({
         title: 'Başarılı!',
         description: 'Galeriden dosya seçimi tamamlandı.'
@@ -285,18 +271,9 @@ const Dashboard = () => {
     }
   };
 
-  const safeSelectDocument = async () => {
-    Logger.debug('Dashboard', 'safeSelectDocument called');
-    Logger.debug('Dashboard', 'selectDocument function type', { type: typeof selectDocument });
-
+  const handleSelectDocument = async () => {
     try {
-      if (typeof selectDocument !== 'function') {
-        throw new Error('selectDocument fonksiyonu tanımlanmamış');
-      }
-
-      Logger.log('Dashboard', 'selectDocument calling...');
       await selectDocument();
-      Logger.log('Dashboard', 'Document selection successful');
       successToast({
         title: 'Başarılı!',
         description: 'Doküman seçimi tamamlandı.'
@@ -310,16 +287,7 @@ const Dashboard = () => {
     }
   };
 
-  // Hook durumu debug
-  useEffect(() => {
-    Logger.debug('Dashboard', 'Hook status check', {
-      nativeFiles: nativeFiles?.length || 0,
-      isNativeUploading,
-      takePhoto: typeof takePhoto,
-      selectFromGallery: typeof selectFromGallery,
-      selectDocument: typeof selectDocument
-    });
-  }, [nativeFiles, isNativeUploading, takePhoto, selectFromGallery, selectDocument]);
+
 
   // Error recovery mechanism
   const handleErrorRecovery = useCallback(async () => {
@@ -578,9 +546,6 @@ const Dashboard = () => {
               name: fileData.name,
               type: fileData.type
             });
-            Logger.debug('Dashboard', 'File data details', {
-              dataLength: fileData.data?.length || 0
-            });
 
             // Base64 data kontrolü
             if (!fileData.data || fileData.data.length === 0) {
@@ -595,10 +560,7 @@ const Dashboard = () => {
             }
 
             const blob = new Blob([bytes], { type: fileData.type });
-            Logger.debug('Dashboard', 'Blob created', { size: blob.size });
-
             const file = new File([blob], fileData.name, { type: fileData.type });
-            Logger.debug('Dashboard', 'File created', { size: file.size });
 
             formData.append('files', file);
 
@@ -640,11 +602,6 @@ const Dashboard = () => {
 
       Logger.log('Dashboard', 'API response received');
       setView('result');
-
-      Logger.debug('Dashboard', 'API Response received', {
-        hasSimplifiedText: !!data?.simplifiedText,
-        hasDocumentType: !!data?.documentType
-      });
 
       if (data.simplifiedText && data.documentType && data.extractedEntities && data.actionableSteps) {
         Logger.log('Dashboard', 'Using structured response');
@@ -1004,18 +961,7 @@ const Dashboard = () => {
     }
   };
 
-  // State change logging
-  useEffect(() => {
-    Logger.debug('Dashboard', 'View changed', { view });
-  }, [view]);
 
-  useEffect(() => {
-    Logger.debug('Dashboard', 'Loading state changed', { loading });
-  }, [loading]);
-
-  useEffect(() => {
-    Logger.debug('Dashboard', 'Analysis result updated', { hasResult: !!analysisResult });
-  }, [analysisResult]);
 
   if (!user) {
     return (
@@ -1112,7 +1058,7 @@ const Dashboard = () => {
                   <DropdownMenuItem
                     onSelect={(event) => {
                       event.preventDefault();
-                      safeTakePhoto();
+                      handleTakePhoto();
                     }}
                     disabled={loading !== null || isNativeUploading}
                     className="cursor-pointer flex items-center gap-2 py-3"
@@ -1123,7 +1069,7 @@ const Dashboard = () => {
                   <DropdownMenuItem
                     onSelect={(event) => {
                       event.preventDefault();
-                      safeSelectFromGallery();
+                      handleSelectFromGallery();
                     }}
                     disabled={loading !== null || isNativeUploading}
                     className="cursor-pointer flex items-center gap-2 py-3"
@@ -1134,7 +1080,7 @@ const Dashboard = () => {
                   <DropdownMenuItem
                     onSelect={(event) => {
                       event.preventDefault();
-                      safeSelectDocument();
+                      handleSelectDocument();
                     }}
                     disabled={loading !== null || isNativeUploading}
                     className="cursor-pointer flex items-center gap-2 py-3"
@@ -1289,7 +1235,10 @@ const Dashboard = () => {
       </Card>
 
       <Button
-        onClick={() => handleSimplify('flash')}
+        onClick={() => {
+          hapticFeedback.medium(); // Orta seviye titreşim
+          handleSimplify('flash');
+        }}
         disabled={loading !== null}
         size="lg"
         className="mt-6 w-full max-w-4xl text-sm md:text-base"
@@ -1299,7 +1248,10 @@ const Dashboard = () => {
       </Button>
 
       <Button
-        onClick={() => setIsProModalOpen(true)}
+        onClick={() => {
+          hapticFeedback.light(); // Hafif titreşim
+          setIsProModalOpen(true);
+        }}
         disabled={loading !== null}
         size="lg"
         variant="outline"
@@ -1317,7 +1269,14 @@ const Dashboard = () => {
         <div className="space-y-6 px-4 md:px-0">
           <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
             <h2 className="text-2xl md:text-3xl font-bold text-foreground">Analiz Sonuçları</h2>
-            <Button onClick={handleReset} variant="outline" className="flex items-center gap-2 text-sm md:text-base">
+            <Button
+              onClick={() => {
+                hapticFeedback.selection(); // Seçim titreşimi
+                handleReset();
+              }}
+              variant="outline"
+              className="flex items-center gap-2 text-sm md:text-base"
+            >
               <Redo className="h-4 w-4" />
               Yeni Belge Analiz Et
             </Button>
@@ -1465,6 +1424,7 @@ const Dashboard = () => {
                       <p className="text-base leading-relaxed">{step.description}</p>
                       {step.actionType === 'CREATE_DOCUMENT' && (
                         <Button onClick={async () => {
+                          hapticFeedback.medium(); // Orta seviye titreşim
                           const prev = loading;
                           setLoading('flash'); // loading state reuse
                           await handleShowDraft();

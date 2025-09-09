@@ -8,7 +8,10 @@ import { App as CapacitorApp } from '@capacitor/app';
 import { createClient } from '@supabase/supabase-js';
 import { SessionContextProvider, useSession } from '@supabase/auth-helpers-react';
 import { useAnalytics } from "./hooks/useAnalytics";
+import { usePlatformOptimizations } from "./hooks/usePlatformOptimizations";
+import { usePerformanceMonitoring } from "./hooks/usePerformanceMonitoring";
 import ErrorBoundary from "./components/ErrorBoundary";
+import NetworkStatusIndicator from "./components/NetworkStatusIndicator";
 import { Logger } from "@/utils/logger";
 import { PageLoader } from "./components/LoadingStates";
 
@@ -96,9 +99,7 @@ const MainLayout = () => {
   const shouldHideNavbar = hideNavbarOnPages.includes(location.pathname);
   const shouldHideFooter = hideFooterOnPages.some(page => location.pathname.startsWith(page));
 
-  useEffect(() => {
-    Logger.debug('MainLayout', 'Route changed', { pathname: location.pathname });
-  }, [location.pathname]);
+
 
   return (
     <>
@@ -167,6 +168,12 @@ const AppContent = () => {
 
   // Initialize analytics tracking
   useAnalytics();
+
+  // Initialize platform optimizations
+  const platformOptimizations = usePlatformOptimizations();
+
+  // Initialize performance monitoring - production ortamında aktif
+  usePerformanceMonitoring(true);
 
   // Platform detection'ı güncelle
   useEffect(() => {
@@ -273,10 +280,7 @@ const AppContent = () => {
     }
   }, [session, location.pathname, navigate]);
 
-  // Route change logging
-  useEffect(() => {
-    Logger.debug('AppContent', 'Route changed', { pathname: location.pathname });
-  }, [location.pathname]);
+
 
   // Mobil platformlarda Index sayfasını render etme
   if (platformInfo.isNative && location.pathname === '/') {
@@ -285,158 +289,161 @@ const AppContent = () => {
   }
 
   return (
-    <Suspense fallback={<PageLoader />}>
-      <Routes>
-        {/* Navbar'ın görüneceği public sayfalar */}
-        <Route element={<MainLayout />}>
-          <Route path="/" element={<Index />} />
-          <Route path="/nasil-calisir" element={<NasilCalisir />} />
-          <Route path="/fiyatlandirma" element={<Fiyatlandirma />} />
-          <Route path="/neden-artiklo" element={<NedenArtiklo />} />
-          <Route path="/yorumlar" element={<Yorumlar />} />
-          <Route path="/senaryolar" element={<Senaryolar />} />
-          <Route path="/sss" element={<SSS />} />
-          <Route path="/hakkimizda" element={<Hakkimizda />} />
-          <Route path="/kullanici-sozlesmesi" element={<KullaniciSozlesmesi />} />
-          <Route path="/kvkk-aydinlatma" element={<KvkkAydinlatma />} />
-          <Route path="/blog" element={<Blog />} />
-          <Route path="/blog/:id" element={<BlogPost />} />
-          <Route path="/iletisim" element={<Iletisim />} />
+    <>
+      <NetworkStatusIndicator />
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
+          {/* Navbar'ın görüneceği public sayfalar */}
+          <Route element={<MainLayout />}>
+            <Route path="/" element={<Index />} />
+            <Route path="/nasil-calisir" element={<NasilCalisir />} />
+            <Route path="/fiyatlandirma" element={<Fiyatlandirma />} />
+            <Route path="/neden-artiklo" element={<NedenArtiklo />} />
+            <Route path="/yorumlar" element={<Yorumlar />} />
+            <Route path="/senaryolar" element={<Senaryolar />} />
+            <Route path="/sss" element={<SSS />} />
+            <Route path="/hakkimizda" element={<Hakkimizda />} />
+            <Route path="/kullanici-sozlesmesi" element={<KullaniciSozlesmesi />} />
+            <Route path="/kvkk-aydinlatma" element={<KvkkAydinlatma />} />
+            <Route path="/blog" element={<Blog />} />
+            <Route path="/blog/:id" element={<BlogPost />} />
+            <Route path="/iletisim" element={<Iletisim />} />
 
-          {/* Protected Routes with ErrorBoundary and Lazy Loading */}
-          <Route path="/dashboard" element={
-            <ErrorBoundary componentName="Dashboard">
-              <ProtectedRoute>
-                <Suspense fallback={<PageLoader />}>
-                  <Dashboard />
-                </Suspense>
-              </ProtectedRoute>
-            </ErrorBoundary>
-          } />
-          <Route path="/archive" element={
-            <ErrorBoundary componentName="Archive">
-              <ProtectedRoute>
-                <Suspense fallback={<PageLoader />}>
-                  <ArchivePage />
-                </Suspense>
-              </ProtectedRoute>
-            </ErrorBoundary>
-          } />
-          <Route path="/templates" element={
-            <ErrorBoundary componentName="Templates">
-              <ProtectedRoute>
-                <Suspense fallback={<PageLoader />}>
-                  <TemplatesPage />
-                </Suspense>
-              </ProtectedRoute>
-            </ErrorBoundary>
-          } />
-          <Route path="/notifications" element={
-            <ErrorBoundary componentName="Notifications">
-              <ProtectedRoute>
-                <Suspense fallback={<PageLoader />}>
-                  <NotificationSettingsPage />
-                </Suspense>
-              </ProtectedRoute>
-            </ErrorBoundary>
-          } />
-          <Route path="/kisisel-basarilarim" element={
-            <ErrorBoundary componentName="PersonalInsights">
-              <ProtectedRoute>
-                <Suspense fallback={<PageLoader />}>
-                  <PersonalInsights />
-                </Suspense>
-              </ProtectedRoute>
-            </ErrorBoundary>
-          } />
-          {/* Admin Routes - Protected with AdminLayout */}
-          <Route path="/admin" element={
-            <ErrorBoundary componentName="Admin">
-              <ProtectedRoute>
-                <Suspense fallback={<PageLoader />}>
-                  <AdminLayout>
-                    <AdminDashboard />
-                  </AdminLayout>
-                </Suspense>
-              </ProtectedRoute>
-            </ErrorBoundary>
-          } />
-          <Route path="/admin/users" element={
-            <ErrorBoundary componentName="AdminUsers">
-              <ProtectedRoute>
-                <Suspense fallback={<PageLoader />}>
-                  <AdminLayout>
-                    <AdminUsers />
-                  </AdminLayout>
-                </Suspense>
-              </ProtectedRoute>
-            </ErrorBoundary>
-          } />
-          <Route path="/admin/analytics" element={
-            <ErrorBoundary componentName="AdminAnalytics">
-              <ProtectedRoute>
-                <Suspense fallback={<PageLoader />}>
-                  <AdminLayout>
-                    <AdminAnalytics />
-                  </AdminLayout>
-                </Suspense>
-              </ProtectedRoute>
-            </ErrorBoundary>
-          } />
-          <Route path="/admin/settings" element={
-            <ErrorBoundary componentName="AdminSettings">
-              <ProtectedRoute>
-                <Suspense fallback={<PageLoader />}>
-                  <AdminLayout>
-                    <AdminSettings />
-                  </AdminLayout>
-                </Suspense>
-              </ProtectedRoute>
-            </ErrorBoundary>
-          } />
-          <Route path="/admin/documents" element={
-            <ErrorBoundary componentName="AdminDocuments">
-              <ProtectedRoute>
-                <Suspense fallback={<PageLoader />}>
-                  <AdminLayout>
-                    <AdminDocuments />
-                  </AdminLayout>
-                </Suspense>
-              </ProtectedRoute>
-            </ErrorBoundary>
-          } />
-          <Route path="/admin/system" element={
-            <ErrorBoundary componentName="AdminSystem">
-              <ProtectedRoute>
-                <Suspense fallback={<PageLoader />}>
-                  <AdminLayout>
-                    <AdminSystem />
-                  </AdminLayout>
-                </Suspense>
-              </ProtectedRoute>
-            </ErrorBoundary>
-          } />
-        </Route>
+            {/* Protected Routes with ErrorBoundary and Lazy Loading */}
+            <Route path="/dashboard" element={
+              <ErrorBoundary componentName="Dashboard">
+                <ProtectedRoute>
+                  <Suspense fallback={<PageLoader />}>
+                    <Dashboard />
+                  </Suspense>
+                </ProtectedRoute>
+              </ErrorBoundary>
+            } />
+            <Route path="/archive" element={
+              <ErrorBoundary componentName="Archive">
+                <ProtectedRoute>
+                  <Suspense fallback={<PageLoader />}>
+                    <ArchivePage />
+                  </Suspense>
+                </ProtectedRoute>
+              </ErrorBoundary>
+            } />
+            <Route path="/templates" element={
+              <ErrorBoundary componentName="Templates">
+                <ProtectedRoute>
+                  <Suspense fallback={<PageLoader />}>
+                    <TemplatesPage />
+                  </Suspense>
+                </ProtectedRoute>
+              </ErrorBoundary>
+            } />
+            <Route path="/notifications" element={
+              <ErrorBoundary componentName="Notifications">
+                <ProtectedRoute>
+                  <Suspense fallback={<PageLoader />}>
+                    <NotificationSettingsPage />
+                  </Suspense>
+                </ProtectedRoute>
+              </ErrorBoundary>
+            } />
+            <Route path="/kisisel-basarilarim" element={
+              <ErrorBoundary componentName="PersonalInsights">
+                <ProtectedRoute>
+                  <Suspense fallback={<PageLoader />}>
+                    <PersonalInsights />
+                  </Suspense>
+                </ProtectedRoute>
+              </ErrorBoundary>
+            } />
+            {/* Admin Routes - Protected with AdminLayout */}
+            <Route path="/admin" element={
+              <ErrorBoundary componentName="Admin">
+                <ProtectedRoute>
+                  <Suspense fallback={<PageLoader />}>
+                    <AdminLayout>
+                      <AdminDashboard />
+                    </AdminLayout>
+                  </Suspense>
+                </ProtectedRoute>
+              </ErrorBoundary>
+            } />
+            <Route path="/admin/users" element={
+              <ErrorBoundary componentName="AdminUsers">
+                <ProtectedRoute>
+                  <Suspense fallback={<PageLoader />}>
+                    <AdminLayout>
+                      <AdminUsers />
+                    </AdminLayout>
+                  </Suspense>
+                </ProtectedRoute>
+              </ErrorBoundary>
+            } />
+            <Route path="/admin/analytics" element={
+              <ErrorBoundary componentName="AdminAnalytics">
+                <ProtectedRoute>
+                  <Suspense fallback={<PageLoader />}>
+                    <AdminLayout>
+                      <AdminAnalytics />
+                    </AdminLayout>
+                  </Suspense>
+                </ProtectedRoute>
+              </ErrorBoundary>
+            } />
+            <Route path="/admin/settings" element={
+              <ErrorBoundary componentName="AdminSettings">
+                <ProtectedRoute>
+                  <Suspense fallback={<PageLoader />}>
+                    <AdminLayout>
+                      <AdminSettings />
+                    </AdminLayout>
+                  </Suspense>
+                </ProtectedRoute>
+              </ErrorBoundary>
+            } />
+            <Route path="/admin/documents" element={
+              <ErrorBoundary componentName="AdminDocuments">
+                <ProtectedRoute>
+                  <Suspense fallback={<PageLoader />}>
+                    <AdminLayout>
+                      <AdminDocuments />
+                    </AdminLayout>
+                  </Suspense>
+                </ProtectedRoute>
+              </ErrorBoundary>
+            } />
+            <Route path="/admin/system" element={
+              <ErrorBoundary componentName="AdminSystem">
+                <ProtectedRoute>
+                  <Suspense fallback={<PageLoader />}>
+                    <AdminLayout>
+                      <AdminSystem />
+                    </AdminLayout>
+                  </Suspense>
+                </ProtectedRoute>
+              </ErrorBoundary>
+            } />
+          </Route>
 
-        {/* Navbar'ın görünmeyeceği, tam ekran sayfalar */}
-        <Route path="/splash" element={<SplashScreen />} />
-        <Route path="/onboarding-mobil" element={
-          <Suspense fallback={<PageLoader />}>
-            <MobileOnboarding />
-          </Suspense>
-        } />
-        <Route path="/auth" element={<Auth />} />
-        <Route path="/login" element={<Auth />} />
-        <Route path="/signup" element={<Auth />} />
-        {/* 🔒 Password Reset Page - No navbar */}
-        <Route path="/reset-password" element={
-          <Suspense fallback={<PageLoader />}>
-            <ResetPassword />
-          </Suspense>
-        } />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </Suspense>
+          {/* Navbar'ın görünmeyeceği, tam ekran sayfalar */}
+          <Route path="/splash" element={<SplashScreen />} />
+          <Route path="/onboarding-mobil" element={
+            <Suspense fallback={<PageLoader />}>
+              <MobileOnboarding />
+            </Suspense>
+          } />
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/login" element={<Auth />} />
+          <Route path="/signup" element={<Auth />} />
+          {/* 🔒 Password Reset Page - No navbar */}
+          <Route path="/reset-password" element={
+            <Suspense fallback={<PageLoader />}>
+              <ResetPassword />
+            </Suspense>
+          } />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Suspense>
+    </>
   );
 };
 

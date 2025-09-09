@@ -35,6 +35,41 @@ interface DraftRequest { belge_turu: string; kullanici_girdileri: KullaniciGirdi
 
 // @ts-expect-error Deno ortamı, tip bulunamıyor
 const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
+
+// Rate limiting sınıfı
+class RateLimiter {
+  private requests: number[] = [];
+  private readonly maxRequests: number;
+  private readonly timeWindow: number;
+
+  constructor(maxRequests = 30, timeWindowMs = 60000) { // 30 requests per minute
+    this.maxRequests = maxRequests;
+    this.timeWindow = timeWindowMs;
+  }
+
+  canMakeRequest(): boolean {
+    const now = Date.now();
+    // Eski istekleri temizle
+    this.requests = this.requests.filter(time => now - time < this.timeWindow);
+
+    if (this.requests.length >= this.maxRequests) {
+      return false;
+    }
+
+    this.requests.push(now);
+    return true;
+  }
+
+  getWaitTime(): number {
+    if (this.requests.length === 0) return 0;
+    const oldestRequest = Math.min(...this.requests);
+    return Math.max(0, this.timeWindow - (Date.now() - oldestRequest));
+  }
+}
+
+// Global rate limiter
+const rateLimiter = new RateLimiter(30, 60000); // 30 requests per minute
+
 // Belge karmaşıklığına göre model seçimi
 const selectModel = (_analysis?: AnalysisLite): string => 'gemini-1.5-pro-latest';
 const corsHeaders = {
@@ -50,6 +85,12 @@ serve(async (req) => {
 
   try {
     if (!geminiApiKey) throw new Error('Sunucu hatası: GEMINI_API_KEY yapılandırılmamış.');
+
+    // Rate limiting kontrolü
+    if (!rateLimiter.canMakeRequest()) {
+      const waitTime = rateLimiter.getWaitTime();
+      throw new Error(`Çok fazla istek. ${Math.ceil(waitTime / 1000)} saniye sonra tekrar deneyin.`);
+    }
 
     const body: DraftRequest = await req.json();
     if (!body.belge_turu || !body.kullanici_girdileri) throw new Error("İstek gövdesinde 'belge_turu' veya 'kullanici_girdileri' eksik.");
