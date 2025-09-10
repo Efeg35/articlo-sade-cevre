@@ -7,7 +7,10 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "build:dev": "vite build --mode development",
+    "build:analyze": "vite build --config vite.config.performance.ts",
     "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
+    "lint:fix": "eslint . --fix",
+    "type-check": "tsc --noEmit",
     "preview": "vite preview",
     "test": "vitest",
     "test:ui": "vitest --ui",
@@ -20,7 +23,11 @@
     "cap:build:ios": "npm run build && npx cap sync && npx cap build ios",
     "cap:build:android": "npm run build && npx cap sync && npx cap build android",
     "cap:open:ios": "npx cap open ios",
-    "cap:open:android": "npx cap open android"
+    "cap:open:android": "npx cap open android",
+    "performance:audit": "npm run build:analyze && echo 'Bundle analysis available at dist/bundle-analysis.html'",
+    "security:audit": "npm audit --audit-level moderate",
+    "clean": "rm -rf dist .tsbuildinfo node_modules/.vite",
+    "fresh-install": "npm run clean && npm install"
   },
   "dependencies": {
     "@capacitor/android": "^7.4.2",

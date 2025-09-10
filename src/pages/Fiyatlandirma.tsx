@@ -3,8 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Check, ChevronDown } from "lucide-react";
+import { Check, ChevronDown, Star, Zap, Crown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import Breadcrumb from "@/components/Breadcrumb";
+import SEO from "@/components/SEO";
 import {
   Accordion,
   AccordionContent,
@@ -193,17 +195,36 @@ const Fiyatlandirma = () => {
 
   return (
     <div className={`min-h-screen bg-gradient-to-b from-background to-secondary/20 pt-24 ${Capacitor.isNativePlatform() ? 'mobile-scroll-fix ios-scroll-container overflow-auto' : ''}`}>
+      <SEO
+        title="Fiyatlandırma"
+        description="Artiklo'nun fiyatlandırma planları. Ücretsiz plan ile başlayın, belge analizi ve dilekçe oluşturma için PRO veya KURUMSAL planları seçin."
+        keywords="fiyatlandırma, abonelik planları, ücretsiz plan, pro plan, kurumsal plan, belge analizi, dilekçe oluşturma"
+        type="website"
+      />
+
       <div className="container mx-auto px-4 py-12">
+        {/* Breadcrumb */}
+        <div className="mb-8">
+          <Breadcrumb />
+        </div>
+
         {/* Header Section */}
         <div className="text-center mb-16">
-          <h1 className="text-4xl md:text-5xl font-bold mb-6">
-            Size Uygun Planı Seçin
+          <Badge variant="outline" className="mb-6 px-6 py-2 text-base">
+            <Crown className="h-4 w-4 mr-2" />
+            Abonelik Planları
+          </Badge>
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-8 leading-tight">
+            <span className="text-primary">Size Uygun</span>
+            <span className="block">Planı Seçin</span>
           </h1>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-8">
+          <p className="text-xl md:text-2xl text-muted-foreground max-w-4xl mx-auto leading-relaxed mb-8">
             İhtiyaçlarınıza en uygun abonelik planını seçerek hemen kullanmaya başlayın.
+            Tüm planlarda tam güvenlik ve kalite garantisi.
           </p>
 
-          <Badge className="bg-primary text-primary-foreground px-6 py-2 text-sm font-semibold">
+          <Badge className="bg-gradient-to-r from-green-500 to-blue-500 text-white px-8 py-3 text-base font-semibold rounded-full">
+            <Star className="h-4 w-4 mr-2" />
             🎉 Yıllık Ödemede %20 İndirim!
           </Badge>
         </div>

@@ -49,6 +49,7 @@ const SSS = lazy(() => import("./pages/SSS"));
 const Hakkimizda = lazy(() => import("./pages/Hakkimizda"));
 const KullaniciSozlesmesi = lazy(() => import("./pages/KullaniciSozlesmesi"));
 const KvkkAydinlatma = lazy(() => import("./pages/KvkkAydinlatma"));
+const GizlilikPolitikasi = lazy(() => import("./pages/GizlilikPolitikasi"));
 const Blog = lazy(() => import("./pages/Blog"));
 const BlogPost = lazy(() => import("./pages/BlogPost"));
 const Iletisim = lazy(() => import("./pages/Iletisim"));
@@ -305,6 +306,7 @@ const AppContent = () => {
             <Route path="/hakkimizda" element={<Hakkimizda />} />
             <Route path="/kullanici-sozlesmesi" element={<KullaniciSozlesmesi />} />
             <Route path="/kvkk-aydinlatma" element={<KvkkAydinlatma />} />
+            <Route path="/gizlilik-politikasi" element={<GizlilikPolitikasi />} />
             <Route path="/blog" element={<Blog />} />
             <Route path="/blog/:id" element={<BlogPost />} />
             <Route path="/iletisim" element={<Iletisim />} />

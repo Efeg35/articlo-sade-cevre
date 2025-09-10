@@ -393,3 +393,208 @@ export const validateSecureInput = (input: string): { isValid: boolean; error?: 
 
     return { isValid: true };
 };
+// Enhanced security validation utilities
+class SecurityValidator {
+    // XSS prevention patterns
+    private static readonly XSS_PATTERNS = [
+        /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
+        /javascript:/gi,
+        /on\w+\s*=/gi,
+        /<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi,
+        /<object\b[^<]*(?:(?!<\/object>)<[^<]*)*<\/object>/gi,
+        /<embed\b[^<]*(?:(?!<\/embed>)<[^<]*)*<\/embed>/gi,
+        /data:text\/html/gi,
+        /vbscript:/gi,
+        /expression\s*\(/gi,
+    ];
+
+    // SQL injection patterns
+    private static readonly SQL_PATTERNS = [
+        /(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|UNION)\b)/gi,
+        /(\b(OR|AND)\s+\d+\s*=\s*\d+)/gi,
+        /(--|\/\*|\*\/)/gi,
+        /(\bUNION\s+SELECT\b)/gi,
+        /(\b(SCRIPT|JAVASCRIPT|VBSCRIPT)\b)/gi,
+    ];
+
+    // Path traversal patterns
+    private static readonly PATH_TRAVERSAL_PATTERNS = [
+        /\.\.\//gi,
+        /\.\.\\/gi,
+        /%2e%2e%2f/gi,
+        /%2e%2e%5c/gi,
+        /\.\.%2f/gi,
+        /\.\.%5c/gi,
+    ];
+
+    // Command injection patterns
+    private static readonly COMMAND_INJECTION_PATTERNS = [
+        /[;&|`$(){}[\]]/gi,
+        /\b(cat|ls|pwd|whoami|id|uname|ps|netstat|ifconfig|ping|wget|curl|nc|telnet|ssh|ftp)\b/gi,
+    ];
+
+    /**
+     * Comprehensive input sanitization
+     */
+    static sanitizeInput(input: string): string {
+        if (!input || typeof input !== 'string') {
+            return '';
+        }
+
+        // Remove null bytes
+        let sanitized = input.replace(/\0/g, '');
+
+        // HTML encode dangerous characters
+        sanitized = DOMPurify.sanitize(sanitized, {
+            ALLOWED_TAGS: [],
+            ALLOWED_ATTR: [],
+            KEEP_CONTENT: true,
+        });
+
+        // Additional encoding for special characters
+        sanitized = sanitized
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#x27;')
+            .replace(/\//g, '&#x2F;');
+
+        return sanitized.trim();
+    }
+
+    /**
+     * Check for malicious patterns
+     */
+    static containsMaliciousContent(input: string): boolean {
+        if (!input || typeof input !== 'string') {
+            return false;
+        }
+
+        const allPatterns = [
+            ...this.XSS_PATTERNS,
+            ...this.SQL_PATTERNS,
+            ...this.PATH_TRAVERSAL_PATTERNS,
+            ...this.COMMAND_INJECTION_PATTERNS,
+        ];
+
+        return allPatterns.some(pattern => pattern.test(input));
+    }
+
+    /**
+     * Validate file upload security
+     */
+    static validateFileUpload(file: File): { isValid: boolean; error?: string } {
+        // Check file size (10MB limit)
+        const MAX_SIZE = 10 * 1024 * 1024;
+        if (file.size > MAX_SIZE) {
+            return { isValid: false, error: 'Dosya boyutu 10MB\'dan büyük olamaz' };
+        }
+
+        // Allowed file types
+        const ALLOWED_TYPES = [
+            'application/pdf',
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'text/plain',
+            'image/jpeg',
+            'image/png',
+            'image/gif',
+            'image/webp',
+        ];
+
+        if (!ALLOWED_TYPES.includes(file.type)) {
+            return { isValid: false, error: 'Desteklenmeyen dosya türü' };
+        }
+
+        // Check file name for malicious patterns
+        if (this.containsMaliciousContent(file.name)) {
+            return { isValid: false, error: 'Dosya adı güvenli değil' };
+        }
+
+        // Check for double extensions
+        const nameParts = file.name.split('.');
+        if (nameParts.length > 2) {
+            return { isValid: false, error: 'Çoklu uzantılı dosyalar kabul edilmez' };
+        }
+
+        return { isValid: true };
+    }
+
+    /**
+     * Rate limiting helper
+     */
+    static createRateLimiter(maxRequests: number, windowMs: number) {
+        const requests = new Map<string, number[]>();
+
+        return {
+            isAllowed: (identifier: string): boolean => {
+                const now = Date.now();
+                const userRequests = requests.get(identifier) || [];
+
+                // Remove old requests outside the window
+                const validRequests = userRequests.filter(time => now - time < windowMs);
+
+                if (validRequests.length >= maxRequests) {
+                    return false;
+                }
+
+                // Add current request
+                validRequests.push(now);
+                requests.set(identifier, validRequests);
+
+                return true;
+            },
+
+            getRemainingRequests: (identifier: string): number => {
+                const now = Date.now();
+                const userRequests = requests.get(identifier) || [];
+                const validRequests = userRequests.filter(time => now - time < windowMs);
+                return Math.max(0, maxRequests - validRequests.length);
+            },
+
+            getResetTime: (identifier: string): number => {
+                const userRequests = requests.get(identifier) || [];
+                if (userRequests.length === 0) return 0;
+
+                const oldestRequest = Math.min(...userRequests);
+                return oldestRequest + windowMs;
+            }
+        };
+    }
+}
+
+// Enhanced document analysis schema with security validation
+export const secureDocumentAnalysisSchema = z.object({
+    text: z.string()
+        .min(1, 'Metin boş olamaz')
+        .max(50000, 'Metin çok uzun (maksimum 50,000 karakter)')
+        .refine(
+            (text) => !SecurityValidator.containsMaliciousContent(text),
+            'Güvenli olmayan içerik tespit edildi'
+        )
+        .transform((text) => SecurityValidator.sanitizeInput(text))
+        .optional(),
+
+    files: z.array(z.instanceof(File))
+        .max(5, 'Maksimum 5 dosya yükleyebilirsiniz')
+        .refine(
+            (files) => files.every(file => SecurityValidator.validateFileUpload(file).isValid),
+            'Bir veya daha fazla dosya güvenlik kontrolünden geçemedi'
+        )
+        .optional(),
+
+    model: z.enum(['flash', 'pro'], {
+        errorMap: () => ({ message: 'Geçersiz model seçimi' })
+    }).optional(),
+});
+
+// Export SecurityValidator for external use
+export { SecurityValidator };
+
+// Enhanced validation utilities using SecurityValidator
+export const sanitizeInputSecure = SecurityValidator.sanitizeInput;
+export const validateFileSecurityEnhanced = SecurityValidator.validateFileUpload;
+export const createAdvancedRateLimiter = SecurityValidator.createRateLimiter;
+
+// Create enhanced rate limiter instance
+export const enhancedRateLimiter = createAdvancedRateLimiter(15, 15 * 60 * 1000);

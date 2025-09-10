@@ -45,14 +45,7 @@ const Navbar = () => {
     return () => window.removeEventListener('resize', checkIfMobile);
   }, []);
 
-  // 🔒 KONTROL NOKTASI: Secure navbar logging
-  Logger.debug('Navbar', 'Navbar render', {
-    hasSession: !!session,
-    hasUser: !!user,
-    pathname: location.pathname,
-    isMobile,
-    isNative: Capacitor.isNativePlatform()
-  });
+
 
   // Kredi sistemi aktif
   const { credits, loading: creditsLoading, error: creditsError } = useCredits(user?.id);
@@ -60,12 +53,7 @@ const Navbar = () => {
   // Admin kontrolü
   const { isAdmin } = useAdminAuth();
 
-  Logger.debug('Navbar', 'Credits status', {
-    hasUserId: !!user?.id,
-    hasCredits: credits !== null,
-    creditsLoading,
-    hasCreditsError: !!creditsError
-  });
+
 
   useEffect(() => {
     const handleScroll = () => {

@@ -13,7 +13,9 @@ import {
   Clock,
   LucideIcon,
   ChevronDown,
-  Lock
+  Lock,
+  PenTool,
+  Gavel
 } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
@@ -88,17 +90,12 @@ const Index = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-background pt-20 md:pt-16 mobile-scroll-fix">
+    <div className="flex flex-col min-h-screen bg-background pt-20 md:pt-16">
       <SEO
-        title="Hukuki Belgeleri Anında Sadeleştirin"
-        description="Karmaşık hukuki belgeleri yapay zeka teknolojisi ile anında anlaşılır Türkçeye çeviren platform. Kira sözleşmeleri, mahkeme kararları ve tebligatları kolayca anlayın. Ücretsiz deneyin!"
-        keywords="hukuki belge analizi, yapay zeka, belge sadeleştirme, kira sözleşmesi, mahkeme kararı, tebligat, hukuki danışmanlık, türkçe çeviri, legal tech, belge çevirisi"
+        title="Artiklo - Hukuki Belge Analizi ve Dilekçe Oluşturma Platformu"
+        description="Hukuki belgeleri 2 saniyede analiz edin, sadeleştirin ve gerekli belge önerilerini alın. AI destekli hukuk platformu ile adım adım belge hazırlama rehberliği. %99.8 doğruluk, ücretsiz deneme."
+        keywords="hukuki belge analizi, dilekçe oluşturma, belge hazırlama, adım adım rehberlik, kira sözleşmesi, mahkeme kararı, tebligat, artiklo, belge yazma, hukuki metin"
         type="website"
-      />
-      {/* Progress Bar */}
-      <div
-        className="fixed top-0 left-0 h-1 bg-primary z-50 transition-all duration-300"
-        style={{ width: `${scrollProgress}%` }}
       />
 
       <main className="flex-grow">
@@ -120,8 +117,10 @@ const Index = () => {
                   Anlayın
                 </h1>
                 <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-muted-foreground">
-                  Artiklo, karmaşık resmi yazıları ve sözleşmeleri saniyeler içinde sadeleştirir.
-                  Ne yapmanız gerektiğini, haklarınızı ve risklerinizi kolayca öğrenin.
+                  Artiklo, karmaşık hukuki belgeleri saniyeler içinde sadeleştirir.
+                  Gerekli durumlarda adım adım rehberlikle profesyonel belgelerinizi
+                  hazırlamanıza yardımcı olur. Ne yapmanız gerektiğini, haklarınızı
+                  ve risklerinizi kolayca öğrenin.
                 </p>
               </div>
               <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-x-6 animate-fade-in-up" style={{ animationDelay: "200ms" }}>
@@ -146,13 +145,6 @@ const Index = () => {
               </div>
             </div>
           </div>
-
-          {/* Scroll Indicator */}
-          <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
-            <div className="w-6 h-10 border-2 border-muted-foreground rounded-full p-1">
-              <div className="w-1.5 h-1.5 bg-muted-foreground rounded-full animate-scroll-down" />
-            </div>
-          </div>
         </section>
 
         {/* Features Grid */}
@@ -166,42 +158,54 @@ const Index = () => {
                 Karmaşık hukuki dili sadeleştirip belgenin asıl niyetini ve size olan etkisini ortaya çıkarır; ardından metni hangi dilde olursa olsun analiz eder ve size özel, anlaşılır bir Türkçe özet ve eylem planı sunar.
               </p>
             </div>
-            <div className="grid gap-6 md:gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-6 md:gap-8 sm:grid-cols-2 lg:grid-cols-4">
               <FeatureCard
                 icon={Clock}
-                title="Hızlı ve Kolay"
+                title="Hızlı Analiz"
                 description="Belgenizi yükleyin, saniyeler içinde sadeleştirilmiş özet alın."
                 delay={0}
+              />
+              <FeatureCard
+                icon={PenTool}
+                title="Belge Hazırlama"
+                description="Adım adım rehberlikle profesyonel dilekçeler ve belgeler oluşturun."
+                delay={100}
               />
               <FeatureCard
                 icon={Shield}
                 title="Gizlilik ve Güvenlik"
                 description="Belgeleriniz asla kaydedilmez, bilgileriniz %100 güvende."
-                delay={100}
+                delay={200}
               />
               <FeatureCard
                 icon={Sparkles}
                 title="Yapay Zeka Teknolojisi"
                 description="En gelişmiş AI teknolojisiyle doğru ve anlaşılır sonuçlar."
-                delay={200}
+                delay={300}
               />
               <FeatureCard
                 icon={Scale}
                 title="Yasal Uyumluluk"
                 description="KVKK ve diğer yasal düzenlemelere tam uyumluluk."
-                delay={300}
+                delay={400}
               />
               <FeatureCard
                 icon={Users}
                 title="Herkes İçin Anlaşılır"
                 description="Hukuk bilgisi gerektirmez, sade Türkçe açıklamalar."
-                delay={400}
+                delay={500}
               />
               <FeatureCard
                 icon={CheckCircle2}
                 title="Doğruluk Garantisi"
                 description="İnsan kontrolünden geçmiş, güvenilir sadeleştirme."
-                delay={500}
+                delay={600}
+              />
+              <FeatureCard
+                icon={Gavel}
+                title="Hukuki Rehberlik"
+                description="Adım adım ne yapacağınızı, haklarınızı ve risklerinizi öğrenin."
+                delay={700}
               />
             </div>
           </div>
@@ -239,7 +243,7 @@ const Index = () => {
                     <div className="flex items-center gap-2">
                       ⭐⭐⭐⭐⭐
                     </div>
-                    <p className="text-foreground">"Çok pratik ve güvenli. Belgelerim asla kaydedilmedi, içim rahat."</p>
+                    <p className="text-foreground">"Adım adım rehberlik ile kira artış itiraz dilekçemi kolayca hazırladım. Çok pratik!"</p>
                     <div className="mt-4">
                       <p className="font-semibold">Mehmet A.</p>
                       <p className="text-sm text-muted-foreground">Ankara</p>
@@ -265,57 +269,8 @@ const Index = () => {
           </div>
         </section>
 
-        {/* Use Cases */}
-        <section className="py-24 sm:py-32">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="mx-auto max-w-2xl text-center mb-16">
-              <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-                Gerçek Hayat Senaryoları
-              </h2>
-              <p className="mt-4 text-lg text-muted-foreground">
-                Artiklo'nun farklı kullanım alanlarından örnekler.
-              </p>
-            </div>
-            <div className="grid gap-6 md:gap-8 sm:grid-cols-2 lg:grid-cols-3">
-              <Card className="bg-muted/30 hover:bg-muted/50 transition-all duration-300 transform hover:-translate-y-1">
-                <CardContent className="p-6">
-                  <div className="flex flex-col items-center text-center gap-4">
-                    <span className="text-4xl transform transition-transform group-hover:scale-110">👴</span>
-                    <h3 className="text-xl font-semibold">Emekli Ahmet Bey</h3>
-                    <p className="text-muted-foreground">
-                      Veraset ilamındaki terimleri anlamadığı için endişeleniyordu. Artiklo ile haklarını ve sonraki adımları kolayca öğrendi.
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="bg-muted/30 hover:bg-muted/50 transition-all duration-300 transform hover:-translate-y-1">
-                <CardContent className="p-6">
-                  <div className="flex flex-col items-center text-center gap-4">
-                    <span className="text-4xl transform transition-transform group-hover:scale-110">🎓</span>
-                    <h3 className="text-xl font-semibold">Öğrenci Ayşe</h3>
-                    <p className="text-muted-foreground">
-                      Kira kontratındaki teknik maddeleri Artiklo sayesinde sade Türkçe ile anladı, güvenle imzaladı.
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="bg-muted/30 hover:bg-muted/50 transition-all duration-300 transform hover:-translate-y-1">
-                <CardContent className="p-6">
-                  <div className="flex flex-col items-center text-center gap-4">
-                    <span className="text-4xl transform transition-transform group-hover:scale-110">💼</span>
-                    <h3 className="text-xl font-semibold">KOBİ Sahibi Murat</h3>
-                    <p className="text-muted-foreground">
-                      Vergi dairesinden gelen ödeme emrinin aciliyetini Artiklo ile kavradı, süreci zamanında yönetti.
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </section>
-
         {/* Stats Section */}
-        <section className="py-24 sm:py-32 bg-muted/30">
+        <section className="py-24 sm:py-32">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="mx-auto max-w-2xl text-center mb-16">
               <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
@@ -329,7 +284,13 @@ const Index = () => {
               <Card className="bg-background">
                 <CardContent className="p-4 md:p-6 text-center">
                   <div className="text-3xl md:text-4xl font-bold mb-2">50K+</div>
-                  <div className="text-muted-foreground text-sm md:text-base">Sadeleştirilen Belge</div>
+                  <div className="text-muted-foreground text-sm md:text-base">Analiz Edilen Belge</div>
+                </CardContent>
+              </Card>
+              <Card className="bg-background">
+                <CardContent className="p-4 md:p-6 text-center">
+                  <div className="text-3xl md:text-4xl font-bold mb-2">15K+</div>
+                  <div className="text-muted-foreground text-sm md:text-base">Belge Önerisi</div>
                 </CardContent>
               </Card>
               <Card className="bg-background">
@@ -340,16 +301,104 @@ const Index = () => {
               </Card>
               <Card className="bg-background">
                 <CardContent className="p-4 md:p-6 text-center">
-                  <div className="text-3xl md:text-4xl font-bold mb-2">%99.9</div>
+                  <div className="text-3xl md:text-4xl font-bold mb-2">%99.8</div>
                   <div className="text-muted-foreground text-sm md:text-base">Doğruluk Oranı</div>
                 </CardContent>
               </Card>
-              <Card className="bg-background">
-                <CardContent className="p-4 md:p-6 text-center">
-                  <div className="text-3xl md:text-4xl font-bold mb-2">3 sn</div>
-                  <div className="text-muted-foreground text-sm md:text-base">Ortalama İşlem Süresi</div>
+            </div>
+          </div>
+        </section>
+
+        {/* Yakında Gelenler Section */}
+        <section className="py-24 sm:py-32 bg-gradient-to-br from-blue-50 to-purple-50">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="mx-auto max-w-2xl text-center mb-16">
+              <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+                Yakında Gelenler
+              </h2>
+              <p className="mt-4 text-lg text-muted-foreground">
+                Adım adım rehberlikle dilekçe ve belgelerinizi kendiniz hazırlayın
+              </p>
+            </div>
+            <div className="grid gap-6 md:gap-8 sm:grid-cols-2 lg:grid-cols-3">
+              <Card className="border-2 border-blue-200 bg-white hover:shadow-lg transition-all duration-300">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <FileText className="h-6 w-6 text-blue-600" />
+                    <span className="bg-blue-100 text-blue-700 text-xs font-semibold px-2 py-1 rounded-full">
+                      YAKINDA
+                    </span>
+                  </div>
+                  <h3 className="text-lg font-semibold mb-2">İş Belgeleri</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    İş sözleşmesi, fesih dilekçesi gibi belgeleri adım adım hazırlayın
+                  </p>
+                  <div className="text-xs text-muted-foreground space-y-1">
+                    <div>• Şirket ve çalışan bilgileri</div>
+                    <div>• Maaş ve haklar</div>
+                    <div>• Gizlilik ve rekabet koşulları</div>
+                  </div>
                 </CardContent>
               </Card>
+
+              <Card className="border-2 border-purple-200 bg-white hover:shadow-lg transition-all duration-300">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Users className="h-6 w-6 text-purple-600" />
+                    <span className="bg-purple-100 text-purple-700 text-xs font-semibold px-2 py-1 rounded-full">
+                      YAKINDA
+                    </span>
+                  </div>
+                  <h3 className="text-lg font-semibold mb-2">Kira Belgeleri</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Kira artış itirazı, sözleşme feshi gibi belgeleri kolayca oluşturun
+                  </p>
+                  <div className="text-xs text-muted-foreground space-y-1">
+                    <div>• Kiracı ve ev sahibi bilgileri</div>
+                    <div>• Mülk detayları</div>
+                    <div>• İtiraz gerekçeleri</div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-2 border-green-200 bg-white hover:shadow-lg transition-all duration-300">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Gavel className="h-6 w-6 text-green-600" />
+                    <span className="bg-green-100 text-green-700 text-xs font-semibold px-2 py-1 rounded-full">
+                      YAKINDA
+                    </span>
+                  </div>
+                  <h3 className="text-lg font-semibold mb-2">Hukuki Dilekçeler</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Şikayet, tazminat talebi gibi dilekçeleri rehberlikle yazın
+                  </p>
+                  <div className="text-xs text-muted-foreground space-y-1">
+                    <div>• Taraf bilgileri</div>
+                    <div>• Olay açıklaması</div>
+                    <div>• Talep ve gerekçeler</div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="text-center mt-12">
+              <div className="max-w-md mx-auto bg-white rounded-lg border-2 border-blue-200 p-6">
+                <h3 className="text-lg font-semibold mb-2">Haber Almak İster misiniz?</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Yeni belge hazırlama özelliği çıktığında size haber verelim
+                </p>
+                <div className="flex gap-2">
+                  <input
+                    type="email"
+                    placeholder="E-posta adresiniz"
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <Button size="sm" className="px-4">
+                    Kayıt Ol
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
         </section>
