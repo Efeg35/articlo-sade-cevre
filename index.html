@@ -73,9 +73,9 @@
   <!-- Browser Compatibility -->
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
-  <!-- 🔧 CAPACITOR MOBILE SECURITY - OPTIMIZED CSP -->
+  <!-- 🔧 CAPACITOR MOBILE SECURITY + APPLE OAUTH - OPTIMIZED CSP -->
   <meta http-equiv="Content-Security-Policy"
-    content="default-src * capacitor://localhost 'self' data: blob:; script-src * 'self' 'unsafe-inline' 'unsafe-eval' capacitor://localhost; style-src * 'self' 'unsafe-inline' capacitor://localhost; img-src * 'self' data: blob: capacitor://localhost; connect-src * 'self' wss: https: http: capacitor://localhost; font-src * 'self' data: capacitor://localhost; media-src * 'self' data: blob: capacitor://localhost; frame-src * 'self' capacitor://localhost; object-src 'none'; base-uri 'self'; form-action 'self';">
+    content="default-src * capacitor://localhost 'self' data: blob:; script-src * 'self' 'unsafe-inline' 'unsafe-eval' capacitor://localhost https://appleid.apple.com https://*.appleid.apple.com; style-src * 'self' 'unsafe-inline' capacitor://localhost https://appleid.apple.com https://*.appleid.apple.com; img-src * 'self' data: blob: capacitor://localhost https://appleid.cdn-apple.com https://*.appleid.apple.com; connect-src * 'self' wss: https: http: capacitor://localhost https://appleid.apple.com https://*.appleid.apple.com; font-src * 'self' data: capacitor://localhost https://appleid.cdn-apple.com https://*.appleid.apple.com; media-src * 'self' data: blob: capacitor://localhost; frame-src * 'self' capacitor://localhost https://appleid.apple.com https://*.appleid.apple.com; object-src 'none'; base-uri 'self'; form-action 'self' https://appleid.apple.com https://*.appleid.apple.com;">
 
   <!-- 🔧 MOBILE NATIVE FEATURES - CAMERA PERMISSIONS ENABLED -->
   <meta http-equiv="Permissions-Policy" content="camera=(self), microphone=(self), geolocation=(self)">
