@@ -48,7 +48,7 @@ const SSS = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [openItems, setOpenItems] = useState<string[]>([]);
 
-  const faqData: FAQ[] = [
+  const faqData: FAQ[] = useMemo(() => [
     {
       id: "1",
       question: "Artiklo nedir ve nasıl çalışır?",
@@ -157,7 +157,7 @@ const SSS = () => {
       priority: "medium",
       tags: ["kurumsal", "ekip", "avukat"]
     }
-  ];
+  ], []);
 
   const categories = [
     { id: 'all', name: 'Tümü', icon: BookOpen, count: faqData.length },
@@ -194,7 +194,7 @@ const SSS = () => {
       const priorityOrder = { high: 3, medium: 2, low: 1 };
       return priorityOrder[b.priority] - priorityOrder[a.priority];
     });
-  }, [searchQuery, selectedCategory]);
+  }, [searchQuery, selectedCategory, faqData]);
 
   const stats = [
     {

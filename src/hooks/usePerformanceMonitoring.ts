@@ -1,11 +1,42 @@
 import { useEffect, useCallback } from 'react';
 import { Logger } from '@/utils/logger';
 
+interface MemoryInfo {
+    readonly jsHeapSizeLimit: number;
+    readonly totalJSHeapSize: number;
+    readonly usedJSHeapSize: number;
+}
+
+interface PerformanceWithMemory extends Performance {
+    readonly memory?: MemoryInfo;
+}
+
+interface LargestContentfulPaintEntry extends PerformanceEntry {
+    readonly renderTime: number;
+    readonly loadTime: number;
+    readonly size: number;
+    readonly id: string;
+    readonly url: string;
+}
+
+interface LayoutShiftEntry extends PerformanceEntry {
+    readonly value: number;
+    readonly hadRecentInput: boolean;
+    readonly lastInputTime: number;
+    readonly sources: ReadonlyArray<LayoutShiftAttribution>;
+}
+
+interface LayoutShiftAttribution {
+    readonly node?: Node;
+    readonly currentRect: DOMRectReadOnly;
+    readonly previousRect: DOMRectReadOnly;
+}
+
 interface PerformanceMetrics {
     navigationTiming: PerformanceNavigationTiming | null;
     paintTiming: PerformancePaintTiming[];
     resourceTiming: PerformanceResourceTiming[];
-    memoryUsage: any;
+    memoryUsage: MemoryInfo | null;
 }
 
 interface VitalMetrics {
@@ -44,7 +75,7 @@ export const usePerformanceMonitoring = (enabled: boolean = true) => {
                 try {
                     const lcpObserver = new PerformanceObserver((list) => {
                         const entries = list.getEntries();
-                        const lastEntry = entries[entries.length - 1] as any;
+                        const lastEntry = entries[entries.length - 1] as LargestContentfulPaintEntry;
                         if (lastEntry) {
                             vitals.LCP = lastEntry.startTime;
                         }
@@ -62,12 +93,10 @@ export const usePerformanceMonitoring = (enabled: boolean = true) => {
         return vitals;
     }, []);
 
-    const getMemoryUsage = useCallback(() => {
+    const getMemoryUsage = useCallback((): MemoryInfo | null => {
         try {
-            // @ts-ignore - memory API is experimental
             if ('memory' in performance) {
-                // @ts-ignore
-                return performance.memory;
+                return (performance as PerformanceWithMemory).memory || null;
             }
             return null;
         } catch (error) {
@@ -169,9 +198,10 @@ export const usePerformanceMonitoring = (enabled: boolean = true) => {
 
             const clsObserver = new PerformanceObserver((list) => {
                 const entries = list.getEntries();
-                entries.forEach((entry: any) => {
-                    if (!entry.hadRecentInput) {
-                        clsValue += entry.value;
+                entries.forEach((entry) => {
+                    const layoutShiftEntry = entry as LayoutShiftEntry;
+                    if (!layoutShiftEntry.hadRecentInput) {
+                        clsValue += layoutShiftEntry.value;
                     }
                 });
 

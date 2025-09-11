@@ -7,6 +7,20 @@ interface NetworkStatus {
     connectionType: string;
 }
 
+// Network Information API types (experimental)
+interface NetworkConnection extends EventTarget {
+    effectiveType?: '2g' | '3g' | '4g' | 'slow-2g';
+    type?: 'bluetooth' | 'cellular' | 'ethernet' | 'none' | 'wifi' | 'wimax' | 'other' | 'unknown';
+    addEventListener(type: 'change', listener: () => void): void;
+    removeEventListener(type: 'change', listener: () => void): void;
+}
+
+interface NavigatorWithConnection extends Navigator {
+    connection?: NetworkConnection;
+    mozConnection?: NetworkConnection;
+    webkitConnection?: NetworkConnection;
+}
+
 export const useNetworkStatus = () => {
     const [networkStatus, setNetworkStatus] = useState<NetworkStatus>({
         isOnline: navigator.onLine,
@@ -19,9 +33,8 @@ export const useNetworkStatus = () => {
             const isOnline = navigator.onLine;
 
             // Check connection type if available
-            const connection = (navigator as any).connection ||
-                (navigator as any).mozConnection ||
-                (navigator as any).webkitConnection;
+            const nav = navigator as NavigatorWithConnection;
+            const connection = nav.connection || nav.mozConnection || nav.webkitConnection;
 
             let connectionType = 'unknown';
             let isSlowConnection = false;
@@ -53,9 +66,8 @@ export const useNetworkStatus = () => {
         window.addEventListener('offline', updateNetworkStatus);
 
         // Listen for connection changes if available
-        const connection = (navigator as any).connection ||
-            (navigator as any).mozConnection ||
-            (navigator as any).webkitConnection;
+        const nav = navigator as NavigatorWithConnection;
+        const connection = nav.connection || nav.mozConnection || nav.webkitConnection;
 
         if (connection) {
             connection.addEventListener('change', updateNetworkStatus);

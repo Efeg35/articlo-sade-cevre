@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -42,7 +42,7 @@ const KullaniciSozlesmesi = () => {
   const lastUpdated = "25 Temmuz 2024";
   const effectiveDate = "01 Ağustos 2024";
 
-  const tableOfContents: TableOfContentsItem[] = [
+  const tableOfContents: TableOfContentsItem[] = useMemo(() => [
     { id: 'taraflar', title: 'Taraflar ve Tanımlar', level: 1 },
     { id: 'hizmet-tanimi', title: 'Hizmetin Tanımı ve Kapsamı', level: 1 },
     { id: 'sorumluluk-reddi', title: 'Sorumluluğun Reddi ve Hukuki Uyarı', level: 1 },
@@ -54,7 +54,7 @@ const KullaniciSozlesmesi = () => {
     { id: 'sozlesme-degisiklikleri', title: 'Sözleşme Değişiklikleri', level: 1 },
     { id: 'uygulanacak-hukuk', title: 'Uygulanacak Hukuk ve Yetkili Mahkeme', level: 1 },
     { id: 'iletisim', title: 'İletişim', level: 1 }
-  ];
+  ], []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -78,7 +78,7 @@ const KullaniciSozlesmesi = () => {
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [tableOfContents]);
 
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
@@ -129,8 +129,8 @@ const KullaniciSozlesmesi = () => {
                       key={item.id}
                       onClick={() => scrollToSection(item.id)}
                       className={`w-full text-left text-sm transition-colors p-2 rounded-md ${activeSection === item.id
-                          ? 'bg-primary text-primary-foreground font-medium'
-                          : 'hover:bg-muted text-muted-foreground hover:text-foreground'
+                        ? 'bg-primary text-primary-foreground font-medium'
+                        : 'hover:bg-muted text-muted-foreground hover:text-foreground'
                         } ${item.level === 2 ? 'pl-6' : ''}`}
                     >
                       {item.title}

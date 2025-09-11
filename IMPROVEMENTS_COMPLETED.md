@@ -52,3 +52,5 @@ Projeniz artık önceki rapordaki tüm iddiaları karşılıyor ve gerçekten **
 ---
 *Bu iyileştirmeler Artiklo projesinin kalitesini ve güvenliğini artırmak için yapılmıştır.*
 
+
+

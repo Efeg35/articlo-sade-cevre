@@ -34,7 +34,7 @@ export const usePlatformOptimizations = () => {
                 const isIOS = platform === 'ios';
                 const isAndroid = platform === 'android';
 
-                let safeAreaInsets = { top: 0, bottom: 0, left: 0, right: 0 };
+                const safeAreaInsets = { top: 0, bottom: 0, left: 0, right: 0 };
                 let hasNotch = false;
 
                 if (isNative) {

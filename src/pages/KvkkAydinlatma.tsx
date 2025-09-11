@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -37,7 +37,7 @@ const KvkkAydinlatma = () => {
   const lastUpdated = "25 Temmuz 2024";
   const effectiveDate = "01 Ağustos 2024";
 
-  const tableOfContents: TableOfContentsItem[] = [
+  const tableOfContents: TableOfContentsItem[] = useMemo(() => [
     { id: 'veri-sorumlusu', title: 'Veri Sorumlusu', level: 1 },
     { id: 'isleme-amaclari', title: 'Kişisel Verilerin İşlenme Amaçları', level: 1 },
     { id: 'mobil-uygulama', title: 'Mobil Uygulama Veri İşleme Politikası', level: 2 },
@@ -47,7 +47,7 @@ const KvkkAydinlatma = () => {
     { id: 'veri-haklari', title: 'Veri Sahibinin Hakları', level: 1 },
     { id: 'cerez-politikasi', title: 'Çerez Politikası', level: 1 },
     { id: 'iletisim', title: 'İletişim', level: 1 }
-  ];
+  ], []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -71,7 +71,7 @@ const KvkkAydinlatma = () => {
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [tableOfContents]);
 
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
@@ -122,8 +122,8 @@ const KvkkAydinlatma = () => {
                       key={item.id}
                       onClick={() => scrollToSection(item.id)}
                       className={`w-full text-left text-sm transition-colors p-2 rounded-md ${activeSection === item.id
-                          ? 'bg-primary text-primary-foreground font-medium'
-                          : 'hover:bg-muted text-muted-foreground hover:text-foreground'
+                        ? 'bg-primary text-primary-foreground font-medium'
+                        : 'hover:bg-muted text-muted-foreground hover:text-foreground'
                         } ${item.level === 2 ? 'pl-6' : ''}`}
                     >
                       {item.title}
