@@ -510,8 +510,8 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
         <div className={Capacitor.isNativePlatform() ? 'mobile-document-viewer' : ''}>
             <Dialog open={isOpen} onOpenChange={onClose}>
                 <DialogContent className={`${Capacitor.isNativePlatform()
-                    ? "mobile-document-viewer w-[98vw] h-[95vh] max-w-none max-h-none"
-                    : "max-w-4xl max-h-[85vh] mt-8 mb-8"
+                    ? "mobile-document-viewer w-[100vw] h-[100vh] max-w-none max-h-none fixed inset-0 m-0 rounded-none border-0"
+                    : "max-w-4xl max-h-[90vh] w-[95vw]"
                     } overflow-hidden flex flex-col p-2 md:p-6`}>
                     <DialogHeader className="flex-shrink-0">
                         <DialogTitle className="flex items-center justify-between">

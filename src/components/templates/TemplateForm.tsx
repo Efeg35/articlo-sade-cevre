@@ -312,8 +312,8 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({
             <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
                 <DialogContent
                     className={`${Capacitor.isNativePlatform()
-                        ? "mobile-template-form w-[98vw] h-[95vh] max-w-none max-h-none overflow-y-auto"
-                        : "max-w-2xl max-h-[85vh] overflow-y-auto mt-8 mb-8"
+                        ? "mobile-template-form w-[100vw] h-[100vh] max-w-none max-h-none fixed inset-0 m-0 rounded-none border-0 overflow-y-auto"
+                        : "max-w-2xl max-h-[90vh] w-[95vw] overflow-y-auto"
                         } p-3 md:p-6`}
                     onPointerDownOutside={(e) => e.preventDefault()}
                     onEscapeKeyDown={(e) => e.preventDefault()}
