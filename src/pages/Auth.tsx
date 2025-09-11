@@ -48,7 +48,7 @@ const Auth = () => {
   const [resetLoading, setResetLoading] = useState(false);
   const [resetSuccess, setResetSuccess] = useState(false);
 
-  // Check for session timeout and OAuth callbacks
+  // Check for session timeout and handle OAuth callbacks
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
 
@@ -58,87 +58,80 @@ const Auth = () => {
       return;
     }
 
-    // OAuth callback check - hem URL params hem de hash fragment'ı kontrol et
-    const accessToken = urlParams.get('access_token');
-    const refreshToken = urlParams.get('refresh_token');
-    const tokenType = urlParams.get('token_type');
+    // OAuth callback handler - Supabase'in detectSessionInUrl ile otomatik işlenmesi
+    const handleOAuthCallback = async () => {
+      // OAuth parametrelerini kontrol et (error durumu için)
+      const error = urlParams.get('error');
+      const errorDescription = urlParams.get('error_description');
 
-    // Hash fragment'tan da kontrol et (Apple OAuth bazen hash ile döner)
-    const hashParams = new URLSearchParams(window.location.hash.substring(1));
-    const hashAccessToken = hashParams.get('access_token');
-    const hashRefreshToken = hashParams.get('refresh_token');
-    const hashTokenType = hashParams.get('token_type');
-
-    // Debug: tüm parametreleri logla
-    Logger.log('Auth', 'URL Debug Info', {
-      fullUrl: window.location.href,
-      search: window.location.search,
-      hash: window.location.hash,
-      urlParams: {
-        access_token: accessToken,
-        refresh_token: refreshToken,
-        token_type: tokenType
-      },
-      hashParams: {
-        access_token: hashAccessToken,
-        refresh_token: hashRefreshToken,
-        token_type: hashTokenType
+      if (error) {
+        Logger.error('Auth', 'OAuth callback error', { error, errorDescription });
+        if (error === 'access_denied') {
+          setError("Giriş iptal edildi. Lütfen tekrar deneyin.");
+        } else {
+          setError(`Giriş hatası: ${errorDescription || error}`);
+        }
+        return;
       }
-    });
 
-    const hasOAuthCallback = accessToken || refreshToken || tokenType ||
-      hashAccessToken || hashRefreshToken || hashTokenType;
+      // OAuth success callback kontrolü
+      const hasCallbackParams = urlParams.has('code') || urlParams.has('access_token') ||
+        window.location.hash.includes('access_token');
 
-    if (hasOAuthCallback) {
-      Logger.log('Auth', 'OAuth callback detected, waiting for session...');
-      setLoading(true);
+      if (hasCallbackParams) {
+        Logger.log('Auth', 'OAuth callback detected, processing...');
+        setLoading(true);
 
-      // OAuth callback durumunda session'ın oluşmasını bekle
-      const checkOAuthSession = async () => {
         try {
-          // Daha uzun gecikme - Apple OAuth session'ı yavaş olabilir
-          await new Promise(resolve => setTimeout(resolve, 1500));
+          // Supabase otomatik olarak session'ı işleyecek
+          // Sadece session'ın oluşmasını bekle
+          await new Promise(resolve => setTimeout(resolve, 1000));
 
           const { data: { session } } = await supabase.auth.getSession();
 
-          Logger.log('Auth', 'Session check result', { hasSession: !!session });
-
           if (session) {
-            Logger.log('Auth', 'OAuth session created, redirecting to dashboard');
+            Logger.log('Auth', 'OAuth session established, redirecting');
             toast({
               title: "Başarılı!",
               description: "Giriş yapıldı, panele yönlendiriliyorsunuz.",
             });
             navigate("/dashboard");
-          } else {
-            Logger.warn('Auth', 'No session after OAuth callback, checking auth state...');
-
-            // Ekstra kontrol - auth state change listener ekle
-            const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-              Logger.log('Auth', 'Auth state changed in callback', { event, hasSession: !!session });
-              if (session && event === 'SIGNED_IN') {
-                Logger.log('Auth', 'Session created via auth state change, redirecting');
-                authListener.subscription.unsubscribe();
-                navigate("/dashboard");
-              }
-            });
-
-            // 3 saniye daha bekle
-            setTimeout(() => {
-              authListener.subscription.unsubscribe();
-              setError("Giriş işlemi tamamlanamadı. Lütfen tekrar deneyin.");
-              setLoading(false);
-            }, 3000);
+            return;
           }
+
+          // Session henüz oluşmadıysa auth state change'i bekle
+          Logger.log('Auth', 'Waiting for auth state change...');
+          const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+            Logger.log('Auth', 'Auth state changed', { event, hasSession: !!session });
+
+            if (session && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
+              Logger.log('Auth', 'Session created, redirecting to dashboard');
+              authListener.subscription.unsubscribe();
+              toast({
+                title: "Başarılı!",
+                description: "Giriş yapıldı, panele yönlendiriliyorsunuz.",
+              });
+              navigate("/dashboard");
+            }
+          });
+
+          // 5 saniye timeout
+          setTimeout(() => {
+            authListener.subscription.unsubscribe();
+            Logger.warn('Auth', 'OAuth timeout, session not created');
+            setError("Giriş işlemi zaman aşımına uğradı. Lütfen tekrar deneyin.");
+            setLoading(false);
+          }, 5000);
+
         } catch (err) {
-          Logger.error('Auth', 'OAuth session check error', err);
+          Logger.error('Auth', 'OAuth callback processing error', err);
           setError("Giriş işlemi sırasında bir hata oluştu.");
           setLoading(false);
         }
-      };
+      }
+    };
 
-      checkOAuthSession();
-    }
+    handleOAuthCallback();
   }, [location, supabase.auth, navigate, toast]);
 
   // 🔒 KONTROL NOKTASI: Component mounted with logger
@@ -361,26 +354,43 @@ const Auth = () => {
 
   const handleAppleLogin = async () => {
     setLoading(true);
+    setError(""); // Hata mesajını temizle
+
     try {
+      Logger.log('Auth', 'Starting Apple OAuth login');
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'apple',
         options: {
-          redirectTo: `${window.location.origin}/dashboard`
+          redirectTo: `${window.location.origin}/auth`,
+          queryParams: {
+            // Apple OAuth için özel parametreler
+            scope: 'name email',
+            response_mode: 'form_post', // Apple'ın önerdiği response mode
+          },
+          skipBrowserRedirect: false, // Browser redirect'e izin ver
         }
       });
 
       if (error) {
-        Logger.error('Auth', 'Apple login failed', { error: error.message });
+        Logger.error('Auth', 'Apple OAuth initialization failed', { error: error.message });
+
         if (error.message.includes('provider is not enabled')) {
           setError("Apple ile giriş henüz aktif değil. Lütfen normal giriş yapın.");
+        } else if (error.message.includes('Invalid provider')) {
+          setError("Apple OAuth yapılandırması hatalı. Destek ekibiyle iletişime geçin.");
         } else {
-          setError("Apple ile giriş yapılırken bir hata oluştu.");
+          setError(`Apple ile giriş başlatılamadı: ${error.message}`);
         }
+        setLoading(false);
+      } else {
+        // OAuth başarıyla başlatıldı, redirect gerçekleşecek
+        Logger.log('Auth', 'Apple OAuth redirect starting...');
+        // Loading state devam edecek, çünkü sayfa redirect olacak
       }
     } catch (err) {
-      Logger.error('Auth', 'Apple login error', err);
+      Logger.error('Auth', 'Apple login unexpected error', err);
       setError("Apple ile giriş yapılırken beklenmedik bir hata oluştu.");
-    } finally {
       setLoading(false);
     }
   };

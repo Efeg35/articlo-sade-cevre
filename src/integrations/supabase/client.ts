@@ -28,6 +28,7 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     storage: customStorageAdapter, //localStorage yerine bunu kullan
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: false,
+    detectSessionInUrl: true, // OAuth callbacks için gerekli
+    flowType: 'pkce', // Apple OAuth için PKCE flow kullan
   },
 });
