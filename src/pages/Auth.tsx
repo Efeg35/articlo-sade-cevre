@@ -48,13 +48,55 @@ const Auth = () => {
   const [resetLoading, setResetLoading] = useState(false);
   const [resetSuccess, setResetSuccess] = useState(false);
 
-  // Check for session timeout
+  // Check for session timeout and OAuth callbacks
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
+
+    // Session timeout check
     if (urlParams.get('timeout') === 'true') {
       setError("Oturum süreniz doldu. Lütfen tekrar giriş yapın.");
+      return;
     }
-  }, [location]);
+
+    // OAuth callback check - Supabase OAuth callback parametrelerini kontrol et
+    const accessToken = urlParams.get('access_token');
+    const refreshToken = urlParams.get('refresh_token');
+    const tokenType = urlParams.get('token_type');
+
+    if (accessToken || refreshToken || tokenType) {
+      Logger.log('Auth', 'OAuth callback detected, waiting for session...');
+      setLoading(true);
+
+      // OAuth callback durumunda session'ın oluşmasını bekle
+      const checkOAuthSession = async () => {
+        try {
+          // Kısa bir gecikme ile session kontrolü yap
+          await new Promise(resolve => setTimeout(resolve, 500));
+
+          const { data: { session } } = await supabase.auth.getSession();
+
+          if (session) {
+            Logger.log('Auth', 'OAuth session created, redirecting to dashboard');
+            toast({
+              title: "Başarılı!",
+              description: "Giriş yapıldı, panele yönlendiriliyorsunuz.",
+            });
+            navigate("/dashboard");
+          } else {
+            Logger.warn('Auth', 'No session after OAuth callback');
+            setError("Giriş işlemi tamamlanamadı. Lütfen tekrar deneyin.");
+          }
+        } catch (err) {
+          Logger.error('Auth', 'OAuth session check error', err);
+          setError("Giriş işlemi sırasında bir hata oluştu.");
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      checkOAuthSession();
+    }
+  }, [location, supabase.auth, navigate, toast]);
 
   // 🔒 KONTROL NOKTASI: Component mounted with logger
   useEffect(() => {
