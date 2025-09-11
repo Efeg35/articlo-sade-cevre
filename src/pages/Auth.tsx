@@ -548,29 +548,33 @@ const Auth = () => {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className={`grid gap-3 ${Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'ios' ? 'grid-cols-2' : 'grid-cols-1'}`}>
                     <Button
                       type="button"
                       variant="outline"
                       onClick={handleGoogleLogin}
                       disabled={loading}
                       className="flex items-center justify-center gap-2 h-10 bg-white hover:bg-gray-50 border border-gray-300 text-gray-700"
-                      title="Supabase'de Google OAuth henüz aktif değil"
+                      title="Google ile hızlı giriş"
                     >
                       <GoogleLogo />
                       <span className="text-sm font-medium">Google</span>
                     </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={handleAppleLogin}
-                      disabled={loading}
-                      className="flex items-center justify-center gap-2 h-10 bg-black hover:bg-gray-800 text-white border border-gray-300"
-                      title="Supabase'de Apple OAuth henüz aktif değil"
-                    >
-                      <AppleLogo />
-                      <span className="text-sm font-medium">Apple</span>
-                    </Button>
+
+                    {/* Apple OAuth - Sadece iOS Native platformunda göster */}
+                    {Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'ios' && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleAppleLogin}
+                        disabled={loading}
+                        className="flex items-center justify-center gap-2 h-10 bg-black hover:bg-gray-800 text-white border border-gray-300"
+                        title="Apple ID ile giriş"
+                      >
+                        <AppleLogo />
+                        <span className="text-sm font-medium">Apple</span>
+                      </Button>
+                    )}
                   </div>
                 </div>
               </TabsContent>
