@@ -58,22 +58,50 @@ const Auth = () => {
       return;
     }
 
-    // OAuth callback check - Supabase OAuth callback parametrelerini kontrol et
+    // OAuth callback check - hem URL params hem de hash fragment'ı kontrol et
     const accessToken = urlParams.get('access_token');
     const refreshToken = urlParams.get('refresh_token');
     const tokenType = urlParams.get('token_type');
 
-    if (accessToken || refreshToken || tokenType) {
+    // Hash fragment'tan da kontrol et (Apple OAuth bazen hash ile döner)
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const hashAccessToken = hashParams.get('access_token');
+    const hashRefreshToken = hashParams.get('refresh_token');
+    const hashTokenType = hashParams.get('token_type');
+
+    // Debug: tüm parametreleri logla
+    Logger.log('Auth', 'URL Debug Info', {
+      fullUrl: window.location.href,
+      search: window.location.search,
+      hash: window.location.hash,
+      urlParams: {
+        access_token: accessToken,
+        refresh_token: refreshToken,
+        token_type: tokenType
+      },
+      hashParams: {
+        access_token: hashAccessToken,
+        refresh_token: hashRefreshToken,
+        token_type: hashTokenType
+      }
+    });
+
+    const hasOAuthCallback = accessToken || refreshToken || tokenType ||
+      hashAccessToken || hashRefreshToken || hashTokenType;
+
+    if (hasOAuthCallback) {
       Logger.log('Auth', 'OAuth callback detected, waiting for session...');
       setLoading(true);
 
       // OAuth callback durumunda session'ın oluşmasını bekle
       const checkOAuthSession = async () => {
         try {
-          // Kısa bir gecikme ile session kontrolü yap
-          await new Promise(resolve => setTimeout(resolve, 500));
+          // Daha uzun gecikme - Apple OAuth session'ı yavaş olabilir
+          await new Promise(resolve => setTimeout(resolve, 1500));
 
           const { data: { session } } = await supabase.auth.getSession();
+
+          Logger.log('Auth', 'Session check result', { hasSession: !!session });
 
           if (session) {
             Logger.log('Auth', 'OAuth session created, redirecting to dashboard');
@@ -83,13 +111,28 @@ const Auth = () => {
             });
             navigate("/dashboard");
           } else {
-            Logger.warn('Auth', 'No session after OAuth callback');
-            setError("Giriş işlemi tamamlanamadı. Lütfen tekrar deneyin.");
+            Logger.warn('Auth', 'No session after OAuth callback, checking auth state...');
+
+            // Ekstra kontrol - auth state change listener ekle
+            const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+              Logger.log('Auth', 'Auth state changed in callback', { event, hasSession: !!session });
+              if (session && event === 'SIGNED_IN') {
+                Logger.log('Auth', 'Session created via auth state change, redirecting');
+                authListener.subscription.unsubscribe();
+                navigate("/dashboard");
+              }
+            });
+
+            // 3 saniye daha bekle
+            setTimeout(() => {
+              authListener.subscription.unsubscribe();
+              setError("Giriş işlemi tamamlanamadı. Lütfen tekrar deneyin.");
+              setLoading(false);
+            }, 3000);
           }
         } catch (err) {
           Logger.error('Auth', 'OAuth session check error', err);
           setError("Giriş işlemi sırasında bir hata oluştu.");
-        } finally {
           setLoading(false);
         }
       };
