@@ -8,7 +8,11 @@ import path from 'path'
 export default defineConfig({
   server: {
     port: 8080,
-    host: true
+    host: true,
+    headers: {
+      'Content-Type': 'text/javascript; charset=utf-8'
+    },
+    middlewareMode: false
   },
   plugins: [
     react(),

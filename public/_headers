@@ -33,6 +33,22 @@
 /sw.js
   Cache-Control: no-cache
 
-# Manifest - short cache  
+# Manifest - short cache
 /manifest.webmanifest
   Cache-Control: max-age=86400
+
+# JavaScript files - correct MIME type
+/*.js
+  Content-Type: text/javascript; charset=utf-8
+
+# TypeScript modules - correct MIME type
+/*.ts
+  Content-Type: text/javascript; charset=utf-8
+
+# ES6 modules - correct MIME type
+/*.mjs
+  Content-Type: text/javascript; charset=utf-8
+
+# WebAssembly - correct MIME type
+/*.wasm
+  Content-Type: application/wasm
