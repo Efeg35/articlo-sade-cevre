@@ -50,7 +50,7 @@
 		"scrollEnabled": false,
 		"backgroundColor": "#ffffff",
 		"limitsNavigationsToAppBoundDomains": false,
-		"scheme": "https"
+		"scheme": "capacitor"
 	},
 	"android": {
 		"allowMixedContent": false,
@@ -68,6 +68,7 @@
 		}
 	},
 	"packageClassList": [
+		"SignInWithApple",
 		"AppPlugin",
 		"CAPCameraPlugin",
 		"FilesystemPlugin",
@@ -79,6 +80,7 @@
 		"SplashScreenPlugin",
 		"StatusBarPlugin",
 		"FilePickerPlugin",
+		"GoogleAuth",
 		"PurchasesPlugin"
 	]
 }

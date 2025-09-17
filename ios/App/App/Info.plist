@@ -92,5 +92,28 @@
     <key>NSMicrophoneUsageDescription</key>
     <string>Mikrofon kullanılmaz.</string>
 
+    <!-- 🍎 iOS OAUTH CONFIGURATION -->
+    <key>CFBundleURLTypes</key>
+    <array>
+        <!-- Google OAuth URL Scheme - iOS client ID -->
+        <dict>
+            <key>CFBundleURLName</key>
+            <string>GoogleAuth</string>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <string>com.googleusercontent.apps.209862574756-tv2toqphd3k3lvb6ffv05vt0p3glre7c</string>
+            </array>
+        </dict>
+        <!-- Custom App URL Scheme for OAuth callbacks -->
+        <dict>
+            <key>CFBundleURLName</key>
+            <string>ArtikloApp</string>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <string>artiklo</string>
+            </array>
+        </dict>
+    </array>
+
 </dict>
 </plist>

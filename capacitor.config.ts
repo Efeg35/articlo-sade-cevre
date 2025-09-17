@@ -59,7 +59,7 @@ const config: CapacitorConfig = {
     backgroundColor: '#ffffff',
     // 🔧 YAZIM HATASI DÜZELTİLDİ - SecurityError çözümü için kritik:
     limitsNavigationsToAppBoundDomains: false,  // ✅ DÜZELTME: "App" kelimesi eklendi
-    scheme: 'https'
+    scheme: 'capacitor'
   },
 
   // Android özel ayarları (GÜVENLİK DÜZELTMELERİ)

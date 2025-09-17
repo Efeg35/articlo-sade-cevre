@@ -58,6 +58,9 @@ const Iletisim = lazy(() => import("./pages/Iletisim"));
 const MobileOnboarding = lazy(() => import("./pages/MobileOnboarding"));
 const MobileWelcome = lazy(() => import("./pages/MobileWelcome"));
 
+// Test page
+const TestPage = lazy(() => import("./pages/TestPage"));
+
 // Guide pages
 const RehberPage = lazy(() => import("./pages/RehberPage"));
 const RehberDetayPage = lazy(() => import("./pages/RehberDetayPage"));
@@ -427,6 +430,7 @@ const AppContent = () => {
           </Route>
 
           {/* Navbar'ın görünmeyeceği, tam ekran sayfalar */}
+          <Route path="/test" element={<TestPage />} />
           <Route path="/splash" element={<SplashScreen />} />
           <Route path="/onboarding-mobil" element={
             <Suspense fallback={<PageLoader />}>

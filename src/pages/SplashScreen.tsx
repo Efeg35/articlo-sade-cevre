@@ -5,11 +5,22 @@ const SplashScreen = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    console.log('[SplashScreen] Component mounted');
+
     const timer = setTimeout(() => {
-      navigate('/onboarding-mobil', { replace: true });
+      console.log('[SplashScreen] Timer expired, navigating to onboarding-mobil');
+      try {
+        navigate('/onboarding-mobil', { replace: true });
+        console.log('[SplashScreen] Navigation called successfully');
+      } catch (error) {
+        console.error('[SplashScreen] Navigation error:', error);
+      }
     }, 2000); // 2 saniye bekle
 
-    return () => clearTimeout(timer); // Component'ten çıkılırsa sayacı temizle
+    return () => {
+      console.log('[SplashScreen] Component unmounting, clearing timer');
+      clearTimeout(timer);
+    };
   }, [navigate]);
 
   return (

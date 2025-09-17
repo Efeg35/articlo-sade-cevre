@@ -16,7 +16,14 @@ import { authFormSchema, rateLimiter, validateAndSanitizeInput } from "@/lib/val
 import { Shield, AlertTriangle } from "lucide-react";
 import { Logger } from "@/utils/logger";
 
+// Native OAuth imports for iOS
+import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
+import { SignInWithApple, SignInWithAppleResponse } from '@capacitor-community/apple-sign-in';
+import { useIOSOAuth } from '@/hooks/useIOSOAuth';
+
 const Auth = () => {
+  // iOS Native OAuth initialization
+  useIOSOAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -328,69 +335,154 @@ const Auth = () => {
   // Social Login handlers
   const handleGoogleLogin = async () => {
     setLoading(true);
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/dashboard`
-        }
-      });
+    setError("");
 
-      if (error) {
-        Logger.error('Auth', 'Google login failed', { error: error.message });
-        if (error.message.includes('provider is not enabled')) {
-          setError("Google ile giriş henüz aktif değil. Lütfen normal giriş yapın.");
-        } else {
-          setError("Google ile giriş yapılırken bir hata oluştu.");
+    try {
+      const platform = Capacitor.getPlatform();
+      const isNative = Capacitor.isNativePlatform();
+      Logger.log('Auth', 'Platform detection', { platform, isNative });
+
+      // iOS Native - Google OAuth ile native SDK kullan
+      if (isNative && platform === 'ios') {
+        Logger.log('Auth', 'Starting iOS Native Google OAuth');
+
+        // Plugin availability check
+        if (typeof GoogleAuth === 'undefined') {
+          throw new Error('GoogleAuth plugin not available');
         }
+
+        // Native Google Sign In
+        const result = await GoogleAuth.signIn();
+        Logger.log('Auth', 'Google Auth result received', { hasIdToken: !!result.authentication.idToken });
+
+        if (!result.authentication.idToken) {
+          throw new Error('No ID token received from Google');
+        }
+
+        Logger.log('Auth', 'Google OAuth successful, creating Supabase session');
+
+        // Supabase session oluştur
+        const { data, error } = await supabase.auth.signInWithIdToken({
+          provider: 'google',
+          token: result.authentication.idToken
+        });
+
+        if (error) {
+          Logger.error('Auth', 'Supabase Google session creation failed', error);
+          throw error;
+        }
+
+        if (data.session) {
+          Logger.log('Auth', 'iOS Google OAuth session created successfully');
+          await hapticFeedback.success();
+          toast({
+            title: "Başarılı!",
+            description: "Google ile giriş yapıldı, panele yönlendiriliyorsunuz.",
+          });
+          navigate("/dashboard");
+        }
+      } else {
+        Logger.error('Auth', 'Platform detection failed', {
+          platform,
+          isNative,
+          userAgent: navigator.userAgent,
+          GoogleAuthAvailable: typeof GoogleAuth !== 'undefined'
+        });
+
+        setLoading(false);
+        throw new Error(`Native Google Auth başarısız oldu. Platform: ${platform}, Native: ${isNative}.\n\nLütfen:\n1. Uygulamayı kapatıp yeniden açın\n2. Cihazı yeniden başlatın\n3. Sorun devam ederse destek ekibiyle iletişime geçin.`);
       }
-    } catch (err) {
+    } catch (err: unknown) {
       Logger.error('Auth', 'Google login error', err);
-      setError("Google ile giriş yapılırken beklenmedik bir hata oluştu.");
-    } finally {
+      await hapticFeedback.error();
+
+      const errorMessage = err instanceof Error ? err.message : 'Bilinmeyen hata';
+
+      if (errorMessage.includes('provider is not enabled')) {
+        setError("Google ile giriş henüz aktif değil. Lütfen normal giriş yapın.");
+      } else if (errorMessage.includes('user cancelled')) {
+        setError("Giriş iptal edildi.");
+      } else {
+        setError(`Google ile giriş yapılırken hata oluştu: ${errorMessage}`);
+      }
       setLoading(false);
     }
   };
 
   const handleAppleLogin = async () => {
     setLoading(true);
-    setError(""); // Hata mesajını temizle
+    setError("");
 
     try {
-      Logger.log('Auth', 'Starting Apple OAuth login');
+      // iOS Native - Apple Sign In ile native SDK kullan
+      if (Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'ios') {
+        Logger.log('Auth', 'Starting iOS Native Apple Sign In');
 
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'apple',
-        options: {
-          redirectTo: `${window.location.origin}/auth`,
-          queryParams: {
-            // Apple OAuth için özel parametreler
-            scope: 'name email',
-            response_mode: 'form_post', // Apple'ın önerdiği response mode
-          },
-          skipBrowserRedirect: false, // Browser redirect'e izin ver
+        // Native Apple Sign In
+        const result: SignInWithAppleResponse = await SignInWithApple.authorize();
+
+        if (!result.response?.identityToken) {
+          throw new Error('No identity token received from Apple');
         }
-      });
 
-      if (error) {
-        Logger.error('Auth', 'Apple OAuth initialization failed', { error: error.message });
+        Logger.log('Auth', 'Apple Sign In successful, creating Supabase session');
 
-        if (error.message.includes('provider is not enabled')) {
-          setError("Apple ile giriş henüz aktif değil. Lütfen normal giriş yapın.");
-        } else if (error.message.includes('Invalid provider')) {
-          setError("Apple OAuth yapılandırması hatalı. Destek ekibiyle iletişime geçin.");
-        } else {
-          setError(`Apple ile giriş başlatılamadı: ${error.message}`);
+        // Supabase session oluştur
+        const { data, error } = await supabase.auth.signInWithIdToken({
+          provider: 'apple',
+          token: result.response.identityToken
+        });
+
+        if (error) {
+          Logger.error('Auth', 'Supabase Apple session creation failed', error);
+          throw error;
         }
-        setLoading(false);
+
+        if (data.session) {
+          Logger.log('Auth', 'iOS Apple OAuth session created successfully');
+          await hapticFeedback.success();
+          toast({
+            title: "Başarılı!",
+            description: "Apple ID ile giriş yapıldı, panele yönlendiriliyorsunuz.",
+          });
+          navigate("/dashboard");
+        }
       } else {
-        // OAuth başarıyla başlatıldı, redirect gerçekleşecek
-        Logger.log('Auth', 'Apple OAuth redirect starting...');
-        // Loading state devam edecek, çünkü sayfa redirect olacak
+        // Web - OAuth redirect flow
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: 'apple',
+          options: {
+            redirectTo: `${window.location.origin}/dashboard`,
+            queryParams: {
+              scope: 'name email',
+              response_mode: 'form_post',
+            },
+            skipBrowserRedirect: false,
+          }
+        });
+
+        if (error) {
+          Logger.error('Auth', 'Web Apple OAuth failed', { error: error.message });
+          throw error;
+        } else {
+          Logger.log('Auth', 'Apple OAuth redirect starting...');
+        }
       }
-    } catch (err) {
-      Logger.error('Auth', 'Apple login unexpected error', err);
-      setError("Apple ile giriş yapılırken beklenmedik bir hata oluştu.");
+    } catch (err: unknown) {
+      Logger.error('Auth', 'Apple login error', err);
+      await hapticFeedback.error();
+
+      const errorMessage = err instanceof Error ? err.message : 'Bilinmeyen hata';
+
+      if (errorMessage.includes('provider is not enabled')) {
+        setError("Apple ile giriş henüz aktif değil. Lütfen normal giriş yapın.");
+      } else if (errorMessage.includes('Invalid provider')) {
+        setError("Apple OAuth yapılandırması hatalı. Destek ekibiyle iletişime geçin.");
+      } else if (errorMessage.includes('user cancelled') || errorMessage.includes('cancelled')) {
+        setError("Giriş iptal edildi.");
+      } else {
+        setError(`Apple ile giriş yapılırken hata oluştu: ${errorMessage}`);
+      }
       setLoading(false);
     }
   };
