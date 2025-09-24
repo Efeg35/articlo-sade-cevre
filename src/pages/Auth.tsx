@@ -17,7 +17,7 @@ import { Shield, AlertTriangle } from "lucide-react";
 import { Logger } from "@/utils/logger";
 
 // Native OAuth imports for iOS
-import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
+import { GoogleAuth } from '@southdevs/capacitor-google-auth';
 import { SignInWithApple, SignInWithAppleResponse } from '@capacitor-community/apple-sign-in';
 import { useIOSOAuth } from '@/hooks/useIOSOAuth';
 
@@ -81,9 +81,13 @@ const Auth = () => {
         return;
       }
 
-      // OAuth success callback kontrolü
+      // OAuth success callback kontrolü - Supabase hash fragment'leri de kontrol et
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
       const hasCallbackParams = urlParams.has('code') || urlParams.has('access_token') ||
-        window.location.hash.includes('access_token');
+        hashParams.has('access_token') || hashParams.has('refresh_token') ||
+        window.location.hash.includes('access_token') ||
+        window.location.hash.includes('type=recovery') ||
+        window.location.hash.includes('type=signup');
 
       if (hasCallbackParams) {
         Logger.log('Auth', 'OAuth callback detected, processing...');
@@ -352,7 +356,10 @@ const Auth = () => {
         }
 
         // Native Google Sign In
-        const result = await GoogleAuth.signIn();
+        const result = await GoogleAuth.signIn({
+          scopes: ['profile', 'email'],
+          grantOfflineAccess: true
+        });
         Logger.log('Auth', 'Google Auth result received', { hasIdToken: !!result.authentication.idToken });
 
         if (!result.authentication.idToken) {
@@ -382,15 +389,28 @@ const Auth = () => {
           navigate("/intent-selection");
         }
       } else {
-        Logger.error('Auth', 'Platform detection failed', {
-          platform,
-          isNative,
-          userAgent: navigator.userAgent,
-          GoogleAuthAvailable: typeof GoogleAuth !== 'undefined'
+        // Web - OAuth redirect flow for Google
+        Logger.log('Auth', 'Starting web Google OAuth redirect flow');
+
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: `${window.location.origin}/intent-selection`,
+            queryParams: {
+              access_type: 'offline',
+              prompt: 'consent',
+            },
+            skipBrowserRedirect: false,
+          }
         });
 
-        setLoading(false);
-        throw new Error(`Native Google Auth başarısız oldu. Platform: ${platform}, Native: ${isNative}.\n\nLütfen:\n1. Uygulamayı kapatıp yeniden açın\n2. Cihazı yeniden başlatın\n3. Sorun devam ederse destek ekibiyle iletişime geçin.`);
+        if (error) {
+          Logger.error('Auth', 'Web Google OAuth failed', { error: error.message });
+          throw error;
+        } else {
+          Logger.log('Auth', 'Google OAuth redirect starting...');
+          // Don't set loading to false here as redirect will happen
+        }
       }
     } catch (err: unknown) {
       Logger.error('Auth', 'Google login error', err);

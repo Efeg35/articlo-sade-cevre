@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { Capacitor } from '@capacitor/core';
-import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
+import { GoogleAuth } from '@southdevs/capacitor-google-auth';
 
 // Google OAuth için Client ID'leri (production'da environment variables'dan alınmalı)
 const GOOGLE_CLIENT_IDS = {
