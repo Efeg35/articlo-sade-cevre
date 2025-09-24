@@ -15,7 +15,11 @@ import {
   ChevronDown,
   Lock,
   PenTool,
-  Gavel
+  Gavel,
+  Wand2,
+  Zap,
+  Target,
+  Star
 } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
@@ -92,9 +96,9 @@ const Index = () => {
   return (
     <div className="flex flex-col min-h-screen bg-background pt-20 md:pt-16">
       <SEO
-        title="Artiklo - Hukuki Belge Analizi ve Dilekçe Oluşturma Platformu"
+        title="Artiklo - Hukuki Belge Analizi ve Belge Sihirbazı Platformu"
         description="Hukuki belgeleri 2 saniyede analiz edin, sadeleştirin ve gerekli belge önerilerini alın. AI destekli hukuk platformu ile adım adım belge hazırlama rehberliği. %99.8 doğruluk, ücretsiz deneme."
-        keywords="hukuki belge analizi, dilekçe oluşturma, belge hazırlama, adım adım rehberlik, kira sözleşmesi, mahkeme kararı, tebligat, artiklo, belge yazma, hukuki metin"
+        keywords="hukuki belge analizi, belge sihirbazı, belge hazırlama, adım adım rehberlik, kira sözleşmesi, mahkeme kararı, tebligat, artiklo, belge yazma, hukuki metin"
         type="website"
       />
 
@@ -118,9 +122,9 @@ const Index = () => {
                 </h1>
                 <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-muted-foreground">
                   Artiklo, karmaşık hukuki belgeleri saniyeler içinde sadeleştirir.
-                  Gerekli durumlarda adım adım rehberlikle profesyonel belgelerinizi
-                  hazırlamanıza yardımcı olur. Ne yapmanız gerektiğini, haklarınızı
-                  ve risklerinizi kolayca öğrenin.
+                  Yakında çıkacak <span className="font-semibold text-primary">Belge Sihirbazı</span> ile
+                  adım adım rehberlikle profesyonel belgelerinizi hazırlayın.
+                  Ne yapmanız gerektiğini, haklarınızı ve risklerinizi kolayca öğrenin.
                 </p>
               </div>
               <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-x-6 animate-fade-in-up" style={{ animationDelay: "200ms" }}>
@@ -166,9 +170,9 @@ const Index = () => {
                 delay={0}
               />
               <FeatureCard
-                icon={PenTool}
-                title="Belge Hazırlama"
-                description="Adım adım rehberlikle profesyonel dilekçeler ve belgeler oluşturun."
+                icon={Wand2}
+                title="🔮 Belge Sihirbazı"
+                description="Yakında! Adım adım rehberlikle profesyonel belgeler oluşturun."
                 delay={100}
               />
               <FeatureCard
@@ -243,7 +247,7 @@ const Index = () => {
                     <div className="flex items-center gap-2">
                       ⭐⭐⭐⭐⭐
                     </div>
-                    <p className="text-foreground">"Adım adım rehberlik ile kira artış itiraz dilekçemi kolayca hazırladım. Çok pratik!"</p>
+                    <p className="text-foreground">"Adım adım rehberlik ile kira artış itiraz belgemi kolayca hazırladım. Çok pratik!"</p>
                     <div className="mt-4">
                       <p className="font-semibold">Mehmet A.</p>
                       <p className="text-sm text-muted-foreground">Ankara</p>
@@ -309,29 +313,115 @@ const Index = () => {
           </div>
         </section>
 
+        {/* Belge Sihirbazı Tanıtım Section */}
+        <section className="py-24 sm:py-32 bg-gradient-to-br from-emerald-50 via-blue-50 to-purple-50">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="mx-auto max-w-4xl text-center mb-16">
+              <div className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-100 to-blue-100 text-purple-800 text-sm font-semibold px-4 py-2 rounded-full mb-6">
+                <Wand2 className="h-4 w-4" />
+                <span>Yakında Geliyor</span>
+              </div>
+              <h2 className="text-4xl font-bold tracking-tight sm:text-5xl mb-6">
+                🔮 <span className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">Belge Sihirbazı</span>
+              </h2>
+              <p className="text-xl text-muted-foreground mb-8">
+                Hukuki belgelerinizi adım adım hazırlama deneyimi artık daha kolay ve güvenli!
+                Artiklo Belge Sihirbazı ile karmaşık prosedürler sihirli bir deneyime dönüşüyor.
+              </p>
+            </div>
+
+            {/* Wizard Özellikleri */}
+            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3 mb-16">
+              <Card className="border-0 bg-white/70 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
+                <CardContent className="p-6 text-center">
+                  <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Target className="h-8 w-8 text-white" />
+                  </div>
+                  <h3 className="text-xl font-semibold mb-3">Adım Adım Rehberlik</h3>
+                  <p className="text-muted-foreground">
+                    Size özel sorularla, hangi belgeye ihtiyacınız olduğunu belirleyip,
+                    adım adım hazırlama sürecinde rehberlik ederiz.
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card className="border-0 bg-white/70 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
+                <CardContent className="p-6 text-center">
+                  <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Zap className="h-8 w-8 text-white" />
+                  </div>
+                  <h3 className="text-xl font-semibold mb-3">Anında Öneriler</h3>
+                  <p className="text-muted-foreground">
+                    Girdiğiniz bilgilere göre otomatik öneriler alın ve
+                    belgelerinizi hukuki standartlara uygun şekilde hazırlayın.
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card className="border-0 bg-white/70 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
+                <CardContent className="p-6 text-center">
+                  <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Star className="h-8 w-8 text-white" />
+                  </div>
+                  <h3 className="text-xl font-semibold mb-3">Premium Deneyim</h3>
+                  <p className="text-muted-foreground">
+                    Gelişmiş yapay zeka teknolojisi ile profesyonel kalitede belgeler,
+                    kullanıcı dostu arayüz ile kolay erişim.
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Beta Kayıt CTA */}
+            <div className="text-center">
+              <Card className="max-w-2xl mx-auto border-2 border-purple-200 bg-gradient-to-r from-purple-50 to-blue-50">
+                <CardContent className="p-8">
+                  <Wand2 className="h-12 w-12 text-purple-600 mx-auto mb-4" />
+                  <h3 className="text-2xl font-bold text-purple-900 mb-4">
+                    Belge Sihirbazı Beta'ya Katılın!
+                  </h3>
+                  <p className="text-purple-700 mb-6">
+                    İlk erişim hakkı kazanın ve özel beta kullanıcısı olarak
+                    yeni özelliği ilk deneyimleyenler arasında yer alın.
+                  </p>
+                  <Button
+                    size="lg"
+                    className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold px-8"
+                    onClick={() => navigate("/wizard-beta")}
+                  >
+                    <Wand2 className="mr-2 h-5 w-5" />
+                    Beta Listesine Katıl
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </section>
+
         {/* Yakında Gelenler Section */}
         <section className="py-24 sm:py-32 bg-gradient-to-br from-blue-50 to-purple-50">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="mx-auto max-w-2xl text-center mb-16">
               <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-                Yakında Gelenler
+                🔮 Belge Sihirbazı Geliyor
               </h2>
               <p className="mt-4 text-lg text-muted-foreground">
-                Adım adım rehberlikle dilekçe ve belgelerinizi kendiniz hazırlayın
+                Adım adım rehberlik ile belgelerinizi profesyonel şekilde kendiniz hazırlayın
               </p>
             </div>
             <div className="grid gap-6 md:gap-8 sm:grid-cols-2 lg:grid-cols-3">
               <Card className="border-2 border-blue-200 bg-white hover:shadow-lg transition-all duration-300">
                 <CardContent className="p-6">
                   <div className="flex items-center gap-2 mb-4">
-                    <FileText className="h-6 w-6 text-blue-600" />
+                    <Wand2 className="h-6 w-6 text-blue-600" />
                     <span className="bg-blue-100 text-blue-700 text-xs font-semibold px-2 py-1 rounded-full">
-                      YAKINDA
+                      WIZARD
                     </span>
                   </div>
                   <h3 className="text-lg font-semibold mb-2">İş Belgeleri</h3>
                   <p className="text-sm text-muted-foreground mb-4">
-                    İş sözleşmesi, fesih dilekçesi gibi belgeleri adım adım hazırlayın
+                    İş sözleşmesi, fesih belgesi gibi belgeleri adım adım hazırlayın
                   </p>
                   <div className="text-xs text-muted-foreground space-y-1">
                     <div>• Şirket ve çalışan bilgileri</div>
@@ -344,9 +434,9 @@ const Index = () => {
               <Card className="border-2 border-purple-200 bg-white hover:shadow-lg transition-all duration-300">
                 <CardContent className="p-6">
                   <div className="flex items-center gap-2 mb-4">
-                    <Users className="h-6 w-6 text-purple-600" />
+                    <Wand2 className="h-6 w-6 text-purple-600" />
                     <span className="bg-purple-100 text-purple-700 text-xs font-semibold px-2 py-1 rounded-full">
-                      YAKINDA
+                      WIZARD
                     </span>
                   </div>
                   <h3 className="text-lg font-semibold mb-2">Kira Belgeleri</h3>
@@ -364,14 +454,14 @@ const Index = () => {
               <Card className="border-2 border-green-200 bg-white hover:shadow-lg transition-all duration-300">
                 <CardContent className="p-6">
                   <div className="flex items-center gap-2 mb-4">
-                    <Gavel className="h-6 w-6 text-green-600" />
+                    <Wand2 className="h-6 w-6 text-green-600" />
                     <span className="bg-green-100 text-green-700 text-xs font-semibold px-2 py-1 rounded-full">
-                      YAKINDA
+                      WIZARD
                     </span>
                   </div>
-                  <h3 className="text-lg font-semibold mb-2">Hukuki Dilekçeler</h3>
+                  <h3 className="text-lg font-semibold mb-2">Hukuki Belgeler</h3>
                   <p className="text-sm text-muted-foreground mb-4">
-                    Şikayet, tazminat talebi gibi dilekçeleri rehberlikle yazın
+                    Şikayet, tazminat talebi gibi belgeleri rehberlikle yazın
                   </p>
                   <div className="text-xs text-muted-foreground space-y-1">
                     <div>• Taraf bilgileri</div>

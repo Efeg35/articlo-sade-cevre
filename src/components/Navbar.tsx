@@ -7,7 +7,7 @@ import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMe
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 
 import { cn } from "@/lib/utils";
-import { Scale, ChevronDown, LogIn, User as UserIcon, Archive, LogOut, Sparkles, FileText, BarChart3, Bell, Menu, TrendingUp } from "lucide-react";
+import { Scale, ChevronDown, LogIn, User as UserIcon, Archive, LogOut, Sparkles, FileText, BarChart3, Bell, Menu, TrendingUp, Wand2 } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 import { useCredits } from "../hooks/useCredits";
 import { Badge } from "@/components/ui/badge";
@@ -169,16 +169,15 @@ const Navbar = () => {
                           Dashboard
                         </Button>
                       </Link>
-                      <Link to="/templates">
-                        <Button
-                          variant={isTemplates ? "default" : "ghost"}
-                          size="sm"
-                          className="text-sm font-medium flex items-center gap-1"
-                        >
-                          <FileText className="h-4 w-4" />
-                          Şablonlar
-                        </Button>
-                      </Link>
+                      <Button
+                        disabled
+                        size="sm"
+                        className="text-sm font-medium flex items-center gap-1 opacity-50 cursor-not-allowed"
+                        title="Yakında gelecek!"
+                      >
+                        <Wand2 className="h-4 w-4" />
+                        Belge Sihirbazı
+                      </Button>
                       <Link to="/archive">
                         <Button
                           variant={isArchive ? "default" : "ghost"}
@@ -214,11 +213,11 @@ const Navbar = () => {
                           Dashboard
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          onSelect={() => navigate("/templates")}
-                          className="cursor-pointer"
+                          disabled
+                          className="cursor-not-allowed opacity-50"
                         >
-                          <FileText className="w-4 h-4 mr-2" />
-                          Şablonlar
+                          <Wand2 className="w-4 h-4 mr-2" />
+                          Belge Sihirbazı (Yakında)
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onSelect={() => navigate("/archive")}

@@ -102,7 +102,7 @@ const Auth = () => {
               title: "Başarılı!",
               description: "Giriş yapıldı, panele yönlendiriliyorsunuz.",
             });
-            navigate("/dashboard");
+            navigate("/intent-selection");
             return;
           }
 
@@ -118,7 +118,7 @@ const Auth = () => {
                 title: "Başarılı!",
                 description: "Giriş yapıldı, panele yönlendiriliyorsunuz.",
               });
-              navigate("/dashboard");
+              navigate("/intent-selection");
             }
           });
 
@@ -153,7 +153,7 @@ const Auth = () => {
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        navigate("/dashboard");
+        navigate("/intent-selection");
       }
     };
     checkUser();
@@ -221,7 +221,7 @@ const Auth = () => {
           password: sanitizedPassword
         });
       } else {
-        const redirectUrl = `${window.location.origin}/dashboard`;
+        const redirectUrl = `${window.location.origin}/intent-selection`;
         response = await supabase.auth.signUp({
           email: sanitizedEmail,
           password: sanitizedPassword,
@@ -281,7 +281,7 @@ const Auth = () => {
           title: "Başarılı!",
           description: "Giriş yapıldı, panele yönlendiriliyorsunuz.",
         });
-        navigate("/dashboard");
+        navigate("/intent-selection");
       } else {
         Logger.warn('Auth', 'No session created after auth');
       }
@@ -379,7 +379,7 @@ const Auth = () => {
             title: "Başarılı!",
             description: "Google ile giriş yapıldı, panele yönlendiriliyorsunuz.",
           });
-          navigate("/dashboard");
+          navigate("/intent-selection");
         }
       } else {
         Logger.error('Auth', 'Platform detection failed', {
@@ -445,14 +445,14 @@ const Auth = () => {
             title: "Başarılı!",
             description: "Apple ID ile giriş yapıldı, panele yönlendiriliyorsunuz.",
           });
-          navigate("/dashboard");
+          navigate("/intent-selection");
         }
       } else {
         // Web - OAuth redirect flow
         const { error } = await supabase.auth.signInWithOAuth({
           provider: 'apple',
           options: {
-            redirectTo: `${window.location.origin}/dashboard`,
+            redirectTo: `${window.location.origin}/intent-selection`,
             queryParams: {
               scope: 'name email',
               response_mode: 'form_post',

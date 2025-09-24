@@ -26,7 +26,9 @@ import Footer from "./components/Footer";
 // Lazy loaded pages - route-based code splitting
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const ArchivePage = lazy(() => import("./pages/ArchivePage"));
-const TemplatesPage = lazy(() => import("./pages/TemplatesPage").then(module => ({ default: module.TemplatesPage })));
+const IntentSelectionPage = lazy(() => import("./pages/IntentSelectionPage"));
+const WizardBetaPage = lazy(() => import("./pages/WizardBetaPage"));
+const WizardPage = lazy(() => import("./pages/WizardPage"));
 const NotificationSettingsPage = lazy(() => import("./pages/NotificationSettingsPage"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 
@@ -58,8 +60,9 @@ const Iletisim = lazy(() => import("./pages/Iletisim"));
 const MobileOnboarding = lazy(() => import("./pages/MobileOnboarding"));
 const MobileWelcome = lazy(() => import("./pages/MobileWelcome"));
 
-// Test page
+// Test pages
 const TestPage = lazy(() => import("./pages/TestPage"));
+const DynamicWizardDemo = lazy(() => import("./pages/DynamicWizardDemo"));
 
 // Guide pages
 const RehberPage = lazy(() => import("./pages/RehberPage"));
@@ -99,7 +102,7 @@ const getPlatformInfo = () => {
 const MainLayout = () => {
   const location = useLocation();
   const hideNavbarOnPages = ['/splash', '/onboarding-mobil', '/auth', '/login', '/signup'];
-  const hideFooterOnPages = ['/splash', '/onboarding-mobil', '/auth', '/login', '/signup', '/dashboard', '/archive', '/templates', '/notifications', '/admin'];
+  const hideFooterOnPages = ['/splash', '/onboarding-mobil', '/auth', '/login', '/signup', '/dashboard', '/archive', '/notifications', '/admin', '/intent-selection', '/wizard-beta', '/wizard', '/dynamic-wizard-demo'];
   const shouldHideNavbar = hideNavbarOnPages.includes(location.pathname);
   const shouldHideFooter = hideFooterOnPages.some(page => location.pathname.startsWith(page));
 
@@ -276,11 +279,11 @@ const AppContent = () => {
       pathname: location.pathname
     });
 
-    // Sadece auth sayfasında olup da session geldiğinde dashboard'a yönlendir
+    // Sadece auth sayfasında olup da session geldiğinde intent selection'a yönlendir
     // Diğer durumlarda kullanıcıyı bulunduğu sayfada bırak
     if (session && location.pathname === '/auth') {
-      Logger.log('AppContent', 'User authenticated from auth page, redirecting to dashboard');
-      navigate('/dashboard', { replace: true });
+      Logger.log('AppContent', 'User authenticated from auth page, redirecting to intent selection');
+      navigate('/intent-selection', { replace: true });
     }
   }, [session, location.pathname, navigate]);
 
@@ -333,11 +336,29 @@ const AppContent = () => {
                 </ProtectedRoute>
               </ErrorBoundary>
             } />
-            <Route path="/templates" element={
-              <ErrorBoundary componentName="Templates">
+            <Route path="/intent-selection" element={
+              <ErrorBoundary componentName="IntentSelection">
                 <ProtectedRoute>
                   <Suspense fallback={<PageLoader />}>
-                    <TemplatesPage />
+                    <IntentSelectionPage />
+                  </Suspense>
+                </ProtectedRoute>
+              </ErrorBoundary>
+            } />
+            <Route path="/wizard-beta" element={
+              <ErrorBoundary componentName="WizardBeta">
+                <ProtectedRoute>
+                  <Suspense fallback={<PageLoader />}>
+                    <WizardBetaPage />
+                  </Suspense>
+                </ProtectedRoute>
+              </ErrorBoundary>
+            } />
+            <Route path="/wizard" element={
+              <ErrorBoundary componentName="Wizard">
+                <ProtectedRoute>
+                  <Suspense fallback={<PageLoader />}>
+                    <WizardPage />
                   </Suspense>
                 </ProtectedRoute>
               </ErrorBoundary>
@@ -431,6 +452,11 @@ const AppContent = () => {
 
           {/* Navbar'ın görünmeyeceği, tam ekran sayfalar */}
           <Route path="/test" element={<TestPage />} />
+          <Route path="/dynamic-wizard-demo" element={
+            <Suspense fallback={<PageLoader />}>
+              <DynamicWizardDemo />
+            </Suspense>
+          } />
           <Route path="/splash" element={<SplashScreen />} />
           <Route path="/onboarding-mobil" element={
             <Suspense fallback={<PageLoader />}>

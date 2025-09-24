@@ -76,6 +76,7 @@ export const PersonalizationScreen: React.FC<PersonalizationScreenProps> = ({ on
             clearInterval(interval);
             clearInterval(phaseInterval);
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const personalizationMessage = getPersonalizationMessage();

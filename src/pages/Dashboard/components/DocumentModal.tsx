@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Capacitor } from "@capacitor/core";
 import {
     Dialog,
@@ -15,6 +15,10 @@ import { Document, Packer, Paragraph, TextRun } from 'docx';
 import { useToast } from "@/hooks/use-toast";
 import { useSupabaseClient, useSession } from '@supabase/auth-helpers-react';
 import { Logger } from "@/utils/logger";
+import { DisclaimerModal } from "@/components/DisclaimerModal";
+import { DocumentWarning } from "@/components/DocumentWarning";
+import { RiskDetectionService, RiskAssessment } from "@/services/riskDetection";
+import { DisclaimerService } from "@/services/disclaimer";
 
 interface DocumentModalProps {
     isOpen: boolean;
@@ -38,6 +42,11 @@ export const DocumentModal: React.FC<DocumentModalProps> = ({
     const session = useSession();
     const user = session?.user || null;
     const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    // Hukuki koruma state'leri
+    const [showDisclaimerModal, setShowDisclaimerModal] = useState(false);
+    const [riskAssessment, setRiskAssessment] = useState<RiskAssessment | null>(null);
+    const [pendingDownloadAction, setPendingDownloadAction] = useState<(() => void) | null>(null);
 
     // ✅ Auto-save belge düzenlenirken
     useEffect(() => {
@@ -90,6 +99,20 @@ export const DocumentModal: React.FC<DocumentModalProps> = ({
         };
     }, [draftedText, user, supabase]);
 
+    // Risk değerlendirmesi yap
+    useEffect(() => {
+        if (draftedText && draftedText.trim()) {
+            const assessment = RiskDetectionService.assessRisk(draftedText, "belge");
+            setRiskAssessment(assessment);
+
+            Logger.log('DocumentModal', 'Risk assessment completed', {
+                level: assessment.level,
+                score: assessment.score,
+                triggersCount: assessment.triggers.length
+            });
+        }
+    }, [draftedText]);
+
     const handleCopyDraft = async () => {
         try {
             await navigator.clipboard.writeText(draftedText);
@@ -106,9 +129,29 @@ export const DocumentModal: React.FC<DocumentModalProps> = ({
         }
     };
 
-    const handleDownload = async () => {
+    // Disclaimer modal açma fonksiyonu
+    const handleRequestDownload = () => {
+        if (!user || !draftedText.trim()) {
+            toast({
+                title: "Hata",
+                description: "İndirilecek belge bulunamadı.",
+                variant: "destructive"
+            });
+            return;
+        }
+
+        // İndirme işlemini pending olarak ayarla
+        setPendingDownloadAction(() => performActualDownload);
+        setShowDisclaimerModal(true);
+    };
+
+    // Gerçek indirme işlemi (disclaimer onaylandıktan sonra)
+    const performActualDownload = async () => {
         try {
-            const paragraphs = draftedText.split('\n').filter(line => line.trim() !== '');
+            // Belgeye watermark ve uyarıları ekle
+            const documentWithWarnings = DisclaimerService.addDocumentWatermark(draftedText);
+
+            const paragraphs = documentWithWarnings.split('\n').filter(line => line.trim() !== '');
 
             const doc = new Document({
                 sections: [{
@@ -146,13 +189,30 @@ export const DocumentModal: React.FC<DocumentModalProps> = ({
                 description: "Word belgesi indiriliyor.",
             });
         } catch (error) {
-            console.error('Word document creation error', error);
+            Logger.error('DocumentModal', 'Document download error', error);
             toast({
                 title: "Hata",
                 description: "Word belgesi oluşturulurken bir hata oluştu.",
                 variant: "destructive"
             });
         }
+    };
+
+    // Disclaimer onaylandıktan sonra
+    const handleDisclaimerAccept = () => {
+        setShowDisclaimerModal(false);
+
+        // Pending action varsa çalıştır
+        if (pendingDownloadAction) {
+            pendingDownloadAction();
+            setPendingDownloadAction(null);
+        }
+    };
+
+    // Disclaimer iptal edildiğinde
+    const handleDisclaimerCancel = () => {
+        setShowDisclaimerModal(false);
+        setPendingDownloadAction(null);
     };
 
     return (
@@ -171,6 +231,19 @@ export const DocumentModal: React.FC<DocumentModalProps> = ({
                         Aşağıdaki metni inceleyebilir, düzenleyebilir, kopyalayabilir veya indirebilirsiniz.
                     </DialogDescription>
                 </DialogHeader>
+
+                <div className="space-y-4">
+                    {/* Hukuki Uyarı */}
+                    {draftedText && riskAssessment && (
+                        <DocumentWarning
+                            documentType="belge"
+                            content={draftedText}
+                            riskAssessment={riskAssessment}
+                            variant="modal"
+                            className="mb-4"
+                        />
+                    )}
+                </div>
 
                 <div className={`flex-1 ${Capacitor.isNativePlatform() ? 'p-2 md:p-3' : 'p-3 md:p-6'} bg-white border rounded-lg shadow-sm overflow-hidden flex flex-col`}>
                     {draftedText === '' ? (
@@ -221,18 +294,6 @@ export const DocumentModal: React.FC<DocumentModalProps> = ({
                 </div>
 
                 <div className="flex-shrink-0 space-y-4">
-                    <div className={`text-xs text-muted-foreground ${Capacitor.isNativePlatform() ? 'px-1 py-2' : 'px-2 py-3'} bg-yellow-50 border border-yellow-200 rounded-lg`}>
-                        <div className="font-semibold text-yellow-800 mb-2 flex items-center gap-1">
-                            ⚠️ ÖNEMLİ YASAL UYARI
-                        </div>
-                        <div className="space-y-1 text-yellow-700">
-                            <p>• Bu belge <strong>yalnızca bilgilendirme amaçlıdır</strong> ve hiçbir şekilde hukuki danışmanlık, tavsiye veya görüş niteliği taşımaz.</p>
-                            <p>• <strong>Yapay Zeka hata yapabilir:</strong> Bu içerik AI tarafından üretilmiştir ve yanlış, eksik veya güncel olmayan bilgiler içerebilir.</p>
-                            <p>• <strong>Profesyonel Destek Gerekli:</strong> Herhangi bir yasal karar almadan, işlem yapmadan veya bu belgeyi kullanmadan önce mutlaka kalifiye bir hukuk uzmanına (avukata) danışın.</p>
-                            <p>• <strong>Sorumluluk Reddi:</strong> Bu belgenin kullanımından doğabilecek her türlü zarar, kayıp veya sorumluluk tamamen kullanıcıya aittir.</p>
-                        </div>
-                    </div>
-
                     <DialogFooter className={`flex flex-col justify-between pt-2 border-t gap-2 ${Capacitor.isNativePlatform() ? 'space-y-2' : 'sm:flex-row items-start sm:items-center pt-4 gap-3'}`}>
                         <div className="w-full">
                             {editMode ? (
@@ -249,7 +310,7 @@ export const DocumentModal: React.FC<DocumentModalProps> = ({
                             <Button variant="outline" size="sm" onClick={handleCopyDraft} className="w-full">
                                 📋 Panoya Kopyala
                             </Button>
-                            <Button variant="secondary" size="sm" onClick={handleDownload} className="w-full">
+                            <Button variant="secondary" size="sm" onClick={handleRequestDownload} className="w-full">
                                 📥 İndir (.docx)
                             </Button>
                             <Button onClick={onClose} size="sm" className="w-full">
@@ -259,6 +320,19 @@ export const DocumentModal: React.FC<DocumentModalProps> = ({
                     </DialogFooter>
                 </div>
             </DialogContent>
+
+            {/* Disclaimer Modal */}
+            {user && (
+                <DisclaimerModal
+                    isOpen={showDisclaimerModal}
+                    onClose={handleDisclaimerCancel}
+                    onAccept={handleDisclaimerAccept}
+                    documentType="belge"
+                    documentContent={draftedText}
+                    userId={user.id}
+                    riskLevel={riskAssessment?.level}
+                />
+            )}
         </Dialog>
     );
 };

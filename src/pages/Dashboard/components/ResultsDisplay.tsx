@@ -14,6 +14,8 @@ import {
     BrainCircuit, ArrowRight, ListChecks, FileJson, Loader2
 } from "lucide-react";
 import { AnalysisResponse, Entity, LoadingState } from '../types';
+import { DocumentWarning } from '@/components/DocumentWarning';
+import { RiskDetectionService } from '@/services/riskDetection';
 
 interface ResultsDisplayProps {
     // Analysis data
@@ -57,6 +59,10 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
         const textToCopy = analysisResult?.simplifiedText || simplifiedText;
         await onCopy(textToCopy);
     };
+
+    // Risk değerlendirmesi yap (yeni analiz sistemi için)
+    const documentContent = analysisResult?.simplifiedText || simplifiedText || '';
+    const riskAssessment = documentContent ? RiskDetectionService.assessRisk(documentContent, analysisResult?.documentType) : null;
 
     if (analysisResult) {
         return (
@@ -293,22 +299,14 @@ export const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                     </Card>
                 )}
 
-                {/* ÖNEMLİ YASAL UYARI - Ana Dashboard Sonuçları İçin */}
-                <Card className="border-yellow-300 shadow-sm bg-yellow-50">
-                    <CardContent className="p-4">
-                        <div className="text-xs text-yellow-800">
-                            <div className="font-semibold text-yellow-900 mb-2 flex items-center gap-1">
-                                ⚠️ ÖNEMLİ YASAL UYARI
-                            </div>
-                            <div className="space-y-1 text-yellow-700">
-                                <p>• Bu analiz <strong>yalnızca bilgilendirme amaçlıdır</strong> ve hiçbir şekilde hukuki danışmanlık, tavsiye veya görüş niteliği taşımaz.</p>
-                                <p>• <strong>Yapay Zeka hata yapabilir:</strong> Bu içerik AI tarafından üretilmiştir ve yanlış, eksik veya güncel olmayan bilgiler içerebilir.</p>
-                                <p>• <strong>Profesyonel Destek Gerekli:</strong> Herhangi bir yasal karar almadan, işlem yapmadan veya bu analizi kullanmadan önce mutlaka kalifiye bir hukuk uzmanına (avukata) danışın.</p>
-                                <p>• <strong>Sorumluluk Reddi:</strong> Bu analizin kullanımından doğabilecek her türlü zarar, kayıp veya sorumluluk tamamen kullanıcıya aittir.</p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
+                {/* Entegre Hukuki Uyarı Sistemi */}
+                <DocumentWarning
+                    documentType={analysisResult?.documentType}
+                    content={documentContent}
+                    riskLevel={riskAssessment?.level}
+                    riskAssessment={riskAssessment}
+                    variant="inline"
+                />
             </div>
         );
     }
