@@ -1,0 +1,61 @@
+{
+    "compilerOptions": {
+        "allowJs": true,
+        "strict": true,
+        "noImplicitAny": true,
+        "strictNullChecks": true,
+        "strictFunctionTypes": true,
+        "noImplicitReturns": true,
+        "noImplicitThis": true,
+        "noImplicitOverride": true,
+        "exactOptionalPropertyTypes": true,
+        "noUncheckedIndexedAccess": true,
+        "noPropertyAccessFromIndexSignature": true,
+        "target": "ES2022",
+        "lib": [
+            "ES2022",
+            "DOM"
+        ],
+        "jsx": "react-jsx"
+    },
+    "imports": {
+        "https://deno.land/std/": "https://deno.land/std@0.168.0/",
+        "supabase": "https://esm.sh/@supabase/supabase-js@2.38.0"
+    },
+    "tasks": {
+        "dev": "deno run --allow-net --allow-read --allow-env index.ts",
+        "serve": "deno run --allow-net --allow-read --allow-env --allow-write index.ts"
+    },
+    "fmt": {
+        "files": {
+            "include": [
+                "index.ts"
+            ],
+            "exclude": [
+                "node_modules/"
+            ]
+        },
+        "options": {
+            "useTabs": false,
+            "lineWidth": 100,
+            "indentWidth": 2,
+            "singleQuote": true,
+            "proseWrap": "preserve"
+        }
+    },
+    "lint": {
+        "files": {
+            "include": [
+                "index.ts"
+            ],
+            "exclude": [
+                "node_modules/"
+            ]
+        },
+        "rules": {
+            "tags": [
+                "recommended"
+            ]
+        }
+    }
+}

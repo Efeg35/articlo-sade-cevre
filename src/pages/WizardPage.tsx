@@ -174,166 +174,113 @@ export default function WizardPage() {
                             </CardContent>
                         </Card>
 
-                        {/* Generated document preview */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <Scale className="h-5 w-5 text-blue-600" />
-                                    Profesyonel Hukuki Belge
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                {generatedDocument?.success && generatedDocument.content ? (
-                                    <>
-                                        {/* Document metadata */}
-                                        {generatedDocument.metadata && (
-                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                                                <div className="bg-blue-50 p-4 rounded-lg">
-                                                    <div className="flex items-center gap-2 mb-2">
-                                                        <FileText className="h-4 w-4 text-blue-600" />
-                                                        <span className="font-semibold text-blue-900">Belge Türü</span>
-                                                    </div>
-                                                    <p className="text-sm text-blue-700">{generatedDocument.metadata.documentType}</p>
-                                                </div>
+                        {/* Professional Document Display */}
+                        {generatedDocument?.success && generatedDocument.content ? (
+                            <>
+                                {/* Action buttons - moved to top */}
+                                <div className="flex flex-wrap gap-3 mb-6 justify-center">
+                                    <Button
+                                        size="lg"
+                                        onClick={handleDownloadDocument}
+                                        className="bg-green-600 hover:bg-green-700"
+                                    >
+                                        <Download className="mr-2 h-4 w-4" />
+                                        Belgeyi İndir
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        size="lg"
+                                        onClick={handlePreviewDocument}
+                                    >
+                                        <FileText className="mr-2 h-4 w-4" />
+                                        Yeni Sekmede Aç
+                                    </Button>
+                                    <Button variant="outline" onClick={handleStartNew}>
+                                        🧙‍♂️ Yeni Wizard Başlat
+                                    </Button>
+                                </div>
 
-                                                <div className="bg-purple-50 p-4 rounded-lg">
-                                                    <div className="flex items-center gap-2 mb-2">
-                                                        <User className="h-4 w-4 text-purple-600" />
-                                                        <span className="font-semibold text-purple-900">Taraflar</span>
-                                                    </div>
-                                                    <p className="text-xs text-purple-700">
-                                                        {generatedDocument.metadata.parties.applicant || 'Başvurucu'} vs {generatedDocument.metadata.parties.defendant || 'Karşı Taraf'}
-                                                    </p>
-                                                </div>
-
-                                                <div className="bg-green-50 p-4 rounded-lg">
-                                                    <div className="flex items-center gap-2 mb-2">
-                                                        <Calendar className="h-4 w-4 text-green-600" />
-                                                        <span className="font-semibold text-green-900">Oluşturma</span>
-                                                    </div>
-                                                    <p className="text-sm text-green-700">{generatedDocument.metadata.createdDate}</p>
-                                                    <p className="text-xs text-green-600">No: {generatedDocument.metadata.caseNumber}</p>
-                                                </div>
+                                {/* Professional Document View - Full Screen */}
+                                <div className="bg-white border border-gray-200 shadow-xl rounded-lg overflow-hidden">
+                                    {/* Document Header */}
+                                    <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4">
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <h2 className="text-xl font-bold flex items-center gap-2">
+                                                    <Scale className="h-6 w-6" />
+                                                    {selectedTemplate.name}
+                                                </h2>
+                                                <p className="text-blue-100 text-sm mt-1">
+                                                    Dosya: {generatedDocument.filename} | {generatedDocument.metadata?.createdDate}
+                                                </p>
                                             </div>
-                                        )}
-
-                                        <div className="bg-muted/30 border rounded-lg mb-4">
-                                            {/* Document header */}
-                                            <div className="border-b border-muted/50 p-4 bg-muted/50 rounded-t-lg">
-                                                <div className="flex items-center justify-between">
-                                                    <div>
-                                                        <h3 className="font-bold text-lg flex items-center gap-2">
-                                                            <Scale className="h-5 w-5 text-blue-600" />
-                                                            {selectedTemplate.name}
-                                                        </h3>
-                                                        <p className="text-sm text-muted-foreground">
-                                                            Dosya: {generatedDocument.filename}
-                                                        </p>
-                                                    </div>
-                                                    <div className="text-right text-sm text-muted-foreground">
-                                                        <div className="font-semibold text-green-600">✅ PROFESYONEL KALİTE</div>
-                                                        <div>{Math.round((generatedDocument.content?.length || 0) / 1000)}KB • {(generatedDocument.content?.split('\n').length || 0)} satır</div>
-                                                    </div>
+                                            <div className="text-right">
+                                                <div className="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                                                    ✓ PROFESYONEL KALİTE
                                                 </div>
-                                            </div>
-
-                                            {/* Legal basis section */}
-                                            {generatedDocument.metadata?.legalBasis && generatedDocument.metadata.legalBasis.length > 0 && (
-                                                <div className="p-4 bg-blue-50 border-b">
-                                                    <h4 className="font-semibold text-blue-900 mb-2 flex items-center gap-2">
-                                                        <Scale className="h-4 w-4" />
-                                                        Yasal Dayanaklar
-                                                    </h4>
-                                                    <ul className="text-sm text-blue-700 space-y-1">
-                                                        {generatedDocument.metadata.legalBasis.slice(0, 3).map((basis, index) => (
-                                                            <li key={index} className="flex items-start gap-2">
-                                                                <span className="text-blue-500 mt-1">•</span>
-                                                                <span>{basis}</span>
-                                                            </li>
-                                                        ))}
-                                                    </ul>
-                                                </div>
-                                            )}
-
-                                            {/* Document preview */}
-                                            <div className="p-4">
-                                                <div className="bg-white p-6 rounded border shadow-sm max-h-96 overflow-y-auto">
-                                                    <pre className="whitespace-pre-wrap text-sm leading-relaxed font-serif">
-                                                        {generatedDocument.content.substring(0, 2000)}
-                                                        {(generatedDocument.content?.length || 0) > 2000 && (
-                                                            <div className="text-muted-foreground mt-4 italic">
-                                                                ... (kalan {(generatedDocument.content?.length || 0) - 2000} karakter)
-                                                                <br />
-                                                                <span className="text-blue-600">Tam belgeyi görüntülemek için "Tam Boyut Görüntüle" butonunu kullanın</span>
-                                                            </div>
-                                                        )}
-                                                    </pre>
-                                                </div>
+                                                <p className="text-blue-100 text-xs mt-1">
+                                                    {Math.round((generatedDocument.content?.length || 0) / 1000)}KB • {(generatedDocument.content?.split('\n').length || 0)} satır
+                                                </p>
                                             </div>
                                         </div>
-
-                                        <DocumentWarning
-                                            documentType={selectedTemplate.name}
-                                            riskLevel="medium"
-                                            variant="inline"
-                                        />
-
-                                        {/* Action buttons */}
-                                        <div className="flex flex-wrap gap-3 mt-6">
-                                            <Button
-                                                size="lg"
-                                                onClick={handleDownloadDocument}
-                                                className="bg-green-600 hover:bg-green-700"
-                                            >
-                                                <Download className="mr-2 h-4 w-4" />
-                                                Profesyonel Belgeyi İndir
-                                            </Button>
-                                            <Button
-                                                variant="outline"
-                                                size="lg"
-                                                onClick={handlePreviewDocument}
-                                            >
-                                                <FileText className="mr-2 h-4 w-4" />
-                                                Tam Boyut Görüntüle
-                                            </Button>
-                                            <Button
-                                                variant="outline"
-                                                size="lg"
-                                                disabled
-                                                className="opacity-50"
-                                            >
-                                                📧 E-posta Gönder (Yakında)
-                                            </Button>
-                                            <Button variant="outline" onClick={handleStartNew}>
-                                                🧙‍♂️ Yeni Wizard Başlat
-                                            </Button>
-                                        </div>
-                                    </>
-                                ) : (
-                                    <div className="text-center py-8">
-                                        {generatedDocument?.error ? (
-                                            <div className="text-red-600">
-                                                <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                                                <p className="font-semibold">Belge Oluşturma Hatası</p>
-                                                <p className="text-sm mt-2">{generatedDocument.error}</p>
-                                                <Button
-                                                    variant="outline"
-                                                    className="mt-4"
-                                                    onClick={handleStartNew}
-                                                >
-                                                    Tekrar Dene
-                                                </Button>
-                                            </div>
-                                        ) : (
-                                            <div className="text-muted-foreground">
-                                                <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                                                <p>Belge henüz oluşturulmadı. Lütfen wizard'ı tamamlayın.</p>
-                                            </div>
-                                        )}
                                     </div>
-                                )}
-                            </CardContent>
-                        </Card>
+
+                                    {/* Document Content - Word-like styling */}
+                                    <div className="p-8 bg-white min-h-[800px]" style={{
+                                        fontFamily: 'Times New Roman, serif',
+                                        lineHeight: '1.6',
+                                        color: '#000000'
+                                    }}>
+                                        <pre className="whitespace-pre-wrap text-[14px] leading-7 font-serif text-black">
+                                            {generatedDocument.content}
+                                        </pre>
+                                    </div>
+
+                                    {/* Document Footer */}
+                                    <div className="bg-gray-50 border-t p-4 text-center text-sm text-gray-600">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <Scale className="h-4 w-4 text-blue-600" />
+                                                <span>Artiklo Profesyonel Belge Sistemi</span>
+                                            </div>
+                                            <div>
+                                                Belge No: {generatedDocument.metadata?.caseNumber} | {generatedDocument.metadata?.createdDate}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <DocumentWarning
+                                    documentType={selectedTemplate.name}
+                                    riskLevel="medium"
+                                    variant="inline"
+                                />
+                            </>
+                        ) : (
+                            <Card>
+                                <CardContent className="text-center py-12">
+                                    {generatedDocument?.error ? (
+                                        <div className="text-red-600">
+                                            <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                                            <p className="font-semibold">Belge Oluşturma Hatası</p>
+                                            <p className="text-sm mt-2">{generatedDocument.error}</p>
+                                            <Button
+                                                variant="outline"
+                                                className="mt-4"
+                                                onClick={handleStartNew}
+                                            >
+                                                Tekrar Dene
+                                            </Button>
+                                        </div>
+                                    ) : (
+                                        <div className="text-muted-foreground">
+                                            <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                                            <p>Belge henüz oluşturulmadı. Lütfen wizard'ı tamamlayın.</p>
+                                        </div>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        )}
 
                         {/* Debug info for development */}
                         {process.env.NODE_ENV === 'development' && (

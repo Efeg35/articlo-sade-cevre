@@ -60,6 +60,10 @@ export class ProfessionalDocumentGenerator {
             return this.generateRentDisputePetition(answers);
         }
 
+        if (template.id === 'simple-kira-sozlesmesi-v1') {
+            return this.generateProfessionalRentalAgreement(answers);
+        }
+
         return this.generateDefaultLegalDocument(template, answers);
     }
 
@@ -226,6 +230,193 @@ Belge No: ${caseNumber} | Oluşturma: ${documentDate} ${documentTime}
     }
 
     /**
+     * Generate professional rental agreement (LawDepot quality)
+     */
+    private static generateProfessionalRentalAgreement(answers: WizardAnswers): string {
+        const kiracı = answers.step1 || {};
+        const evSahibi = answers.step2 || {};
+        const evBilgi = answers.step3 || {};
+        const sözleşme = answers.step4 || {};
+
+        const today = new Date();
+        const documentDate = today.toLocaleDateString('tr-TR');
+        const documentTime = today.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+        const caseNumber = this.generateCaseNumber();
+
+        // Calculate end date based on contract duration
+        const startDate = sözleşme.baslangic_tarihi ? new Date(sözleşme.baslangic_tarihi as string) : new Date();
+        const endDate = this.calculateContractEndDate(startDate, sözleşme.sozlesme_suresi as string);
+
+        return `
+                                    KİRA SÖZLEŞMESİ
+                          (6098 Sayılı Türk Borçlar Kanunu md. 299-356)
+
+SÖZLEŞME NO: ${caseNumber}
+DÜZENLEME TARİHİ: ${documentDate} ${documentTime}
+
+═══════════════════════════════════════════════════════════════════
+
+                                    TARAFLAR
+
+KIRALAYAN (EV SAHİBİ):
+
+Ad Soyad        : ${evSahibi.ev_sahibi_ad || '[EV SAHİBİ ADI SOYADI]'}
+T.C. Kimlik No  : ${evSahibi.ev_sahibi_tc || '[TC KİMLİK NO]'}
+Telefon         : ${evSahibi.ev_sahibi_telefon || '[TELEFON]'}
+Adres           : [KIRALAYAN ADRESİ]
+
+KİRACI (KİRALANAN):
+
+Ad Soyad        : ${kiracı.kiraci_ad || '[KİRACI ADI SOYADI]'}
+T.C. Kimlik No  : ${kiracı.kiraci_tc || '[TC KİMLİK NO]'}
+Telefon         : ${kiracı.kiraci_telefon || '[TELEFON]'}
+${kiracı.kiraci_email ? `E-posta         : ${kiracı.kiraci_email}` : 'E-posta         : [E-POSTA]'}
+
+═══════════════════════════════════════════════════════════════════
+
+                          KIRALANAN TAŞINMAZIN ÖZELLİKLERİ
+
+MADDE 1 - TAŞINMAZ BİLGİLERİ
+
+1.1. Kiralanan Taşınmaz: ${evBilgi.ev_adresi || '[TAŞINMAZ ADRESİ]'}
+
+1.2. Taşınmazın Niteliği: Konut olarak kullanılmak üzere kiralanmıştır.
+
+1.3. Taşınmaz Durumu: Taşınmaz kira sözleşmesi imzalandığı tarihte kullanıma hazır ve
+     oturmaya elverişli durumdadır.
+
+1.4. Teslim Şekli: Taşınmaz mevcut hali ile teslim edilmiş olup, kiracı tarafından
+     ayıpsız olarak kabul edilmiştir.
+
+═══════════════════════════════════════════════════════════════════
+
+                              SÖZLEŞME SÜRESİ VE KOŞULLARI
+
+MADDE 2 - SÜRE VE GEÇERLİLİK
+
+2.1. Sözleşme Başlangıcı: ${this.formatDate(sözleşme.baslangic_tarihi)}
+2.2. Sözleşme Süresi: ${this.formatContractDuration(sözleşme.sozlesme_suresi)}
+${endDate ? `2.3. Sözleşme Bitişi: ${endDate.toLocaleDateString('tr-TR')} (Bu tarih dahil)` : ''}
+
+2.4. Bu sözleşme, yukarıda belirtilen süre boyunca geçerli olup, sürenin bitiminde
+     tarafların anlaşması halinde yenilenebilir.
+
+MADDE 3 - KİRA BEDELİ VE ÖDEME KOŞULLARI
+
+3.1. Aylık Kira Bedeli: ${this.formatCurrency(evBilgi.kira_bedeli)} TL
+
+3.2. Ödeme Zamanı: Kira bedeli her ayın başında, ayın ilk gününden itibaren
+     en geç 5 (beş) gün içinde ödenecektir.
+
+3.3. Ödeme Şekli: Kira bedeli nakit, havale/EFT veya çek ile ödenebilir.
+     Ödeme makbuzunun düzenli olarak alınması esastır.
+
+${evBilgi.depozito ? `3.4. Depozito: ${this.formatCurrency(evBilgi.depozito)} TL depozito alınmış olup,
+     bu tutar sözleşme sona erdiğinde, taşınmazda herhangi bir hasar ve
+     eksiklik bulunmaması halinde iade edilecektir.` : ''}
+
+MADDE 4 - KİRA ARTIŞI
+
+4.1. Kira Artış Oranı: ${this.formatRentIncreaseType(evBilgi.kira_artis_orani)}
+
+4.2. Artış Zamanı: Kira artışı sözleşmenin yıldönümünde uygulanacak olup,
+     yasal sınırlar çerçevesinde gerçekleştirilecektir.
+
+4.3. Yasal Çerçeve: Kira artışı, 6570 sayılı Kanun ve TBK md. 344 hükümleri
+     çerçevesinde yapılacaktır.
+
+═══════════════════════════════════════════════════════════════════
+
+                               TARAFLARIN YÜKÜMLÜLÜKLERİ
+
+MADDE 5 - KİRACI'NIN YÜKÜMLÜLÜKLERİ
+
+5.1. Kira bedelini zamanında ve eksiksiz ödemek,
+5.2. Taşınmazı özenli bir şekilde kullanmak ve korumak,
+5.3. Taşınmazda izinsiz tadilat yapmamak,
+5.4. Taşınmazın kullanım amacını değiştirmemek,
+5.5. Aidat, elektrik, su, doğalgaz, internet vb. faturalarını ödemek,
+5.6. Komşuluk ilişkilerine uymak ve rahatsızlık vermemek.
+
+MADDE 6 - KİRALAYAN'IN YÜKÜMLÜLÜKLERİ
+
+6.1. Taşınmazı sözleşme gereği kullandırmak,
+6.2. Taşınmazın önemli onarımlarını yapmak,
+6.3. Vergi, sigorta ve yapı ruhsatı giderlerini karşılamak,
+6.4. Taşınmazın hukuki durumunu güvence altında tutmak.
+
+═══════════════════════════════════════════════════════════════════
+
+                                  ÖZEL ŞARTLAR
+
+MADDE 7 - EK HÜKÜMLER
+
+${sözleşme.ozel_sartlar ?
+                `7.1. Özel Koşullar: ${sözleşme.ozel_sartlar}` :
+                '7.1. Bu sözleşmede belirtilmeyen hususlarda Türk Borçlar Kanunu hükümleri geçerlidir.'}
+
+7.2. Sözleşme Feshi: Taraflardan birinin sözleşme hükümlerini ihlal etmesi
+     halinde, diğer taraf 30 gün önceden ihbarda bulunarak sözleşmeyi feshedebilir.
+
+7.3. Teslim: Sözleşme süresinin bitiminde veya feshi halinde taşınmaz,
+     teslim alındığı halde kiralayana geri verilecektir.
+
+═══════════════════════════════════════════════════════════════════
+
+                              YASAL ÇERÇEVE VE REFERANSLAR
+
+Bu sözleşme aşağıdaki yasal düzenlemeler çerçevesinde hazırlanmıştır:
+
+• 6098 Sayılı Türk Borçlar Kanunu (md. 299-356)
+• 6570 Sayılı Kira Artış Oranları Hakkında Kanun
+• Türk Medeni Kanunu ilgili hükümleri
+• Yargıtay İçtihatları
+
+═══════════════════════════════════════════════════════════════════
+
+                                 SONUÇ VE İMZALAR
+
+Bu sözleşme ${new Date(startDate).toLocaleDateString('tr-TR')} tarihinde başlamak üzere,
+yukarıda belirtilen şartlarla iki taraf arasında karşılıklı anlaşma ile imzalanmıştır.
+
+Sözleşme 2 (iki) asıl nüsha halinde düzenlenmiş olup, taraflar birer nüshasını
+almışlardır.
+
+
+KİRALAYAN (EV SAHİBİ)                    KİRACI
+
+
+_________________________                _________________________
+${evSahibi.ev_sahibi_ad || '[EV SAHİBİ ADI]'}                    ${kiracı.kiraci_ad || '[KİRACI ADI]'}
+
+T.C. No: ${evSahibi.ev_sahibi_tc || '[TC NO]'}              T.C. No: ${kiracı.kiraci_tc || '[TC NO]'}
+
+Tarih: ${documentDate}                    Tarih: ${documentDate}
+
+
+═══════════════════════════════════════════════════════════════════
+
+                                  ÖNEMLİ UYARILAR
+
+• Bu sözleşme taslak niteliğindedir ve hukuki danışmanlık alınması önerilir.
+• Yerel düzenlemeler ve mevcut yasalar kontrol edilmelidir.
+• Sözleşme şartları yerel koşullara göre uyarlanmalıdır.
+• Noter onayı alınması hukuki güvence sağlayacaktır.
+
+BELGE BİLGİLERİ:
+───────────────────────────────────────────────────────────────────
+Sözleşme No: ${caseNumber}
+Oluşturma Tarihi: ${documentDate} ${documentTime}
+Sistem: Artiklo Profesyonel Belge Sihirbazı v2.0
+
+Bu belge Türkiye Cumhuriyeti yasalarına uygun olarak hazırlanmıştır.
+Kullanımdan önce ilgili uzman görüşü alınması tavsiye edilir.
+
+Copyright © ${new Date().getFullYear()} Artiklo - Tüm hakları saklıdır.
+    `.trim();
+    }
+
+    /**
      * Generate default legal document for other templates
      */
     private static generateDefaultLegalDocument(
@@ -380,6 +571,40 @@ Belge No: ${caseNumber}
     }
 
     /**
+     * Calculate contract end date based on duration
+     */
+    private static calculateContractEndDate(startDate: Date, duration: string): Date | null {
+        const durationMap: Record<string, number> = {
+            '1_yil': 12,
+            '2_yil': 24,
+            '3_yil': 36,
+            'belirsiz': 0
+        };
+
+        const months = durationMap[duration] || 0;
+        if (months === 0) return null;
+
+        const endDate = new Date(startDate);
+        endDate.setMonth(endDate.getMonth() + months);
+        endDate.setDate(endDate.getDate() - 1); // One day before the anniversary
+        return endDate;
+    }
+
+    /**
+     * Format rent increase type for Turkish contract
+     */
+    private static formatRentIncreaseType(increaseType: string | number | boolean | string[] | Date | undefined): string {
+        const typeMap: Record<string, string> = {
+            'tufe': 'TÜFE (Türkiye İstatistik Kurumu Tüketici Fiyatları Genel Seviyesi) oranında yıllık artış yapılacaktır.',
+            'sabit_15': 'Yıllık %15 (on beş) sabit artış oranı uygulanacaktır.',
+            'sabit_20': 'Yıllık %20 (yirmi) sabit artış oranı uygulanacaktır.',
+            'sabit_25': 'Yıllık %25 (yirmi beş) sabit artış oranı uygulanacaktır.',
+            'anlasmali': 'Tarafların karşılıklı anlaşması ile artış oranı belirlenecektir.'
+        };
+        return typeMap[String(increaseType)] || 'Yasal düzenlemeler çerçevesinde artış yapılacaktır.';
+    }
+
+    /**
      * Generate professional filename
      */
     private static generateProfessionalFilename(
@@ -449,6 +674,31 @@ Belge No: ${caseNumber}
                     'Artırım bildirim yazısı',
                     'Tapu senedi sureti',
                     'Bölgesel kira araştırması'
+                ]
+            };
+        }
+
+        if (template.id === 'simple-kira-sozlesmesi-v1') {
+            return {
+                documentType: 'Kira Sözleşmesi',
+                createdDate: today,
+                caseNumber,
+                parties: {
+                    applicant: String(state.answers.step1?.kiraci_ad || '[KİRACI]'),
+                    defendant: String(state.answers.step2?.ev_sahibi_ad || '[EV SAHİBİ]')
+                },
+                legalBasis: [
+                    '6098 Sayılı Türk Borçlar Kanunu md. 299-356',
+                    '6570 Sayılı Kira Artış Oranları Hakkında Kanun',
+                    'Türk Medeni Kanunu ilgili hükümleri',
+                    'Yargıtay İçtihatları'
+                ],
+                attachments: [
+                    'Kimlik fotokopileri',
+                    'Tapu senedi sureti',
+                    'Vergi levhası',
+                    'Emlak vergisi makbuzu',
+                    'Apartman yönetimi belgesi (varsa)'
                 ]
             };
         }

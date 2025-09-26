@@ -6,7 +6,3 @@
 
 // Bu dosya silinmek üzere işaretlendi
 export const DEPRECATED_FILE = true;
-
-// Placeholder export to fix imports temporarily
-export const availableTemplates: any[] = [];
-export const kiraItirazTemplate = null;
