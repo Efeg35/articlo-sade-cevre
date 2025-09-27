@@ -169,15 +169,16 @@ const Navbar = () => {
                           Dashboard
                         </Button>
                       </Link>
-                      <Button
-                        disabled
-                        size="sm"
-                        className="text-sm font-medium flex items-center gap-1 opacity-50 cursor-not-allowed"
-                        title="Yakında gelecek!"
-                      >
-                        <Wand2 className="h-4 w-4" />
-                        Belge Sihirbazı
-                      </Button>
+                      <Link to="/dynamic-wizard-demo">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-sm font-medium flex items-center gap-1"
+                        >
+                          <Wand2 className="h-4 w-4" />
+                          Belge Sihirbazı
+                        </Button>
+                      </Link>
                       <Link to="/archive">
                         <Button
                           variant={isArchive ? "default" : "ghost"}
@@ -213,11 +214,11 @@ const Navbar = () => {
                           Dashboard
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          disabled
-                          className="cursor-not-allowed opacity-50"
+                          onSelect={() => navigate("/dynamic-wizard-demo")}
+                          className="cursor-pointer"
                         >
                           <Wand2 className="w-4 h-4 mr-2" />
-                          Belge Sihirbazı (Yakında)
+                          Belge Sihirbazı
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onSelect={() => navigate("/archive")}

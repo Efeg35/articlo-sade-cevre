@@ -5,7 +5,7 @@
  */
 
 import { legalReferenceService, type LegalReference } from './legalReferenceService';
-import type { DynamicTemplate } from '../types/wizard/dynamicWizard';
+import type { DynamicTemplate } from '../types/wizard/WizardTypes';
 
 interface MCPTestResult {
     success: boolean;

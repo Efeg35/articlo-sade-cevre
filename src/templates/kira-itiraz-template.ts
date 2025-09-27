@@ -8,5 +8,5 @@
 export const DEPRECATED_FILE = true;
 
 // Placeholder export to fix imports temporarily
-export const availableTemplates: any[] = [];
+export const availableTemplates: never[] = [];
 export const kiraItirazTemplate = null;

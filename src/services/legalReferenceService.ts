@@ -11,7 +11,7 @@ import type {
     DynamicTemplate,
     DynamicQuestion,
     UserAnswer
-} from '../types/wizard/dynamicWizard';
+} from '../types/wizard/WizardTypes';
 
 export interface LegalReference {
     code: string;

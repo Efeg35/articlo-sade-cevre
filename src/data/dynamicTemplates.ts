@@ -7,12 +7,13 @@
 
 import type {
     DynamicTemplate,
-} from '../types/wizard/dynamicWizard';
+} from '../types/wizard/WizardTypes';
+import { ALL_TEMPLATES } from './templates/index';
 
 /**
- * Tüm dinamik template'leri export et - ŞU ANDA BOŞ
+ * Tüm dinamik template'leri export et
  */
-export const DYNAMIC_TEMPLATES: DynamicTemplate[] = [];
+export const DYNAMIC_TEMPLATES: DynamicTemplate[] = ALL_TEMPLATES;
 
 /**
  * Template ID'ye göre template bul

@@ -16,7 +16,7 @@ import type {
     DynamicWizardState,
     DocumentGenerationContext,
     WizardAnalytics
-} from '../types/wizard/dynamicWizard';
+} from '../types/wizard/WizardTypes';
 
 export interface UserDocument {
     document_id: string;

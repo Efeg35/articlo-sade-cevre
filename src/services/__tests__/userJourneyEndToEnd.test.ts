@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { WizardMCPIntegrationService } from '../wizardMcpIntegration'
 import { getDynamicTemplate } from '../../data/dynamicTemplates'
-import type { DynamicTemplate } from '../../types/wizard/dynamicWizard'
+import type { DynamicTemplate } from '../../types/wizard/WizardTypes'
 
 console.log('🚀 User Journey End-to-End Tests loading...')
 

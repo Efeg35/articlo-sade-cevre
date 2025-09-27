@@ -16,7 +16,7 @@ import {
     type EnrichedWizardTemplate,
     type WizardLegalReference
 } from '../wizardMcpIntegration';
-import type { DynamicTemplate } from '../../types/wizard/dynamicWizard';
+import type { DynamicTemplate } from '../../types/wizard/WizardTypes';
 
 // Mock fetch globally
 const mockFetch = vi.fn();

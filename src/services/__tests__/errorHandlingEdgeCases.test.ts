@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { WizardMCPIntegrationService } from '../wizardMcpIntegration'
-import type { DynamicTemplate } from '../../types/wizard/dynamicWizard'
+import type { DynamicTemplate } from '../../types/wizard/WizardTypes'
 
 console.log('🚨 Error Handling & Edge Case Tests loading...')
 

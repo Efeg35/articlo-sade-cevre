@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Conditional Rules Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🧪 Conditional Rules Test</h1>
+    <div id="results"></div>
+
+    <script type="module">
+        import { DynamicQuestionEngine } from './src/services/dynamicQuestionEngine.js';
+        import { CEKISMELI_BOSANMA_TEMPLATE } from './src/data/templates/aile-hukuku/cekismeli-bosanma-template.js';
+
+        const results = document.getElementById('results');
+
+        function log(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = `test-result ${type}`;
+            div.textContent = message;
+            results.appendChild(div);
+        }
+
+        async function testConditionalRules() {
+            log('🚀 Conditional Rules Test Başlıyor...');
+
+            try {
+                // Engine'i debug mode ile başlat
+                const engine = new DynamicQuestionEngine(CEKISMELI_BOSANMA_TEMPLATE, true);
+
+                log('✅ Engine başlatıldı');
+                let state = engine.getCurrentState();
+                log(`📊 Başlangıç: ${state.visible_questions.length} görünür soru`);
+
+                // İlk 6 soruyu hızla geç
+                const initialAnswers = {
+                    'sehir_adi': 'İstanbul',
+                    'davaci_ad_soyad': 'Ahmet Yılmaz',
+                    'davaci_tc_kimlik': '12345678901',
+                    'davaci_adres': 'Test Mahallesi No:1 İstanbul',
+                    'davali_ad_soyad': 'Ayşe Yılmaz',
+                    'davali_adres': 'Test Mahallesi No:2 İstanbul'
+                };
+
+                for (const [questionId, answer] of Object.entries(initialAnswers)) {
+                    engine.processAnswer(questionId, answer, false);
+                    log(`✅ ${questionId} cevaplandı: ${answer}`);
+                }
+
+                state = engine.getCurrentState();
+                log(`📊 İlk 6 soru sonrası: ${state.visible_questions.length} görünür soru`);
+
+                // Kritik test: evlilik_tarihi sorusunu cevapla
+                log('🎯 KRITIK TEST: evlilik_tarihi sorusu cevaplandırılıyor...');
+                engine.processAnswer('evlilik_tarihi', '2020-01-15', false);
+
+                state = engine.getCurrentState();
+                log(`📊 evlilik_tarihi sonrası: ${state.visible_questions.length} görünür soru`,
+                    state.visible_questions.length > 7 ? 'success' : 'error');
+
+                // Yeni görünür soruları listele
+                const newQuestions = state.visible_questions.filter(q =>
+                    !CEKISMELI_BOSANMA_TEMPLATE.initial_questions.includes(q)
+                );
+
+                if (newQuestions.length > 0) {
+                    log(`🎉 BAŞARILI! ${newQuestions.length} yeni soru görünür oldu: ${newQuestions.join(', ')}`, 'success');
+                } else {
+                    log('❌ SORUN: Hiç yeni soru görünür olmadı!', 'error');
+                }
+
+                // Debug info
+                const debugInfo = engine.getDebugInfo();
+                log(`🔍 Debug: Total ${debugInfo.totalQuestions} soru, ${debugInfo.visibleQuestions} görünür`);
+
+            } catch (error) {
+                log(`❌ HATA: ${error.message}`, 'error');
+                console.error('Test hatası:', error);
+            }
+        }
+
+        // Test'i çalıştır
+        testConditionalRules();
+    </script>
+</body>
+
+</html>

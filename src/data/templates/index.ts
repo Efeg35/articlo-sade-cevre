@@ -5,19 +5,19 @@
  * Yeni template'ler kategori bazlı klasörlerde organize edilecek
  */
 
-import type { DynamicTemplate } from '../../types/wizard/dynamicWizard';
+import type { DynamicTemplate } from '../../types/wizard/WizardTypes';
 
-// Kategori bazlı import'lar (henüz template yok)
+// Kategori bazlı import'lar
 // import { KONUT_TEMPLATES } from './konut';
 // import { IS_HUKUKU_TEMPLATES } from './is-hukuku';
-// import { AILE_HUKUKU_TEMPLATES } from './aile-hukuku';
+import { AILE_HUKUKU_TEMPLATES } from './aile-hukuku';
 // import { ICRA_IFLAS_TEMPLATES } from './icra-iflas';
 
 /**
  * Tüm template'leri topla
  */
 export const ALL_TEMPLATES: DynamicTemplate[] = [
-    // Buraya yeni template'ler eklenecek
+    ...AILE_HUKUKU_TEMPLATES
 ];
 
 /**
@@ -26,7 +26,7 @@ export const ALL_TEMPLATES: DynamicTemplate[] = [
 export const TEMPLATE_CATEGORIES = {
     'Konut ve Emlak Hukuku': [],
     'İş ve Çalışma Hukuku': [],
-    'Aile Hukuku': [],
+    'Aile Hukuku': AILE_HUKUKU_TEMPLATES,
     'Borçlar Hukuku': [],
     'İcra İflas Hukuku': [],
     'Tüketici Hukuku': [],

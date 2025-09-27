@@ -14,7 +14,9 @@ export type QuestionType =
     | 'date'           // Tarih seçimi
     | 'multiple_choice' // Çoktan seçmeli
     | 'currency'       // Para birimi
-    | 'percentage';    // Yüzde değeri
+    | 'percentage'     // Yüzde değeri
+    | 'repeatable_group' // Tekrarlanabilir soru grubu
+    | 'info_panel';    // Bilgi paneli (uyarı, açıklama vb.)
 
 export type ConditionalOperator =
     | 'EQUALS'         // Eşittir
@@ -24,7 +26,12 @@ export type ConditionalOperator =
     | 'CONTAINS'       // İçerir
     | 'NOT_CONTAINS'   // İçermez
     | 'IS_EMPTY'       // Boştur
-    | 'IS_NOT_EMPTY';  // Boş değildir
+    | 'IS_NOT_EMPTY'   // Boş değildir
+    // YENİ TARİH OPERATÖRLERİ
+    | 'DATE_IS_BEFORE'          // Belirtilen bir tarihten önce mi?
+    | 'DATE_IS_AFTER'           // Belirtilen bir tarihten sonra mı?
+    | 'DATE_IS_WITHIN_LAST_DAYS'// Son X gün içinde mi?
+    | 'DATE_IS_OLDER_THAN_YEARS'; // X yıldan daha eski mi?
 
 export type ConditionalAction =
     | 'SHOW_QUESTION'     // Soruyu göster
@@ -34,7 +41,9 @@ export type ConditionalAction =
     | 'INCLUDE_CLAUSE'    // Maddeyi dahil et
     | 'EXCLUDE_CLAUSE'    // Maddeyi hariç tut
     | 'SET_VALUE'         // Değer ata
-    | 'CALCULATE_VALUE';  // Değer hesapla
+    | 'CALCULATE_VALUE'   // Değer hesapla
+    | 'ADD_GROUP_INSTANCE'    // Grup örneği ekle
+    | 'REMOVE_GROUP_INSTANCE'; // Grup örneği çıkar
 
 /**
  * Dinamik soru tanımı - LawDepot'un temel birimi
@@ -72,6 +81,25 @@ export interface DynamicQuestion {
     help_text?: string;
     placeholder?: string;
     tooltip?: string;
+    info_text?: string; // Info panel türü sorular için içerik metni
+
+    // Tekrarlanabilir grup konfigürasyonu
+    repeatable_group?: {
+        group_id: string;
+        group_title: string;
+        min_instances: number;
+        max_instances: number;
+        add_button_text?: string;
+        remove_button_text?: string;
+        group_questions: DynamicQuestion[]; // Grup içindeki sorular
+    };
+
+    // Grup instance bilgisi (runtime'da oluşturulan sorular için)
+    group_instance?: {
+        group_id: string;
+        instance_index: number;
+        parent_question_id: string;
+    };
 
     // UI özelleştirmeleri
     ui_config?: {
@@ -79,6 +107,10 @@ export interface DynamicQuestion {
         show_character_count?: boolean;
         allow_multiline?: boolean;
         currency_symbol?: string;
+        // Info panel özelleştirmeleri
+        panel_type?: 'info' | 'warning' | 'error' | 'success';
+        icon?: string;
+        readonly?: boolean;
     };
 }
 
@@ -98,6 +130,9 @@ export interface ConditionalRule {
 
     // Öncelik (düşük sayı = yüksek öncelik)
     priority: number;
+
+    // Koşulun tersini al (isteğe bağlı)
+    negate?: boolean;
 
     // Kural açıklaması (debugging için)
     description?: string;
@@ -175,6 +210,9 @@ export interface DynamicWizardState {
     completed_questions: string[];
     required_questions: string[];
 
+    // Tekrarlanabilir grup durumu
+    group_instances: Record<string, number>; // group_id -> instance count
+
     // Kullanıcı cevapları
     answers: Record<string, UserAnswer>;
 
@@ -221,6 +259,8 @@ export interface RuleEvaluationResult {
         trigger_value: unknown;
         expected_value: unknown;
         operator: ConditionalOperator;
+        negated?: boolean;
+        final_trigger_result?: boolean;
     };
 }
 
@@ -296,3 +336,18 @@ export type TemplateQuestions = Record<string, DynamicQuestion>;
 export type UserAnswers = Record<string, UserAnswer>;
 export type VisibilityMap = Record<string, boolean>;
 export type ValidationMap = Record<string, string[]>;
+
+/**
+ * Grup yönetimi için yardımcı tipler
+ */
+export interface RepeatableGroupInstance {
+    group_id: string;
+    instance_index: number;
+    questions: DynamicQuestion[];
+}
+
+export interface GroupManagementAction {
+    action: 'ADD_INSTANCE' | 'REMOVE_INSTANCE';
+    group_id: string;
+    instance_index?: number;
+}

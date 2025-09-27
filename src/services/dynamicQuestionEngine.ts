@@ -17,7 +17,7 @@ import type {
     ConditionalOperator,
     ConditionalAction,
     QuestionValue
-} from '../types/wizard/dynamicWizard';
+} from '../types/wizard/WizardTypes';
 
 export class DynamicQuestionEngine {
     private template: DynamicTemplate;
@@ -44,6 +44,7 @@ export class DynamicQuestionEngine {
                 const question = template.questions.find(q => q.question_id === qId);
                 return question?.is_required ?? false;
             }),
+            group_instances: {}, // Tekrarlanabilir grup örnekleri
             answers: {},
             is_complete: false,
             completion_percentage: 0,
@@ -56,17 +57,36 @@ export class DynamicQuestionEngine {
     /**
      * Kullanıcı cevabını işler ve state'i günceller
      */
-    public processAnswer(questionId: string, value: QuestionValue): DynamicWizardState {
+    public processAnswer(questionId: string, value: QuestionValue, isRealTime: boolean = true): DynamicWizardState {
         const question = this.template.questions.find(q => q.question_id === questionId);
         if (!question) {
             throw new Error(`Question not found: ${questionId}`);
         }
 
-        // Validation kontrolü
-        const validationResult = this.validateAnswer(question, value);
-        if (!validationResult.isValid) {
+        if (this.debugMode) {
+            console.log('🔍 Processing answer:', { questionId, value, isRealTime, questionType: question.question_type });
+        }
+
+        // Validation kontrolü - Real-time typing için esnek
+        const validationResult = this.validateAnswer(question, value, isRealTime);
+
+        // Real-time typing sırasında validation hatası olsa bile cevabı kaydet (UI feedback için)
+        // Final validation'da gerçek kontrol yapılacak
+        if (!validationResult.isValid && !isRealTime) {
             this.state.validation_errors[questionId] = validationResult.errors;
+            if (this.debugMode) {
+                console.log('❌ Final validation failed:', validationResult.errors);
+            }
             return { ...this.state };
+        } else if (!validationResult.isValid && isRealTime) {
+            // Real-time typing'de sadece hataları göster ama cevabı kaydet
+            this.state.validation_errors[questionId] = validationResult.errors;
+            if (this.debugMode) {
+                console.log('⚠️ Real-time validation warning:', validationResult.errors);
+            }
+        } else {
+            // Validation başarılı, hataları temizle
+            delete this.state.validation_errors[questionId];
         }
 
         // Cevabı kaydet
@@ -81,9 +101,9 @@ export class DynamicQuestionEngine {
 
         this.state.answers[questionId] = userAnswer;
 
-        // Completed questions güncelle
+        // ✅ FIX: Completed questions güncelle - React state mutation fix
         if (!this.state.completed_questions.includes(questionId)) {
-            this.state.completed_questions.push(questionId);
+            this.state.completed_questions = [...this.state.completed_questions, questionId];
         }
 
         // Validation errors temizle
@@ -111,14 +131,17 @@ export class DynamicQuestionEngine {
     /**
      * Cevap validasyonu
      */
-    private validateAnswer(question: DynamicQuestion, value: QuestionValue): {
+    private validateAnswer(question: DynamicQuestion, value: QuestionValue, isRealTime: boolean = true): {
         isValid: boolean;
         errors: string[];
     } {
         const errors: string[] = [];
 
-        // Required check
-        if (question.is_required && this.isEmpty(value)) {
+        // T.C. kimlik alanı tespiti
+        const isTcField = question.validation?.regex_pattern === '^[0-9]{11}$';
+
+        // Required check - Real-time typing sırasında empty check yapma
+        if (!isRealTime && question.is_required && this.isEmpty(value)) {
             errors.push('Bu alan zorunludur');
             return { isValid: false, errors };
         }
@@ -128,14 +151,40 @@ export class DynamicQuestionEngine {
             case 'text':
                 if (typeof value === 'string') {
                     const validation = question.validation;
-                    if (validation?.min_length && value.length < validation.min_length) {
+                    // Real-time typing sırasında min_length kontrolü yapma
+                    if (!isRealTime && validation?.min_length && value.length < validation.min_length) {
                         errors.push(`Minimum ${validation.min_length} karakter olmalıdır`);
                     }
                     if (validation?.max_length && value.length > validation.max_length) {
                         errors.push(`Maximum ${validation.max_length} karakter olabilir`);
                     }
-                    if (validation?.regex_pattern && !new RegExp(validation.regex_pattern).test(value)) {
-                        errors.push(validation.custom_message || 'Geçersiz format');
+                    // T.C. kimlik için özel real-time kontrol
+                    if (validation?.regex_pattern && value.length > 0) {
+                        if (isTcField) {
+                            // T.C. kimlik: Real-time'da sadece rakam kontrolü
+                            if (isRealTime) {
+                                // Sadece rakam kontrolü (yazmaya engel olmasın)
+                                if (!/^[0-9]*$/.test(value)) {
+                                    errors.push('Sadece rakam girebilirsiniz');
+                                }
+                                // Uzunluk uyarısı (engellemez ama bilgilendirir)
+                                if (value.length > 11) {
+                                    errors.push('T.C. Kimlik Numarası en fazla 11 haneli olmalıdır');
+                                }
+                            } else {
+                                // Final validation: Tam 11 hane kontrolü
+                                if (!new RegExp(validation.regex_pattern).test(value)) {
+                                    errors.push(validation.custom_message || 'T.C. Kimlik Numarası 11 haneli olmalıdır');
+                                }
+                            }
+                        } else {
+                            // Diğer alanlar: Sadece final validation'da regex kontrolü
+                            if (!isRealTime) {
+                                if (!new RegExp(validation.regex_pattern).test(value)) {
+                                    errors.push(validation.custom_message || 'Geçersiz format');
+                                }
+                            }
+                        }
                     }
                 }
                 break;
@@ -164,6 +213,22 @@ export class DynamicQuestionEngine {
                     }
                 }
                 break;
+
+            case 'date':
+                if (typeof value === 'string' && value.length > 0) {
+                    // Basic date format validation (YYYY-MM-DD)
+                    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+                    if (!dateRegex.test(value)) {
+                        errors.push('Geçersiz tarih formatı');
+                    } else {
+                        // Check if it's a valid date
+                        const dateObj = new Date(value);
+                        if (isNaN(dateObj.getTime()) || dateObj.toISOString().split('T')[0] !== value) {
+                            errors.push('Geçerli bir tarih giriniz');
+                        }
+                    }
+                }
+                break;
         }
 
         return { isValid: errors.length === 0, errors };
@@ -185,24 +250,62 @@ export class DynamicQuestionEngine {
     private evaluateRules(questionId: string, value: QuestionValue): RuleEvaluationResult[] {
         const question = this.template.questions.find(q => q.question_id === questionId);
         if (!question || !question.conditional_rules.length) {
+            if (this.debugMode) {
+                console.log(`🔍 No rules for question: ${questionId}`);
+            }
             return [];
         }
 
-        return question.conditional_rules
+        if (this.debugMode) {
+            console.log(`🔍 Evaluating ${question.conditional_rules.length} rules for question: ${questionId}`, {
+                value,
+                rules: question.conditional_rules.map(r => ({
+                    rule_id: r.rule_id,
+                    operator: r.operator,
+                    trigger_value: r.trigger_value,
+                    target_id: r.target_id
+                }))
+            });
+        }
+
+        const results = question.conditional_rules
             .sort((a, b) => a.priority - b.priority) // Öncelik sırasına göre
             .map(rule => this.evaluateRule(rule, questionId, value))
             .filter(result => result.triggered);
+
+        if (this.debugMode) {
+            console.log(`🎯 Rule evaluation results for ${questionId}:`, {
+                totalRules: question.conditional_rules.length,
+                triggeredRules: results.length,
+                results: results.map(r => ({
+                    rule_id: r.rule_id,
+                    action: r.action_taken,
+                    target_id: r.target_id
+                }))
+            });
+        }
+
+        return results;
     }
 
     /**
-     * Tek bir rule'u değerlendirir
+     * Tek bir rule'u değerlendirir - NEGATE desteği ile güncellenmiş
      */
     private evaluateRule(rule: ConditionalRule, questionId: string, value: QuestionValue): RuleEvaluationResult {
-        const triggered = this.checkCondition(rule.operator, value, rule.trigger_value);
+        // Adım 1: Koşulu normal şekilde kontrol et
+        let triggered = this.checkCondition(rule.operator, value, rule.trigger_value);
+
+        // Adım 2: Eğer kuralda "negate: true" varsa, sonucun TERSİNİ AL
+        if (rule.negate === true) {
+            triggered = !triggered;
+            if (this.debugMode) {
+                console.log(`🔄 Rule ${rule.rule_id} negated: ${!triggered} -> ${triggered}`);
+            }
+        }
 
         const result: RuleEvaluationResult = {
             rule_id: rule.rule_id,
-            triggered,
+            triggered, // Artık doğru sonucu içeriyor
             action_taken: rule.action,
             target_id: rule.target_id,
             timestamp: new Date().toISOString()
@@ -212,7 +315,9 @@ export class DynamicQuestionEngine {
             result.debug_info = {
                 trigger_value: value,
                 expected_value: rule.trigger_value,
-                operator: rule.operator
+                operator: rule.operator,
+                negated: rule.negate, // Debug için eklendi
+                final_trigger_result: triggered // Debug için eklendi
             };
         }
 
@@ -220,13 +325,14 @@ export class DynamicQuestionEngine {
     }
 
     /**
-     * Koşul operatörlerine göre karşılaştırma yapar
+     * Koşul operatörlerine göre karşılaştırma yapar - Tarih desteği ile güncellenmiş
      */
     private checkCondition(
         operator: ConditionalOperator,
         actualValue: QuestionValue,
         expectedValue: string | number | boolean | string[]
     ): boolean {
+        // Tarih ile ilgili olmayan mevcut operatörler
         switch (operator) {
             case 'EQUALS':
                 return actualValue === expectedValue;
@@ -259,12 +365,103 @@ export class DynamicQuestionEngine {
 
             case 'IS_NOT_EMPTY':
                 return !this.isEmpty(actualValue);
+        }
 
-            default:
+        // --- YENİ EKLENEN TARİH MANTIĞI ---
+
+        // Eğer operatör tarihle ilgili değilse veya gelen cevap bir tarih değilse, devam etme.
+        if (typeof actualValue !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(actualValue)) {
+            if (this.debugMode) {
+                console.warn(`Date operator used but actualValue is not a valid date: ${actualValue}`);
+            }
+            return false;
+        }
+
+        try {
+            const inputDate = new Date(actualValue);
+            // Geçersiz bir tarihse (örn: 2023-02-30), hata vermemesi için kontrol et
+            if (isNaN(inputDate.getTime())) {
                 if (this.debugMode) {
-                    console.warn(`Unknown operator: ${operator}`);
+                    console.warn(`Invalid date provided: ${actualValue}`);
                 }
                 return false;
+            }
+
+            const now = new Date();
+
+            switch (operator) {
+                case 'DATE_IS_BEFORE': {
+                    // Beklenen değer 'YYYY-MM-DD' formatında bir tarih string'i olmalı
+                    const beforeDate = new Date(expectedValue as string);
+                    if (isNaN(beforeDate.getTime())) {
+                        if (this.debugMode) {
+                            console.warn(`Invalid expected date for DATE_IS_BEFORE: ${expectedValue}`);
+                        }
+                        return false;
+                    }
+                    return inputDate < beforeDate;
+                }
+
+                case 'DATE_IS_AFTER': {
+                    // Beklenen değer 'YYYY-MM-DD' formatında bir tarih string'i olmalı
+                    const afterDate = new Date(expectedValue as string);
+                    if (isNaN(afterDate.getTime())) {
+                        if (this.debugMode) {
+                            console.warn(`Invalid expected date for DATE_IS_AFTER: ${expectedValue}`);
+                        }
+                        return false;
+                    }
+                    return inputDate > afterDate;
+                }
+
+                case 'DATE_IS_WITHIN_LAST_DAYS': {
+                    // Beklenen değer gün sayısı (number) olmalı
+                    if (typeof expectedValue !== 'number') {
+                        if (this.debugMode) {
+                            console.warn(`DATE_IS_WITHIN_LAST_DAYS requires numeric expectedValue, got: ${expectedValue}`);
+                        }
+                        return false;
+                    }
+                    const daysAgo = new Date();
+                    daysAgo.setDate(now.getDate() - expectedValue);
+                    return inputDate >= daysAgo;
+                }
+
+                case 'DATE_IS_OLDER_THAN_YEARS': {
+                    // Anlaşmalı boşanma için gereken "1 yıldan eski mi?" kuralı
+                    // Beklenen değer yıl sayısı (number) olmalı
+                    if (typeof expectedValue !== 'number') {
+                        if (this.debugMode) {
+                            console.warn(`DATE_IS_OLDER_THAN_YEARS requires numeric expectedValue, got: ${expectedValue}`);
+                        }
+                        return false;
+                    }
+                    const yearsAgo = new Date();
+                    yearsAgo.setFullYear(now.getFullYear() - expectedValue);
+                    const result = inputDate < yearsAgo;
+
+                    if (this.debugMode) {
+                        console.log(`🔍 DATE_IS_OLDER_THAN_YEARS evaluation:`, {
+                            inputDate: inputDate.toISOString().split('T')[0],
+                            yearsAgo: yearsAgo.toISOString().split('T')[0],
+                            expectedYears: expectedValue,
+                            result
+                        });
+                    }
+                    return result;
+                }
+
+                default:
+                    if (this.debugMode) {
+                        console.warn(`Unknown or unhandled operator: ${operator}`);
+                    }
+                    return false;
+            }
+        } catch (error) {
+            if (this.debugMode) {
+                console.error("Error in date condition check:", error);
+            }
+            return false;
         }
     }
 
@@ -272,6 +469,10 @@ export class DynamicQuestionEngine {
      * Rule sonuçlarını state'e uygular
      */
     private applyRuleResults(results: RuleEvaluationResult[]): void {
+        if (this.debugMode && results.length > 0) {
+            console.log(`🔧 Applying ${results.length} rule results:`, results);
+        }
+
         for (const result of results) {
             this.applyAction(result.action_taken, result.target_id);
         }
@@ -281,13 +482,26 @@ export class DynamicQuestionEngine {
      * Conditional action'ı uygular
      */
     private applyAction(action: ConditionalAction, targetId: string): void {
+        if (this.debugMode) {
+            console.log(`🔧 Applying action: ${action} to target: ${targetId}`);
+        }
+
         switch (action) {
             case 'SHOW_QUESTION':
                 if (!this.state.visible_questions.includes(targetId)) {
-                    this.state.visible_questions.push(targetId);
+                    // ✅ FIX: React state mutation fix - yeni array oluştur
+                    this.state.visible_questions = [...this.state.visible_questions, targetId];
                     const targetQuestion = this.template.questions.find(q => q.question_id === targetId);
                     if (targetQuestion?.is_required && !this.state.required_questions.includes(targetId)) {
-                        this.state.required_questions.push(targetId);
+                        // ✅ FIX: React state mutation fix - yeni array oluştur
+                        this.state.required_questions = [...this.state.required_questions, targetId];
+                    }
+                    if (this.debugMode) {
+                        console.log(`✅ Question ${targetId} added to visible list. New visible count: ${this.state.visible_questions.length}`);
+                    }
+                } else {
+                    if (this.debugMode) {
+                        console.log(`ℹ️ Question ${targetId} already visible`);
                     }
                 }
                 break;
@@ -302,7 +516,8 @@ export class DynamicQuestionEngine {
 
             case 'REQUIRE_QUESTION':
                 if (!this.state.required_questions.includes(targetId)) {
-                    this.state.required_questions.push(targetId);
+                    // ✅ FIX: React state mutation fix - yeni array oluştur
+                    this.state.required_questions = [...this.state.required_questions, targetId];
                 }
                 break;
 
@@ -318,7 +533,178 @@ export class DynamicQuestionEngine {
             case 'CALCULATE_VALUE':
                 // Gelişmiş hesaplama mantığı burada olacak
                 break;
+
+            case 'ADD_GROUP_INSTANCE':
+                this.addGroupInstance(targetId);
+                break;
+
+            case 'REMOVE_GROUP_INSTANCE':
+                this.removeGroupInstance(targetId);
+                break;
         }
+    }
+
+    /**
+     * Tekrarlanabilir grup örneği ekler
+     */
+    public addGroupInstance(groupId: string): void {
+        const groupQuestion = this.template.questions.find(q =>
+            q.question_type === 'repeatable_group' && q.repeatable_group?.group_id === groupId
+        );
+
+        if (!groupQuestion || !groupQuestion.repeatable_group) {
+            if (this.debugMode) {
+                console.warn(`Group not found: ${groupId}`);
+            }
+            return;
+        }
+
+        const currentCount = this.state.group_instances[groupId] || 0;
+        const maxInstances = groupQuestion.repeatable_group.max_instances;
+
+        if (currentCount >= maxInstances) {
+            if (this.debugMode) {
+                console.warn(`Maximum instances reached for group: ${groupId}`);
+            }
+            return;
+        }
+
+        const newCount = currentCount + 1;
+        this.state.group_instances[groupId] = newCount;
+
+        // Grup içindeki soruları yeni instance için oluştur
+        const groupQuestions = groupQuestion.repeatable_group.group_questions;
+        for (const groupSubQuestion of groupQuestions) {
+            const instanceQuestionId = `${groupSubQuestion.question_id}_${newCount}`;
+
+            // ✅ FIX: Grup instance sorusunu visible_questions'a ekle - React state mutation fix
+            if (!this.state.visible_questions.includes(instanceQuestionId)) {
+                this.state.visible_questions = [...this.state.visible_questions, instanceQuestionId];
+
+                if (groupSubQuestion.is_required && !this.state.required_questions.includes(instanceQuestionId)) {
+                    this.state.required_questions = [...this.state.required_questions, instanceQuestionId];
+                }
+            }
+        }
+
+        if (this.debugMode) {
+            console.log(`Added group instance: ${groupId}, count: ${newCount}`);
+        }
+    }
+
+    /**
+     * Tekrarlanabilir grup örneği çıkarır
+     */
+    public removeGroupInstance(groupId: string): void {
+        const groupQuestion = this.template.questions.find(q =>
+            q.question_type === 'repeatable_group' && q.repeatable_group?.group_id === groupId
+        );
+
+        if (!groupQuestion || !groupQuestion.repeatable_group) {
+            return;
+        }
+
+        const currentCount = this.state.group_instances[groupId] || 0;
+        const minInstances = groupQuestion.repeatable_group.min_instances;
+
+        if (currentCount <= minInstances) {
+            if (this.debugMode) {
+                console.warn(`Minimum instances reached for group: ${groupId}`);
+            }
+            return;
+        }
+
+        // Son instance'ı kaldır
+        const instanceToRemove = currentCount;
+        const groupQuestions = groupQuestion.repeatable_group.group_questions;
+
+        for (const groupSubQuestion of groupQuestions) {
+            const instanceQuestionId = `${groupSubQuestion.question_id}_${instanceToRemove}`;
+
+            // Soruları state'den temizle
+            this.state.visible_questions = this.state.visible_questions.filter(id => id !== instanceQuestionId);
+            this.state.required_questions = this.state.required_questions.filter(id => id !== instanceQuestionId);
+            this.state.completed_questions = this.state.completed_questions.filter(id => id !== instanceQuestionId);
+            delete this.state.answers[instanceQuestionId];
+            delete this.state.validation_errors[instanceQuestionId];
+        }
+
+        this.state.group_instances[groupId] = currentCount - 1;
+
+        if (this.debugMode) {
+            console.log(`Removed group instance: ${groupId}, count: ${currentCount - 1}`);
+        }
+    }
+
+    /**
+     * Grup için dinamik sorular oluşturur
+     */
+    public getGroupQuestions(groupId: string): DynamicQuestion[] {
+        const groupQuestion = this.template.questions.find(q =>
+            q.question_type === 'repeatable_group' && q.repeatable_group?.group_id === groupId
+        );
+
+        if (!groupQuestion || !groupQuestion.repeatable_group) {
+            return [];
+        }
+
+        const instanceCount = this.state.group_instances[groupId] || 0;
+        const dynamicQuestions: DynamicQuestion[] = [];
+
+        for (let i = 1; i <= instanceCount; i++) {
+            for (const subQuestion of groupQuestion.repeatable_group.group_questions) {
+                const instanceQuestion: DynamicQuestion = {
+                    ...subQuestion,
+                    question_id: `${subQuestion.question_id}_${i}`,
+                    question_text: subQuestion.question_text.replace('{{instance}}', i.toString()),
+                    group_instance: {
+                        group_id: groupId,
+                        instance_index: i,
+                        parent_question_id: groupQuestion.question_id
+                    }
+                };
+                dynamicQuestions.push(instanceQuestion);
+            }
+        }
+
+        return dynamicQuestions;
+    }
+
+    /**
+     * Belirli bir grubun yönetim durumunu döndürür
+     */
+    public getGroupManagementInfo(groupId: string): {
+        current_count: number;
+        min_instances: number;
+        max_instances: number;
+        can_add: boolean;
+        can_remove: boolean;
+    } {
+        const groupQuestion = this.template.questions.find(q =>
+            q.question_type === 'repeatable_group' && q.repeatable_group?.group_id === groupId
+        );
+
+        if (!groupQuestion || !groupQuestion.repeatable_group) {
+            return {
+                current_count: 0,
+                min_instances: 0,
+                max_instances: 0,
+                can_add: false,
+                can_remove: false
+            };
+        }
+
+        const currentCount = this.state.group_instances[groupId] || 0;
+        const minInstances = groupQuestion.repeatable_group.min_instances;
+        const maxInstances = groupQuestion.repeatable_group.max_instances;
+
+        return {
+            current_count: currentCount,
+            min_instances: minInstances,
+            max_instances: maxInstances,
+            can_add: currentCount < maxInstances,
+            can_remove: currentCount > minInstances
+        };
     }
 
     /**
@@ -337,10 +723,42 @@ export class DynamicQuestionEngine {
             ? Math.round((requiredAnswered / this.state.required_questions.length) * 100)
             : 0;
 
-        // Is complete check
-        this.state.is_complete = this.state.completion_percentage === 100;
+        // Is complete check - sadece tüm zorunlu sorular cevaplanmış VE görünür soru kalmamışsa
+        const allRequiredAnswered = this.state.completion_percentage === 100;
+        const noUnansweredVisibleQuestions = this.state.visible_questions.every(qId =>
+            this.state.completed_questions.includes(qId)
+        );
+
+        this.state.is_complete = allRequiredAnswered && noUnansweredVisibleQuestions;
+
+        // 🚨 DEBUG: Completion logic detailed logging
+        if (this.debugMode) {
+            console.log('🎯 COMPLETION CHECK DETAILS:', {
+                allRequiredAnswered,
+                noUnansweredVisibleQuestions,
+                completion_percentage: this.state.completion_percentage,
+                is_complete: this.state.is_complete,
+                visible_questions: this.state.visible_questions,
+                completed_questions: this.state.completed_questions,
+                unanswered_visible: this.state.visible_questions.filter(qId =>
+                    !this.state.completed_questions.includes(qId)
+                )
+            });
+        }
 
         this.state.last_updated_at = new Date().toISOString();
+
+        if (this.debugMode) {
+            console.log('🔄 Wizard State Updated:', {
+                visible_questions: this.state.visible_questions.length,
+                completed_questions: this.state.completed_questions.length,
+                required_questions: this.state.required_questions.length,
+                completion_percentage: this.state.completion_percentage,
+                is_complete: this.state.is_complete,
+                allRequiredAnswered,
+                noUnansweredVisibleQuestions
+            });
+        }
     }
 
     /**

@@ -45,7 +45,7 @@ import {
 import type {
     DynamicTemplate,
     UserAnswer
-} from '../../types/wizard/dynamicWizard';
+} from '../../types/wizard/WizardTypes';
 
 interface LegalReferencePanelProps {
     template: DynamicTemplate;

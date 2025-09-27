@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { WizardMCPIntegrationService } from '../wizardMcpIntegration'
 import { getDynamicTemplate } from '../../data/dynamicTemplates'
-import type { DynamicTemplate } from '../../types/wizard/dynamicWizard'
+import type { DynamicTemplate } from '../../types/wizard/WizardTypes'
 
 // 🧪 MCP Connection Stability Test Suite
 console.log('🔗 MCP Connection Stability tests loading...')

@@ -5,7 +5,7 @@
  * Mock data yerine gerçek Yargıtay kararları, kanun metinleri vs. kullanır
  */
 
-import type { DynamicTemplate, DynamicQuestion } from '../types/wizard/dynamicWizard';
+import type { DynamicTemplate, DynamicQuestion } from '../types/wizard/WizardTypes';
 
 // MCP import'ları
 interface MCPSearchResult {

@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { WizardMCPIntegrationService } from '../wizardMcpIntegration'
-import type { DynamicTemplate } from '../../types/wizard/dynamicWizard'
+import type { DynamicTemplate } from '../../types/wizard/WizardTypes'
 
 // Define EnrichedWizardTemplate locally matching the service return type
 interface EnrichedWizardTemplate extends DynamicTemplate {

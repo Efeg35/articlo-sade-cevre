@@ -16,7 +16,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
-import { AlertCircle, CheckCircle2, HelpCircle, ArrowLeft, ArrowRight } from 'lucide-react';
+import { AlertCircle, CheckCircle2, HelpCircle, ArrowLeft, ArrowRight, Plus, Minus } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
@@ -26,7 +26,7 @@ import type {
     DynamicWizardState,
     UserAnswer,
     QuestionValue
-} from '../../types/wizard/dynamicWizard';
+} from '../../types/wizard/WizardTypes';
 
 import { DynamicQuestionEngine } from '../../services/dynamicQuestionEngine';
 import { LegalReferencePanel } from './LegalReferencePanel';
@@ -213,6 +213,62 @@ const QuestionInput: React.FC<QuestionInputProps> = ({
 };
 
 /**
+ * Tekrarlanabilir grup component'i
+ */
+const RepeatableGroupInput: React.FC<{
+    question: DynamicQuestion;
+    engine: DynamicQuestionEngine;
+    wizardState: DynamicWizardState;
+    onAddInstance: (groupId: string) => void;
+    onRemoveInstance: (groupId: string) => void;
+}> = ({ question, engine, wizardState, onAddInstance, onRemoveInstance }) => {
+    if (!question.repeatable_group) return null;
+
+    const groupInfo = engine.getGroupManagementInfo(question.repeatable_group.group_id);
+    const groupQuestions = engine.getGroupQuestions(question.repeatable_group.group_id);
+
+    return (
+        <div className="space-y-4">
+            <div className="flex items-center justify-between">
+                <h4 className="text-lg font-medium">{question.repeatable_group.group_title}</h4>
+                <div className="flex space-x-2">
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => onRemoveInstance(question.repeatable_group!.group_id)}
+                        disabled={!groupInfo.can_remove}
+                    >
+                        <Minus className="w-4 h-4 mr-1" />
+                        {question.repeatable_group.remove_button_text || 'Çıkar'}
+                    </Button>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => onAddInstance(question.repeatable_group!.group_id)}
+                        disabled={!groupInfo.can_add}
+                    >
+                        <Plus className="w-4 h-4 mr-1" />
+                        {question.repeatable_group.add_button_text || 'Ekle'}
+                    </Button>
+                </div>
+            </div>
+
+            {groupInfo.current_count === 0 && (
+                <div className="text-gray-500 text-center p-4 border border-dashed rounded-md">
+                    Henüz {question.repeatable_group.group_title.toLowerCase()} eklenmedi.
+                </div>
+            )}
+
+            <div className="text-sm text-gray-600">
+                {groupInfo.current_count} / {groupInfo.max_instances} (En az: {groupInfo.min_instances})
+            </div>
+        </div>
+    );
+};
+
+/**
  * Ana Dynamic Wizard Component
  */
 export const DynamicWizard: React.FC<DynamicWizardProps> = ({
@@ -233,13 +289,22 @@ export const DynamicWizard: React.FC<DynamicWizardProps> = ({
     // UI state
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [autoSaveEnabled, setAutoSaveEnabled] = useState(true);
+    const [isProcessingNext, setIsProcessingNext] = useState(false);
+    const [autoSaveEnabled, setAutoSaveEnabled] = useState(false);
 
     // Memoized visible questions
     const visibleQuestions = useMemo(() => {
-        return wizardState.visible_questions
-            .map(qId => template.questions.find(q => q.question_id === qId))
+        const mappedQuestions = wizardState.visible_questions
+            .map(qId => {
+                const found = template.questions.find(q => q.question_id === qId);
+                if (!found) {
+                    console.warn('[UI] Question not found in template:', qId);
+                }
+                return found;
+            })
             .filter(Boolean) as DynamicQuestion[];
+
+        return mappedQuestions;
     }, [wizardState.visible_questions, template.questions]);
 
     // Current question
@@ -257,10 +322,11 @@ export const DynamicWizard: React.FC<DynamicWizardProps> = ({
     }, [wizardState.answers, autoSaveEnabled, onSave]);
 
     /**
-     * Navigation and completion handlers - defined in order to avoid circular dependencies
+     * Navigation and completion handlers
      */
     const handleComplete = useCallback(async () => {
         if (!wizardState.is_complete) {
+            console.warn("Attempted to complete wizard when not in a complete state.");
             return;
         }
 
@@ -274,14 +340,6 @@ export const DynamicWizard: React.FC<DynamicWizardProps> = ({
         }
     }, [wizardState.is_complete, wizardState.answers, onComplete]);
 
-    const handleNext = useCallback(() => {
-        if (currentQuestionIndex < visibleQuestions.length - 1) {
-            setCurrentQuestionIndex(prev => prev + 1);
-        } else if (wizardState.is_complete) {
-            handleComplete();
-        }
-    }, [currentQuestionIndex, visibleQuestions.length, wizardState.is_complete, handleComplete]);
-
     const handlePrevious = useCallback(() => {
         if (currentQuestionIndex > 0) {
             setCurrentQuestionIndex(prev => prev - 1);
@@ -293,21 +351,33 @@ export const DynamicWizard: React.FC<DynamicWizardProps> = ({
      */
     const handleAnswer = useCallback((questionId: string, value: QuestionValue) => {
         try {
-            const newState = engine.processAnswer(questionId, value);
+            const newState = engine.processAnswer(questionId, value, true);
             setWizardState(newState);
-
-            // If this was the current question and it's now complete, move to next
-            const question = template.questions.find(q => q.question_id === questionId);
-            if (question && currentQuestion?.question_id === questionId) {
-                // Small delay to allow user to see their answer
-                setTimeout(() => {
-                    handleNext();
-                }, 500);
-            }
         } catch (error) {
             console.error('Error processing answer:', error);
         }
-    }, [engine, template.questions, currentQuestion?.question_id, handleNext]);
+    }, [engine]);
+
+    /**
+     * Grup instance handlers
+     */
+    const handleAddGroupInstance = useCallback((groupId: string) => {
+        try {
+            engine.addGroupInstance(groupId);
+            setWizardState(engine.getCurrentState());
+        } catch (error) {
+            console.error('Error adding group instance:', error);
+        }
+    }, [engine]);
+
+    const handleRemoveGroupInstance = useCallback((groupId: string) => {
+        try {
+            engine.removeGroupInstance(groupId);
+            setWizardState(engine.getCurrentState());
+        } catch (error) {
+            console.error('Error removing group instance:', error);
+        }
+    }, [engine]);
 
     // Get current answer for the displayed question
     const currentAnswer = currentQuestion
@@ -319,12 +389,70 @@ export const DynamicWizard: React.FC<DynamicWizardProps> = ({
         ? wizardState.validation_errors[currentQuestion.question_id]
         : undefined;
 
-    // Check if we can proceed (current question answered if required)
-    const canProceed = currentQuestion
-        ? !currentQuestion.is_required ||
-        (currentQuestion.question_id in wizardState.answers &&
-            wizardState.answers[currentQuestion.question_id].is_valid)
-        : false;
+    // ✅ İYİLEŞTİRİLMİŞ canProceed - Boolean ve diğer tipler için güvenli kontrol
+    const canProceed = useMemo(() => {
+        if (!currentQuestion) return false;
+
+        if (!currentQuestion.is_required) return true;
+
+        // Boolean sorular için özel durum: false da bir cevaptır.
+        if (currentQuestion.question_type === 'boolean') {
+            return currentAnswer === true || currentAnswer === false;
+        }
+
+        // Diğer tipler için: null, undefined ve boş string'i kontrol eder. 0'ı geçerli sayar.
+        return currentAnswer !== null &&
+            currentAnswer !== undefined &&
+            String(currentAnswer).trim() !== '';
+
+    }, [currentQuestion, currentAnswer]);
+
+    // ✅ YENİ VE DÜZELTİLMİŞ handleNext FONKSİYONU
+    const handleNext = useCallback(async () => {
+        // 1. Gereksiz tekrarları ve hatalı durumları engelle
+        if (isProcessingNext || !currentQuestion) return;
+        setIsProcessingNext(true);
+
+        try {
+            // 2. Mevcut sorunun cevabını al ve motorla son kez işle (final validation).
+            // Bu işlem, yeni soruların görünürlüğünü de güncelleyecektir.
+            const finalState = engine.processAnswer(currentQuestion.question_id, currentAnswer, false);
+            setWizardState(finalState); // State'i yeni ve en güncel haliyle set et.
+
+            // 3. Final validasyon sonrası hata oluştu mu kontrol et.
+            const finalErrors = finalState.validation_errors[currentQuestion.question_id];
+            if (finalErrors && finalErrors.length > 0) {
+                // Hata varsa, kullanıcıya göstermek için işlemi burada durdur.
+                return;
+            }
+
+            // 4. Navigasyon kararını VERİLEN CEVAPTAN SONRA oluşan GÜNCEL duruma göre ver.
+            // `visibleQuestions` yerine `finalState.visible_questions`'a bakmak kritiktir.
+            const isLastQuestionInUpdatedList = currentQuestionIndex === finalState.visible_questions.length - 1;
+
+            if (!isLastQuestionInUpdatedList) {
+                // Güncel soru listesinin sonunda değilsek, bir sonraki soruya geç.
+                setCurrentQuestionIndex(prev => prev + 1);
+            } else {
+                // Artık görünürdeki son sorudayız. Formun tamamlanıp tamamlanmadığını kontrol et.
+                if (finalState.is_complete) {
+                    await handleComplete();
+                }
+            }
+        } catch (error) {
+            console.error('HandleNext error:', error);
+        } finally {
+            // İşlem başarılı da olsa, hata da olsa, processing state'ini sıfırla.
+            setIsProcessingNext(false);
+        }
+    }, [
+        isProcessingNext,
+        currentQuestion,
+        currentQuestionIndex,
+        currentAnswer,
+        engine,
+        handleComplete
+    ]);
 
     if (!currentQuestion) {
         return (
@@ -360,7 +488,7 @@ export const DynamicWizard: React.FC<DynamicWizardProps> = ({
                                     İlerleme: {currentQuestionIndex + 1} / {visibleQuestions.length}
                                 </span>
                                 <span className="text-sm text-gray-600">
-                                    %{wizardState.completion_percentage} tamamlandı
+                                    %{wizardState.completion_percentage.toFixed(0)} tamamlandı
                                 </span>
                             </div>
                             <Progress value={wizardState.completion_percentage} className="w-full" />
@@ -407,12 +535,22 @@ export const DynamicWizard: React.FC<DynamicWizardProps> = ({
                         <CardContent className="space-y-4">
                             {/* Question Input */}
                             <div className="space-y-2">
-                                <QuestionInput
-                                    question={currentQuestion}
-                                    value={currentAnswer}
-                                    onChange={(value) => handleAnswer(currentQuestion.question_id, value)}
-                                    error={currentErrors}
-                                />
+                                {currentQuestion.question_type === 'repeatable_group' ? (
+                                    <RepeatableGroupInput
+                                        question={currentQuestion}
+                                        engine={engine}
+                                        wizardState={wizardState}
+                                        onAddInstance={handleAddGroupInstance}
+                                        onRemoveInstance={handleRemoveGroupInstance}
+                                    />
+                                ) : (
+                                    <QuestionInput
+                                        question={currentQuestion}
+                                        value={currentAnswer ?? ''} // Ensure value is not undefined
+                                        onChange={(value) => handleAnswer(currentQuestion.question_id, value)}
+                                        error={currentErrors}
+                                    />
+                                )}
 
                                 {/* Validation Errors */}
                                 {currentErrors && currentErrors.length > 0 && (
@@ -441,20 +579,13 @@ export const DynamicWizard: React.FC<DynamicWizardProps> = ({
                                 </Button>
 
                                 <div className="flex space-x-2">
-                                    {/* Auto-save indicator */}
-                                    {autoSaveEnabled && (
-                                        <div className="text-sm text-gray-500 flex items-center">
-                                            <CheckCircle2 className="w-4 h-4 mr-1" />
-                                            Otomatik kaydediliyor
-                                        </div>
-                                    )}
-
                                     <Button
                                         onClick={handleNext}
-                                        disabled={currentQuestion.is_required && !canProceed}
+                                        disabled={isSubmitting || isProcessingNext || !canProceed}
+                                        variant="default"
                                     >
-                                        {currentQuestionIndex === visibleQuestions.length - 1 ? (
-                                            wizardState.is_complete ? 'Tamamla' : 'Bitir'
+                                        {currentQuestionIndex === visibleQuestions.length - 1 && wizardState.is_complete ? (
+                                            'Tamamla'
                                         ) : (
                                             'Sonraki'
                                         )}
@@ -472,9 +603,11 @@ export const DynamicWizard: React.FC<DynamicWizardProps> = ({
                                 <CardTitle className="text-sm">🔧 Debug Panel</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <pre className="text-xs bg-gray-100 p-2 rounded overflow-auto max-h-40">
-                                    {JSON.stringify(engine.getDebugInfo(), null, 2)}
-                                </pre>
+                                <div className="space-y-3">
+                                    <pre className="text-xs bg-gray-100 p-2 rounded overflow-auto max-h-60">
+                                        {JSON.stringify(engine.getDebugInfo(), null, 2)}
+                                    </pre>
+                                </div>
                             </CardContent>
                         </Card>
                     )}
@@ -507,7 +640,7 @@ export const DynamicWizard: React.FC<DynamicWizardProps> = ({
                             </div>
                             <div className="flex justify-between">
                                 <span>İlerleme:</span>
-                                <span className="font-medium">%{wizardState.completion_percentage}</span>
+                                <span className="font-medium">%{wizardState.completion_percentage.toFixed(0)}</span>
                             </div>
                             {wizardState.is_complete && (
                                 <div className="pt-2 border-t">

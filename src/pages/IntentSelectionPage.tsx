@@ -13,8 +13,8 @@ const IntentSelectionPage: React.FC = () => {
     };
 
     const handleWizardChoice = () => {
-        // Wizard framework hazır, direkt wizard sayfasına yönlendir
-        navigate('/wizard');
+        // Dinamik wizard sistemi hazır, demo sayfasına yönlendir
+        navigate('/dynamic-wizard-demo');
     };
 
     return (
